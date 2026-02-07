@@ -44,6 +44,9 @@ export function LightTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
               <div className={cn('text-4xl font-bold mb-2', isNext ? 'text-emerald-700' : 'text-gray-900')}>
                 {formatTime12h(prayer.time)}
               </div>
+              {prayer.iqamahTime && (
+                <div className="text-sm opacity-70">Iqamah: {formatTime12h(prayer.iqamahTime)}</div>
+              )}
               {isNext && (
                 <div className="mt-2 px-3 py-1 bg-emerald-500 text-white rounded-full text-xs font-bold">NEXT</div>
               )}

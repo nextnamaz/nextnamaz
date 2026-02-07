@@ -68,6 +68,9 @@ export function RamadanTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
             >
               <div className="text-sm text-purple-300 mb-2">{prayer.displayName}</div>
               <div className="text-2xl font-bold mb-1">{formatTime12h(prayer.time)}</div>
+              {prayer.iqamahTime && (
+                <div className="text-xs opacity-70">Iqamah: {formatTime12h(prayer.iqamahTime)}</div>
+              )}
             </div>
           );
         })}

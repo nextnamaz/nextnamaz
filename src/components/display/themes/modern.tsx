@@ -46,6 +46,9 @@ export function ModernTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
                 <div className={cn('text-4xl font-light', isNext && 'text-cyan-300')}>
                   {formatTime12h(prayer.time)}
                 </div>
+                {prayer.iqamahTime && (
+                  <div className="text-sm opacity-70 mt-2">Iqamah: {formatTime12h(prayer.iqamahTime)}</div>
+                )}
               </div>
             );
           })}

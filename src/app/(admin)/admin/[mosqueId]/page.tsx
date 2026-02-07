@@ -17,6 +17,7 @@ import {
 import { Plus, Trash2, ExternalLink, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Screen, Mosque } from '@/types/database';
+import { ScreenPresence } from '@/components/admin/screen-presence';
 
 function generateSlug(mosqueName: string, screenName: string): string {
   const base = `${mosqueName}-${screenName}`
@@ -149,7 +150,10 @@ export default function MosqueScreensPage() {
           {screens.map((screen) => (
             <Card key={screen.id} className="overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-base">{screen.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base">{screen.name}</CardTitle>
+                  <ScreenPresence screenId={screen.id} compact />
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"

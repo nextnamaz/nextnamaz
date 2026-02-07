@@ -1,3 +1,5 @@
+import type { PrayerSourceType, PrayerSourceConfig, PrayerConfigMap, ScreenRotation } from './prayer-config';
+
 export type MemberRole = 'owner' | 'admin' | 'viewer';
 
 export type Json =
@@ -26,6 +28,9 @@ export type Screen = Database['public']['Tables']['screens']['Row'];
 export type MosqueSettings = {
   mosque_id: string;
   prayer_times: PrayerTimesMap;
+  prayer_source: PrayerSourceType;
+  prayer_source_config: PrayerSourceConfig;
+  prayer_config: PrayerConfigMap;
   locale: string;
   display_text: Record<string, string>;
   metadata: Record<string, unknown>;
@@ -93,6 +98,9 @@ export type Database = {
         Row: {
           mosque_id: string;
           prayer_times: Json;
+          prayer_source: string;
+          prayer_source_config: Json;
+          prayer_config: Json;
           locale: string;
           display_text: Json;
           metadata: Json;
@@ -101,6 +109,9 @@ export type Database = {
         Insert: {
           mosque_id: string;
           prayer_times?: Json;
+          prayer_source?: string;
+          prayer_source_config?: Json;
+          prayer_config?: Json;
           locale?: string;
           display_text?: Json;
           metadata?: Json;
@@ -109,6 +120,9 @@ export type Database = {
         Update: {
           mosque_id?: string;
           prayer_times?: Json;
+          prayer_source?: string;
+          prayer_source_config?: Json;
+          prayer_config?: Json;
           locale?: string;
           display_text?: Json;
           metadata?: Json;
@@ -132,6 +146,9 @@ export type Database = {
           slug: string;
           theme: string;
           theme_config: Json;
+          rotation: number;
+          zoom: number;
+          brightness: number;
           created_at: string;
         };
         Insert: {
@@ -141,6 +158,9 @@ export type Database = {
           slug: string;
           theme?: string;
           theme_config?: Json;
+          rotation?: number;
+          zoom?: number;
+          brightness?: number;
           created_at?: string;
         };
         Update: {
@@ -150,6 +170,9 @@ export type Database = {
           slug?: string;
           theme?: string;
           theme_config?: Json;
+          rotation?: number;
+          zoom?: number;
+          brightness?: number;
           created_at?: string;
         };
         Relationships: [
@@ -223,9 +246,21 @@ export function toMosqueSettings(row: MosqueSettingsRow): MosqueSettings {
   return {
     mosque_id: row.mosque_id,
     prayer_times: asPrayerTimes(row.prayer_times),
+    prayer_source: (row.prayer_source as PrayerSourceType) || 'manual',
+    prayer_source_config: asRecord(row.prayer_source_config) as PrayerSourceConfig,
+    prayer_config: asRecord(row.prayer_config) as PrayerConfigMap,
     locale: row.locale,
     display_text: asStringRecord(row.display_text),
     metadata: asRecord(row.metadata),
     updated_at: row.updated_at,
+  };
+}
+
+/** Extract typed screen display controls */
+export function getScreenControls(screen: Screen): { rotation: ScreenRotation; zoom: number; brightness: number } {
+  return {
+    rotation: (screen.rotation as ScreenRotation) || 0,
+    zoom: screen.zoom ?? 100,
+    brightness: screen.brightness ?? 100,
   };
 }

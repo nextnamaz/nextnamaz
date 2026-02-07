@@ -47,6 +47,9 @@ export function ClassicTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
             >
               <div className="text-lg text-emerald-300 mb-2">{prayer.displayName}</div>
               <div className="text-3xl font-bold mb-2">{formatTime12h(prayer.time)}</div>
+              {prayer.iqamahTime && (
+                <div className="text-sm opacity-70">Iqamah: {formatTime12h(prayer.iqamahTime)}</div>
+              )}
               {isNext && (
                 <div className="mt-2 px-3 py-1 bg-amber-400 text-emerald-900 rounded-full text-xs font-bold">
                   NEXT

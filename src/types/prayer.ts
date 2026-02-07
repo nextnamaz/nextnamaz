@@ -1,9 +1,12 @@
+import type { IqamahConfig, PrayerConfigMap } from './prayer-config';
+
 export type PrayerName = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
 
 export interface PrayerTimeEntry {
   name: PrayerName;
   displayName: string;
   time: string;
+  iqamahTime?: string;
 }
 
 export const PRAYER_NAMES: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -37,12 +40,33 @@ export function getNextPrayer(prayers: PrayerTimeEntry[]): PrayerTimeEntry | nul
   return prayers.find((p) => p.name === 'fajr') ?? null;
 }
 
+/** Compute iqamah time from adhan time + config */
+export function computeIqamahTime(adhanTime: string, config: IqamahConfig): string {
+  if (config.type === 'fixed') {
+    return config.value as string;
+  }
+  // offset: add minutes to adhan time
+  const [h, m] = adhanTime.split(':').map(Number);
+  const total = h * 60 + m + (config.value as number);
+  const hours = Math.floor(total / 60) % 24;
+  const mins = total % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
 export function prayerTimesMapToEntries(
-  times: Record<PrayerName, string>
+  times: Record<PrayerName, string>,
+  prayerConfig?: PrayerConfigMap
 ): PrayerTimeEntry[] {
-  return PRAYER_NAMES.map((name) => ({
-    name,
-    displayName: PRAYER_DISPLAY_NAMES[name],
-    time: times[name] || '00:00',
-  }));
+  return PRAYER_NAMES.map((name) => {
+    const entry: PrayerTimeEntry = {
+      name,
+      displayName: PRAYER_DISPLAY_NAMES[name],
+      time: times[name] || '00:00',
+    };
+    const cfg = prayerConfig?.[name]?.iqamah;
+    if (cfg && name !== 'sunrise') {
+      entry.iqamahTime = computeIqamahTime(entry.time, cfg);
+    }
+    return entry;
+  });
 }

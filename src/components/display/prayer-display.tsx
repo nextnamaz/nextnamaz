@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Mosque, Screen, MosqueSettings, MosqueSettingsRow } from '@/types/database';
-import { asRecord, toMosqueSettings } from '@/types/database';
+import { asRecord, toMosqueSettings, getScreenControls } from '@/types/database';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { prayerTimesMapToEntries, getNextPrayer } from '@/types/prayer';
+import type { PrayerConfigMap, ScreenCommand, DevicePresenceState } from '@/types/prayer-config';
 import { ClassicTheme, ModernTheme, LightTheme, RamadanTheme } from './themes';
 
 interface PrayerDisplayProps {
@@ -13,6 +14,15 @@ interface PrayerDisplayProps {
   screen: Screen;
   settings: MosqueSettings;
   themeOverride?: string;
+}
+
+function getDeviceId(): string {
+  let id = sessionStorage.getItem('device_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem('device_id', id);
+  }
+  return id;
 }
 
 export function PrayerDisplay({
@@ -23,15 +33,17 @@ export function PrayerDisplay({
 }: PrayerDisplayProps) {
   const [settings, setSettings] = useState(initialSettings);
   const [currentTheme, setCurrentTheme] = useState(themeOverride || screen.theme);
+  const [currentScreen, setCurrentScreen] = useState(screen);
   const [prayers, setPrayers] = useState<PrayerTimeEntry[]>(() =>
-    prayerTimesMapToEntries(initialSettings.prayer_times)
+    prayerTimesMapToEntries(initialSettings.prayer_times, initialSettings.prayer_config as PrayerConfigMap)
   );
   const [nextPrayer, setNextPrayer] = useState<PrayerTimeEntry | null>(null);
+  const presenceJoined = useRef(false);
 
   // Update prayers when settings change
   useEffect(() => {
-    setPrayers(prayerTimesMapToEntries(settings.prayer_times));
-  }, [settings.prayer_times]);
+    setPrayers(prayerTimesMapToEntries(settings.prayer_times, settings.prayer_config as PrayerConfigMap));
+  }, [settings.prayer_times, settings.prayer_config]);
 
   // Update next prayer every minute
   const updateNextPrayer = useCallback(() => {
@@ -44,10 +56,11 @@ export function PrayerDisplay({
     return () => clearInterval(interval);
   }, [updateNextPrayer]);
 
-  // Realtime subscriptions
+  // Realtime subscriptions: settings, screen changes, broadcast commands, presence
   useEffect(() => {
     const supabase = createClient();
 
+    // Settings changes
     const settingsChannel = supabase
       .channel('settings-changes')
       .on(
@@ -66,6 +79,7 @@ export function PrayerDisplay({
       )
       .subscribe();
 
+    // Screen record changes (theme + display controls)
     const screenChannel = supabase
       .channel('screen-changes')
       .on(
@@ -77,36 +91,91 @@ export function PrayerDisplay({
           filter: `id=eq.${screen.id}`,
         },
         (payload) => {
-          if (payload.new && !themeOverride) {
+          if (payload.new) {
             const updated = payload.new as Screen;
-            setCurrentTheme(updated.theme);
+            setCurrentScreen(updated);
+            if (!themeOverride) {
+              setCurrentTheme(updated.theme);
+            }
           }
         }
       )
       .subscribe();
 
+    // Broadcast commands (refresh)
+    const commandChannel = supabase
+      .channel(`screen:${screen.id}`)
+      .on('broadcast', { event: 'command' }, ({ payload }) => {
+        const cmd = payload as ScreenCommand;
+        if (cmd.type === 'refresh') {
+          window.location.reload();
+        }
+      });
+
+    // Presence tracking
+    if (!presenceJoined.current) {
+      const presenceState: DevicePresenceState = {
+        deviceId: getDeviceId(),
+        userAgent: navigator.userAgent,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        connectedAt: new Date().toISOString(),
+      };
+      commandChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await commandChannel.track(presenceState);
+          presenceJoined.current = true;
+        }
+      });
+    } else {
+      commandChannel.subscribe();
+    }
+
     return () => {
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(screenChannel);
+      supabase.removeChannel(commandChannel);
     };
   }, [mosque.id, screen.id, themeOverride]);
+
+  const controls = getScreenControls(currentScreen);
+
+  const displayStyle: React.CSSProperties = {
+    transform: `rotate(${controls.rotation}deg) scale(${controls.zoom / 100})`,
+    filter: `brightness(${controls.brightness / 100})`,
+    transformOrigin: 'center center',
+    width: controls.rotation === 90 || controls.rotation === 270 ? '100vh' : '100vw',
+    height: controls.rotation === 90 || controls.rotation === 270 ? '100vw' : '100vh',
+  };
 
   const themeProps = {
     mosqueName: mosque.name,
     prayers,
     nextPrayer,
-    config: asRecord(screen.theme_config),
+    config: asRecord(currentScreen.theme_config),
   };
 
-  switch (currentTheme) {
-    case 'modern':
-      return <ModernTheme {...themeProps} />;
-    case 'light':
-      return <LightTheme {...themeProps} />;
-    case 'ramadan':
-      return <RamadanTheme {...themeProps} />;
-    case 'classic':
-    default:
-      return <ClassicTheme {...themeProps} />;
+  const renderTheme = () => {
+    switch (currentTheme) {
+      case 'modern':
+        return <ModernTheme {...themeProps} />;
+      case 'light':
+        return <LightTheme {...themeProps} />;
+      case 'ramadan':
+        return <RamadanTheme {...themeProps} />;
+      case 'classic':
+      default:
+        return <ClassicTheme {...themeProps} />;
+    }
+  };
+
+  // Only apply display transforms if not in preview mode (themeOverride)
+  if (themeOverride) {
+    return renderTheme();
   }
+
+  return (
+    <div className="fixed inset-0 overflow-hidden" style={displayStyle}>
+      {renderTheme()}
+    </div>
+  );
 }
