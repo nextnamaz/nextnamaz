@@ -7,7 +7,9 @@ export interface ThemeProps {
   config: Record<string, unknown>;
 }
 
+export { DefaultTheme } from './default';
 export { ClassicTheme } from './classic';
 export { ModernTheme } from './modern';
 export { LightTheme } from './light';
 export { RamadanTheme } from './ramadan';
+export { AndalusTheme } from './andalus';

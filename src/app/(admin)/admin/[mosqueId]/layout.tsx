@@ -33,7 +33,7 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
   return (
     <div className="flex min-h-screen">
       <Sidebar mosqueName={mosque.name} mosqueId={mosqueId} />
-      <main className="flex-1 bg-gray-50 p-8">{children}</main>
+      <main className="flex-1 bg-secondary p-8">{children}</main>
     </div>
   );
 }

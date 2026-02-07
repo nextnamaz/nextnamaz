@@ -29,9 +29,9 @@ export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
   };
 
   return (
-    <aside className="w-56 bg-gray-900 text-white min-h-screen flex flex-col">
-      <div className="p-4 border-b border-gray-800">
-        <Link href="/admin" className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1 mb-2">
+    <aside className="w-56 bg-sidebar text-sidebar-foreground min-h-screen flex flex-col">
+      <div className="p-4 border-b border-sidebar-border">
+        <Link href="/admin" className="text-xs text-sidebar-foreground/50 hover:text-sidebar-foreground/80 flex items-center gap-1 mb-2">
           <ArrowLeft className="w-3 h-3" />
           All Mosques
         </Link>
@@ -48,8 +48,8 @@ export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
               className={cn(
                 'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                 isActive
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               )}
             >
               <item.icon className="w-4 h-4" />
@@ -59,11 +59,11 @@ export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-3 border-t border-gray-800">
+      <div className="p-3 border-t border-sidebar-border">
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
+          className="w-full justify-start text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
           onClick={handleSignOut}
         >
           <LogOut className="w-4 h-4 mr-2" />

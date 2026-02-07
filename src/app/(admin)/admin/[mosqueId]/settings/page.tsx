@@ -14,8 +14,14 @@ import { PRAYER_NAMES, PRAYER_DISPLAY_NAMES } from '@/types/prayer';
 import type { PrayerName } from '@/types/prayer';
 import { prayerTimesSchema } from '@/lib/validations';
 import type { PrayerSourceType, PrayerConfigMap, IqamahConfig, VaktijaBaSourceConfig } from '@/types/prayer-config';
+import type { SupportedLocale, DisplayTextConfig, LocaleMetadata } from '@/types/locale';
+import { parseDisplayText, flattenDisplayText, parseLocaleMetadata } from '@/lib/locale/helpers';
+import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { PrayerSourceSelector } from '@/components/admin/prayer-source-selector';
 import { IqamahConfigRow } from '@/components/admin/iqamah-config-row';
+import { LanguageSettingsCard } from '@/components/admin/language-settings-card';
+import { DateFormatSettingsCard } from '@/components/admin/date-format-settings-card';
+import { TimeFormatSettingsCard } from '@/components/admin/time-format-settings-card';
 
 const IQAMAH_PRAYERS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -29,7 +35,14 @@ export default function MosqueSettingsPage() {
   const [prayerSource, setPrayerSource] = useState<PrayerSourceType>('manual');
   const [sourceConfig, setSourceConfig] = useState<VaktijaBaSourceConfig | Record<string, never>>({});
   const [prayerConfig, setPrayerConfig] = useState<PrayerConfigMap>({});
-  const [locale, setLocale] = useState('en');
+  const [locale, setLocale] = useState<SupportedLocale>('en');
+  const [displayText, setDisplayText] = useState<DisplayTextConfig>(DEFAULT_TRANSLATIONS.en);
+  const [localeMetadata, setLocaleMetadata] = useState<LocaleMetadata>({
+    dateFormat: 'DD/MM/YYYY',
+    use24Hour: true,
+    showSeconds: true,
+    timezone: 'auto',
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -54,7 +67,9 @@ export default function MosqueSettingsPage() {
       setPrayerSource(s.prayer_source);
       setSourceConfig(s.prayer_source_config as VaktijaBaSourceConfig | Record<string, never>);
       setPrayerConfig(s.prayer_config);
-      setLocale(s.locale);
+      setLocale(s.locale as SupportedLocale);
+      setDisplayText(parseDisplayText(s.display_text, s.locale));
+      setLocaleMetadata(parseLocaleMetadata(s.metadata));
     }
     setLoading(false);
   }, [mosqueId]);
@@ -102,6 +117,14 @@ export default function MosqueSettingsPage() {
         prayer_source_config: sourceConfig as unknown as Json,
         prayer_config: prayerConfig as unknown as Json,
         locale,
+        display_text: flattenDisplayText(displayText) as unknown as Json,
+        metadata: {
+          ...(settings?.metadata ?? {}),
+          dateFormat: localeMetadata.dateFormat,
+          use24Hour: localeMetadata.use24Hour,
+          showSeconds: localeMetadata.showSeconds,
+          timezone: localeMetadata.timezone,
+        } as unknown as Json,
         updated_at: new Date().toISOString(),
       })
       .eq('mosque_id', mosqueId);
@@ -133,11 +156,11 @@ export default function MosqueSettingsPage() {
   };
 
   if (loading) {
-    return <div className="text-gray-500">Loading...</div>;
+    return <div className="text-muted-foreground">Loading...</div>;
   }
 
   if (!settings) {
-    return <div className="text-gray-500">Settings not found</div>;
+    return <div className="text-muted-foreground">Settings not found</div>;
   }
 
   const isExternal = prayerSource !== 'manual';
@@ -146,7 +169,7 @@ export default function MosqueSettingsPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-gray-600">Prayer times, source, and iqamah configuration</p>
+        <p className="text-muted-foreground">Prayer times, source, and iqamah configuration</p>
       </div>
 
       {/* Section 1: Prayer Source */}
@@ -219,27 +242,37 @@ export default function MosqueSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Locale */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Locale</CardTitle>
-          <CardDescription>Display language</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <select
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm"
-          >
-            <option value="en">English</option>
-            <option value="ar">Arabic</option>
-            <option value="tr">Turkish</option>
-            <option value="ur">Urdu</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-          </select>
-        </CardContent>
-      </Card>
+      {/* Language Settings */}
+      <LanguageSettingsCard
+        locale={locale}
+        displayText={displayText}
+        onLocaleChange={setLocale}
+        onDisplayTextChange={setDisplayText}
+      />
+
+      {/* Date Format */}
+      <DateFormatSettingsCard
+        dateFormat={localeMetadata.dateFormat}
+        onDateFormatChange={(fmt) =>
+          setLocaleMetadata((prev) => ({ ...prev, dateFormat: fmt }))
+        }
+      />
+
+      {/* Time Format */}
+      <TimeFormatSettingsCard
+        use24Hour={localeMetadata.use24Hour}
+        showSeconds={localeMetadata.showSeconds}
+        timezone={localeMetadata.timezone}
+        onUse24HourChange={(v) =>
+          setLocaleMetadata((prev) => ({ ...prev, use24Hour: v }))
+        }
+        onShowSecondsChange={(v) =>
+          setLocaleMetadata((prev) => ({ ...prev, showSeconds: v }))
+        }
+        onTimezoneChange={(v) =>
+          setLocaleMetadata((prev) => ({ ...prev, timezone: v }))
+        }
+      />
 
       <Button onClick={handleSave} disabled={saving}>
         {saving ? 'Saving...' : 'Save Settings'}

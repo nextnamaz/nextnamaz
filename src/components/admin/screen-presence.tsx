@@ -46,7 +46,7 @@ export function ScreenPresence({ screenId, compact }: ScreenPresenceProps) {
   if (compact) {
     return (
       <Badge variant={isOnline ? 'default' : 'secondary'} className="text-xs">
-        <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
+        <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${isOnline ? 'bg-green-400' : 'bg-muted-foreground/40'}`} />
         {count}
       </Badge>
     );
@@ -56,20 +56,20 @@ export function ScreenPresence({ screenId, compact }: ScreenPresenceProps) {
     <div>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
-        <span className={`inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+        <span className={`inline-block w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
         {count} device{count !== 1 ? 's' : ''} connected
       </button>
 
       {expanded && count > 0 && (
-        <div className="mt-2 rounded-lg border bg-white p-3 shadow-sm space-y-2 text-xs">
+        <div className="mt-2 rounded-lg border bg-card p-3 shadow-sm space-y-2 text-xs">
           {devices.map((d) => (
             <div key={d.deviceId} className="flex justify-between gap-4">
-              <span className="text-gray-600 truncate max-w-[200px]">
+              <span className="text-muted-foreground truncate max-w-[200px]">
                 {d.screenResolution}
               </span>
-              <span className="text-gray-400 whitespace-nowrap">
+              <span className="text-muted-foreground/70 whitespace-nowrap">
                 {getConnectedDuration(d.connectedAt)}
               </span>
             </div>

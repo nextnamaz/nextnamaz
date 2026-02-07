@@ -136,16 +136,16 @@ export default function MosquesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">NextNamaz</h1>
+    <div className="min-h-screen bg-secondary">
+      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-primary">NextNamaz</h1>
         <Button variant="ghost" size="sm" onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
@@ -156,7 +156,7 @@ export default function MosquesPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold">Your Mosques</h2>
-            <p className="text-gray-600">Manage your mosques and their displays</p>
+            <p className="text-muted-foreground">Manage your mosques and their displays</p>
           </div>
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -192,8 +192,8 @@ export default function MosquesPage() {
         {mosques.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <Building2 className="w-12 h-12 text-gray-300 mb-4" />
-              <p className="text-gray-500 mb-4">No mosques yet. Create your first one.</p>
+              <Building2 className="w-12 h-12 text-muted-foreground/40 mb-4" />
+              <p className="text-muted-foreground mb-4">No mosques yet. Create your first one.</p>
               <Button onClick={() => setDialogOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Mosque
@@ -210,7 +210,7 @@ export default function MosquesPage() {
               >
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Building2 className="w-5 h-5 text-gray-400" />
+                    <Building2 className="w-5 h-5 text-primary/60" />
                     <CardTitle className="text-lg">{mosque.name}</CardTitle>
                   </div>
                   <Button

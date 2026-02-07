@@ -93,9 +93,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-secondary px-4">
+      <Card className="w-full max-w-md border-0 shadow-lg">
         <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">N</div>
           <CardTitle className="text-2xl">Create Your Account</CardTitle>
           <CardDescription>Sign up and set up your mosque</CardDescription>
         </CardHeader>
@@ -142,7 +143,7 @@ export default function RegisterPage() {
               {loading ? 'Creating...' : 'Create Account'}
             </Button>
           </form>
-          <p className="text-center text-sm text-gray-600 mt-4">
+          <p className="text-center text-sm text-muted-foreground mt-4">
             Already have an account?{' '}
             <Link href="/login" className="text-primary hover:underline">
               Sign in

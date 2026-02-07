@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, ExternalLink, Settings } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Settings, Monitor, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Screen, Mosque } from '@/types/database';
 import { ScreenPresence } from '@/components/admin/screen-presence';
@@ -26,6 +26,45 @@ function generateSlug(mosqueName: string, screenName: string): string {
     .replace(/^-|-$/g, '');
   return base;
 }
+
+/* ─── TV-frame screen preview ─── */
+
+function ScreenPreview({ screen }: { screen: Screen }) {
+  const isPortrait = screen.rotation === 90 || screen.rotation === 270;
+
+  return (
+    <div className="w-full">
+      {/* TV Frame */}
+      <div className="bg-neutral-900 rounded-sm p-1 shadow-2xl">
+        <div
+          className="relative w-full"
+          style={{ aspectRatio: isPortrait ? '9/16' : '16/9' }}
+        >
+          <iframe
+            src={`/display/${screen.slug}?preview=1`}
+            title={`Preview: ${screen.name}`}
+            className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+            style={{
+              transform: 'scale(0.4)',
+              transformOrigin: '0 0',
+              width: '250%',
+              height: '250%',
+            }}
+            scrolling="no"
+          />
+          {/* Screen overlay effects */}
+          <div className="absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-black/20 pointer-events-none" />
+          <div
+            className="absolute inset-0"
+            style={{ boxShadow: 'inset 0 0 30px rgba(0,0,0,0.4)' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Page ─── */
 
 export default function MosqueScreensPage() {
   const { mosqueId } = useParams<{ mosqueId: string }>();
@@ -94,7 +133,7 @@ export default function MosqueScreensPage() {
   };
 
   if (loading) {
-    return <div className="text-gray-500">Loading...</div>;
+    return <div className="text-muted-foreground">Loading...</div>;
   }
 
   return (
@@ -102,7 +141,7 @@ export default function MosqueScreensPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Screens</h1>
-          <p className="text-gray-600">Manage display screens for {mosque?.name}</p>
+          <p className="text-muted-foreground">Manage display screens for {mosque?.name}</p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -138,7 +177,7 @@ export default function MosqueScreensPage() {
       {screens.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-gray-500 mb-4">No screens yet.</p>
+            <p className="text-muted-foreground mb-4">No screens yet.</p>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Screen
@@ -147,63 +186,67 @@ export default function MosqueScreensPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {screens.map((screen) => (
-            <Card key={screen.id} className="overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base">{screen.name}</CardTitle>
-                  <ScreenPresence screenId={screen.id} compact />
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}
-                  >
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                  >
-                    <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm('Delete this screen?')) {
-                        handleDeleteScreen(screen.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="relative w-full bg-gray-900 overflow-hidden" style={{ height: '280px' }}>
-                  <iframe
-                    src={`/display/${screen.slug}`}
-                    className="absolute top-0 left-0 border-0 pointer-events-none"
-                    style={{
-                      width: '1920px',
-                      height: '1080px',
-                      transform: 'scale(0.28)',
-                      transformOrigin: 'top left',
-                    }}
-                    title={`Preview: ${screen.name}`}
-                  />
-                </div>
-                <div className="px-4 py-2 bg-gray-50 border-t text-xs text-gray-500">
-                  Theme: {screen.theme} &middot; /display/{screen.slug}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {screens.map((screen) => {
+            const isPortrait = screen.rotation === 90 || screen.rotation === 270;
+            return (
+              <Card key={screen.id}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{screen.name}</CardTitle>
+                    <ScreenPresence screenId={screen.id} compact />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                    >
+                      <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm('Delete this screen?')) {
+                          handleDeleteScreen(screen.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* TV Preview area */}
+                  <div className="flex items-center justify-center rounded-xl bg-muted/40 py-6 px-4">
+                    <ScreenPreview screen={screen} />
+                  </div>
+
+                  {/* Info bar */}
+                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground px-1">
+                    <span className="capitalize font-medium">{screen.theme}</span>
+                    <span className="flex items-center gap-1">
+                      {isPortrait ? (
+                        <><Smartphone className="w-3 h-3" /> Portrait</>
+                      ) : (
+                        <><Monitor className="w-3 h-3" /> Landscape</>
+                      )}
+                    </span>
+                    <span className="opacity-60">/display/{screen.slug}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

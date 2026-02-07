@@ -6,7 +6,7 @@ import { toMosqueSettings } from '@/types/database';
 
 interface DisplayPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ theme?: string }>;
+  searchParams: Promise<{ theme?: string; preview?: string }>;
 }
 
 export async function generateMetadata({ params }: DisplayPageProps) {
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: DisplayPageProps) {
 
 export default async function DisplayPage({ params, searchParams }: DisplayPageProps) {
   const { slug } = await params;
-  const { theme: themeOverride } = await searchParams;
+  const { theme: themeOverride, preview } = await searchParams;
   const supabase = await createClient();
 
   // Fetch screen by slug
@@ -85,6 +85,7 @@ export default async function DisplayPage({ params, searchParams }: DisplayPageP
       screen={screen}
       settings={typedSettings}
       themeOverride={themeOverride}
+      isPreview={preview === '1'}
     />
   );
 }

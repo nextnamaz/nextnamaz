@@ -59,12 +59,12 @@ export function IqamahConfigRow({ prayer, adhanTime, config, onChange }: IqamahC
             onChange={(e) => onChange({ type: 'offset', value: Number(e.target.value) || 15 })}
             className="w-20"
           />
-          <span className="text-sm text-gray-500">min</span>
+          <span className="text-sm text-muted-foreground">min</span>
         </div>
       )}
 
       {computed && (
-        <span className="text-sm text-gray-500 ml-auto">
+        <span className="text-sm text-muted-foreground ml-auto">
           Iqamah: {computed}
         </span>
       )}

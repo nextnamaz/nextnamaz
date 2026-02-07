@@ -33,6 +33,26 @@ export type PrayerSourceConfig = VaktijaBaSourceConfig | Record<string, never>;
 
 export type ScreenRotation = 0 | 90 | 180 | 270;
 
+export type ZoomPreset = 75 | 100 | 125 | 150;
+
+export type BrightnessPreset = 25 | 50 | 75 | 100;
+
+export interface RotationOption {
+  value: ScreenRotation;
+  label: string;
+}
+
+export interface ZoomOption {
+  value: ZoomPreset;
+  label: string;
+  description: string;
+}
+
+export interface BrightnessOption {
+  value: BrightnessPreset;
+  label: string;
+}
+
 export interface ScreenDisplayControls {
   rotation: ScreenRotation;
   zoom: number;

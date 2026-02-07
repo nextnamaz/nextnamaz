@@ -7,13 +7,14 @@ import { asRecord, toMosqueSettings, getScreenControls } from '@/types/database'
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { prayerTimesMapToEntries, getNextPrayer } from '@/types/prayer';
 import type { PrayerConfigMap, ScreenCommand, DevicePresenceState } from '@/types/prayer-config';
-import { ClassicTheme, ModernTheme, LightTheme, RamadanTheme } from './themes';
+import { DefaultTheme, ClassicTheme, ModernTheme, LightTheme, RamadanTheme, AndalusTheme } from './themes';
 
 interface PrayerDisplayProps {
   mosque: Mosque;
   screen: Screen;
   settings: MosqueSettings;
   themeOverride?: string;
+  isPreview?: boolean;
 }
 
 function getDeviceId(): string {
@@ -30,6 +31,7 @@ export function PrayerDisplay({
   screen,
   settings: initialSettings,
   themeOverride,
+  isPreview = false,
 }: PrayerDisplayProps) {
   const [settings, setSettings] = useState(initialSettings);
   const [currentTheme, setCurrentTheme] = useState(themeOverride || screen.theme);
@@ -112,8 +114,8 @@ export function PrayerDisplay({
         }
       });
 
-    // Presence tracking
-    if (!presenceJoined.current) {
+    // Presence tracking — skip for admin preview iframes
+    if (!isPreview && !presenceJoined.current) {
       const presenceState: DevicePresenceState = {
         deviceId: getDeviceId(),
         userAgent: navigator.userAgent,
@@ -138,13 +140,17 @@ export function PrayerDisplay({
   }, [mosque.id, screen.id, themeOverride]);
 
   const controls = getScreenControls(currentScreen);
+  const isPortrait = controls.rotation === 90 || controls.rotation === 270;
 
   const displayStyle: React.CSSProperties = {
-    transform: `rotate(${controls.rotation}deg) scale(${controls.zoom / 100})`,
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: `translate(-50%, -50%) rotate(${controls.rotation}deg) scale(${controls.zoom / 100})`,
     filter: `brightness(${controls.brightness / 100})`,
     transformOrigin: 'center center',
-    width: controls.rotation === 90 || controls.rotation === 270 ? '100vh' : '100vw',
-    height: controls.rotation === 90 || controls.rotation === 270 ? '100vw' : '100vh',
+    width: isPortrait ? '100vh' : '100vw',
+    height: isPortrait ? '100vw' : '100vh',
   };
 
   const themeProps = {
@@ -156,12 +162,16 @@ export function PrayerDisplay({
 
   const renderTheme = () => {
     switch (currentTheme) {
+      case 'default':
+        return <DefaultTheme {...themeProps} />;
       case 'modern':
         return <ModernTheme {...themeProps} />;
       case 'light':
         return <LightTheme {...themeProps} />;
       case 'ramadan':
         return <RamadanTheme {...themeProps} />;
+      case 'andalus':
+        return <AndalusTheme {...themeProps} />;
       case 'classic':
       default:
         return <ClassicTheme {...themeProps} />;
@@ -174,7 +184,7 @@ export function PrayerDisplay({
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={displayStyle}>
+    <div className="overflow-hidden" style={displayStyle}>
       {renderTheme()}
     </div>
   );
