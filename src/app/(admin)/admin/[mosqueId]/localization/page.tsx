@@ -96,10 +96,12 @@ export default function LocalizationPage() {
       />
 
       {/* Sticky save */}
-      <div className="sticky bottom-0 py-4 bg-background/80 backdrop-blur-sm border-t border-border -mx-8 px-8 mt-8">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Localization'}
-        </Button>
+      <div className="sticky bottom-4">
+        <div className="flex justify-end rounded-lg bg-background/80 backdrop-blur-sm border border-border p-3 shadow-lg">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Localization'}
+          </Button>
+        </div>
       </div>
     </div>
   );

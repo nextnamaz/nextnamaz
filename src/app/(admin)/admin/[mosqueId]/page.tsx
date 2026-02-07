@@ -285,23 +285,23 @@ export default function MosqueScreensPage() {
                 </div>
 
                 {/* TV Preview */}
-                <div className="px-5 pb-2">
-                  <div className="rounded-lg bg-muted/40 p-4 flex items-center justify-center">
+                <div className="px-5 pb-3">
+                  <div className="rounded-lg bg-muted/30 p-5 flex items-center justify-center">
                     <ScreenPreview screen={screen} />
                   </div>
                 </div>
 
                 {/* Info footer */}
-                <div className="px-5 py-3 border-t border-border/50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md capitalize">
+                <div className="px-5 py-3 border-t border-border/40 flex items-center justify-between bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground/70 bg-background px-2.5 py-1 rounded-md capitalize border border-border/50">
                       {screen.theme}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                       {isPortrait ? (
-                        <><Smartphone className="w-3 h-3" /> Portrait</>
+                        <><Smartphone className="w-3.5 h-3.5" /> Portrait</>
                       ) : (
-                        <><Monitor className="w-3 h-3" /> Landscape</>
+                        <><Monitor className="w-3.5 h-3.5" /> Landscape</>
                       )}
                     </span>
                   </div>

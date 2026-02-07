@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import type { PrayerSourceType, VaktijaBaSourceConfig } from '@/types/prayer-config';
 import type { PrayerTimesMap } from '@/types/database';
@@ -49,36 +56,41 @@ export function PrayerSourceSelector({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label>Prayer Time Source</Label>
-        <select
-          value={source}
-          onChange={(e) => onSourceChange(e.target.value as PrayerSourceType)}
-          className="border rounded-md px-3 py-2 text-sm w-full"
-        >
-          <option value="manual">Manual Entry</option>
-          <option value="vaktija_ba">Vaktija.ba</option>
-        </select>
+        <Select value={source} onValueChange={(v) => onSourceChange(v as PrayerSourceType)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="manual">Manual Entry</SelectItem>
+            <SelectItem value="vaktija_ba">Vaktija.ba</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {source === 'vaktija_ba' && (
         <div className="space-y-3">
           <div className="space-y-2">
             <Label>Location</Label>
-            <select
-              value={locationId}
-              onChange={(e) => {
-                const loc = VAKTIJA_LOCATIONS.find((l) => l.id === Number(e.target.value));
+            <Select
+              value={String(locationId)}
+              onValueChange={(v) => {
+                const loc = VAKTIJA_LOCATIONS.find((l) => l.id === Number(v));
                 if (loc) {
                   onSourceConfigChange({ locationId: loc.id, locationName: loc.name });
                 }
               }}
-              className="border rounded-md px-3 py-2 text-sm w-full"
             >
-              {VAKTIJA_LOCATIONS.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VAKTIJA_LOCATIONS.map((loc) => (
+                  <SelectItem key={loc.id} value={String(loc.id)}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleFetch} disabled={fetching} variant="outline" size="sm">
             {fetching && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

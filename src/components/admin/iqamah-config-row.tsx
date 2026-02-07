@@ -2,6 +2,13 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { IqamahConfig, IqamahType } from '@/types/prayer-config';
 import type { PrayerName } from '@/types/prayer';
 import { PRAYER_DISPLAY_NAMES, computeIqamahTime } from '@/types/prayer';
@@ -21,10 +28,9 @@ export function IqamahConfigRow({ prayer, adhanTime, config, onChange }: IqamahC
     <div className="flex items-center gap-4">
       <Label className="w-24 shrink-0">{PRAYER_DISPLAY_NAMES[prayer]}</Label>
 
-      <select
+      <Select
         value={mode}
-        onChange={(e) => {
-          const v = e.target.value;
+        onValueChange={(v) => {
           if (v === 'none') {
             onChange(undefined);
           } else if (v === 'fixed') {
@@ -33,12 +39,16 @@ export function IqamahConfigRow({ prayer, adhanTime, config, onChange }: IqamahC
             onChange({ type: 'offset', value: 15 });
           }
         }}
-        className="border rounded-md px-2 py-1.5 text-sm w-36"
       >
-        <option value="none">None</option>
-        <option value="fixed">Fixed Time</option>
-        <option value="offset">Minutes After</option>
-      </select>
+        <SelectTrigger className="w-36">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">None</SelectItem>
+          <SelectItem value="fixed">Fixed Time</SelectItem>
+          <SelectItem value="offset">Minutes After</SelectItem>
+        </SelectContent>
+      </Select>
 
       {mode === 'fixed' && (
         <Input
@@ -64,8 +74,8 @@ export function IqamahConfigRow({ prayer, adhanTime, config, onChange }: IqamahC
       )}
 
       {computed && (
-        <span className="text-sm text-muted-foreground ml-auto">
-          Iqamah: {computed}
+        <span className="text-sm text-muted-foreground ml-auto font-mono">
+          {computed}
         </span>
       )}
     </div>
