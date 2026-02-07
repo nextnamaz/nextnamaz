@@ -364,6 +364,20 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
             </div>
           </div>
         </div>
+
+        {/* Floating Save Bar */}
+        {dirty && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 px-4">
+            <div className="flex items-center justify-between rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl p-2 pl-6 animate-in slide-in-from-bottom-2 fade-in duration-300">
+              <span className="text-sm font-medium text-muted-foreground">
+                {saving ? 'Saving changes...' : 'Unsaved changes'}
+              </span>
+              <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

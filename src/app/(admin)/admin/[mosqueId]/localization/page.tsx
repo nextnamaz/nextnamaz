@@ -61,56 +61,63 @@ export default function LocalizationPage() {
   if (!settings) return <div className="text-muted-foreground">Settings not found</div>;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="w-full space-y-8">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Localization</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Language, date format, and time display settings</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Localization</h1>
+        <p className="text-muted-foreground mt-1">Language, date format, and time display settings</p>
       </div>
 
-      <Tabs defaultValue="language">
-        <TabsList>
+      <Tabs defaultValue="language" className="w-full">
+        <TabsList className="mb-6">
           <TabsTrigger value="language">Language</TabsTrigger>
           <TabsTrigger value="display">Display</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="language">
-          <LanguageSettingsCard
-            locale={locale}
-            displayText={displayText}
-            onLocaleChange={setLocale}
-            onDisplayTextChange={setDisplayText}
-          />
-        </TabsContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <TabsContent value="language" className="mt-0">
+            <LanguageSettingsCard
+              locale={locale}
+              displayText={displayText}
+              onLocaleChange={setLocale}
+              onDisplayTextChange={setDisplayText}
+            />
+          </TabsContent>
 
-        <TabsContent value="display" className="space-y-6">
-          <DateFormatSettingsCard
-            dateFormat={localeMetadata.dateFormat}
-            onDateFormatChange={(fmt) =>
-              setLocaleMetadata((prev) => ({ ...prev, dateFormat: fmt }))
-            }
-          />
-          <TimeFormatSettingsCard
-            use24Hour={localeMetadata.use24Hour}
-            showSeconds={localeMetadata.showSeconds}
-            timezone={localeMetadata.timezone}
-            onUse24HourChange={(v) =>
-              setLocaleMetadata((prev) => ({ ...prev, use24Hour: v }))
-            }
-            onShowSecondsChange={(v) =>
-              setLocaleMetadata((prev) => ({ ...prev, showSeconds: v }))
-            }
-            onTimezoneChange={(v) =>
-              setLocaleMetadata((prev) => ({ ...prev, timezone: v }))
-            }
-          />
-        </TabsContent>
+          <TabsContent value="display" className="space-y-8 mt-0">
+            <div className="grid gap-8">
+              <DateFormatSettingsCard
+                dateFormat={localeMetadata.dateFormat}
+                onDateFormatChange={(fmt) =>
+                  setLocaleMetadata((prev) => ({ ...prev, dateFormat: fmt }))
+                }
+              />
+              <TimeFormatSettingsCard
+                use24Hour={localeMetadata.use24Hour}
+                showSeconds={localeMetadata.showSeconds}
+                timezone={localeMetadata.timezone}
+                onUse24HourChange={(v) =>
+                  setLocaleMetadata((prev) => ({ ...prev, use24Hour: v }))
+                }
+                onShowSecondsChange={(v) =>
+                  setLocaleMetadata((prev) => ({ ...prev, showSeconds: v }))
+                }
+                onTimezoneChange={(v) =>
+                  setLocaleMetadata((prev) => ({ ...prev, timezone: v }))
+                }
+              />
+            </div>
+          </TabsContent>
+        </div>
       </Tabs>
 
-      {/* Sticky save */}
-      <div className="sticky bottom-4">
-        <div className="flex justify-end rounded-lg bg-background/80 backdrop-blur-sm border border-border p-3 shadow-lg">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Localization'}
+      {/* Floating Save Bar */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 px-4">
+        <div className="flex items-center justify-between rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl p-2 pl-6">
+          <span className="text-sm font-medium text-muted-foreground">
+            Unsaved changes
+          </span>
+          <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>

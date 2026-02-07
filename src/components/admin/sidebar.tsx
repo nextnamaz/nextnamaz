@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Monitor, Clock, Globe, ArrowLeft, LogOut, Building2 } from 'lucide-react';
+import { Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown, User2 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -15,8 +15,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface AppSidebarProps {
   mosqueName: string;
@@ -57,16 +63,23 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="h-16 border-b border-sidebar-border/50">
-        <div className="flex items-center gap-2 px-2 w-full h-full">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <span className="font-bold">{mosqueName.charAt(0).toUpperCase()}</span>
-          </div>
-          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold capitalize">{mosqueName}</span>
-            <span className="text-xs text-muted-foreground">Free Plan</span>
-          </div>
-        </div>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Building2 className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{mosqueName}</span>
+                <span className="truncate text-xs">Free Plan</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
@@ -95,18 +108,41 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="My Mosques">
-              <Link href="/admin">
-                <Building2 />
-                <span>My Mosques</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out">
-              <LogOut />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <User2 className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">My Account</span>
+                    <span className="truncate text-xs">Manage account</span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuItem asChild>
+                  <Link href="/admin">
+                    <Building2 className="mr-2 size-4" />
+                    <span>My Mosques</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 size-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

@@ -42,7 +42,7 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
         </header>
-        <div className="max-w-5xl mx-auto px-8 py-10">
+        <div className="w-full mx-auto px-6 py-8">
           {children}
         </div>
       </SidebarInset>
