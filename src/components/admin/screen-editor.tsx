@@ -154,199 +154,217 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
   const currentThemeDef = THEME_REGISTRY[form.theme];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="h-[calc(100vh-4rem)] w-full flex flex-col overflow-hidden bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.push(`/admin/${mosqueId}`)}>
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold truncate">{screen.name}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Configure display and theme</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ScreenPresence screenId={screen.id} />
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="w-3.5 h-3.5 mr-1" />
-            Refresh
+      <div className="flex-none border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.push(`/admin/${mosqueId}`)}>
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-3.5 h-3.5 mr-1" />
-              Open
-            </a>
-          </Button>
-        </div>
-      </div>
-
-      {/* Preview */}
-      <div className="relative w-full aspect-video bg-gray-900 overflow-hidden rounded-xl">
-        <iframe
-          src={`/display/${screen.slug}?theme=${form.theme}&preview=1`}
-          className="absolute top-0 left-0 border-0 pointer-events-none w-[1920px] h-[1080px] origin-top-left"
-          style={{ transform: 'scale(0.465)' }}
-          title="Preview"
-        />
-      </div>
-
-      {/* Tabs: Theme / Screen */}
-      <Tabs defaultValue="theme">
-        <TabsList>
-          <TabsTrigger value="theme">Theme</TabsTrigger>
-          <TabsTrigger value="screen">Screen</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="theme" className="space-y-6">
-          {/* Theme picker */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Choose Theme</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {themeList.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => handleThemeChange(t.id)}
-                    className={cn(
-                      'rounded-lg p-4 text-left transition-all border-2',
-                      form.theme === t.id
-                        ? 'border-primary ring-2 ring-primary/20'
-                        : 'border-transparent hover:border-border'
-                    )}
-                  >
-                    <div className={cn('w-full h-16 rounded-md mb-3', t.preview)} />
-                    <div className="font-medium">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.description}</div>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Theme-specific settings */}
-          {currentThemeDef && currentThemeDef.fields.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{currentThemeDef.name} Settings</CardTitle>
-                <CardDescription>Customize this theme&apos;s appearance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ThemeSettingsForm
-                  theme={currentThemeDef}
-                  savedConfig={asRecord(screen.theme_config)}
-                  onChange={handleConfigChange}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="screen">
-          <Card>
-            <CardHeader>
-              <CardTitle>Screen Settings</CardTitle>
-              <CardDescription>Orientation, scale & brightness for connected devices</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Orientation */}
-              <div className="space-y-2">
-                <Label>Orientation</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {ROTATIONS.map((opt) => {
-                    const active = form.rotation === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => patch({ rotation: opt.value })}
-                        className={cn(
-                          'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
-                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                        )}
-                      >
-                        <Monitor
-                          className={cn('w-6 h-6 transition-transform', active ? 'text-primary' : 'text-muted-foreground')}
-                          style={{ transform: `rotate(${opt.value}deg)` }}
-                        />
-                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Scale */}
-              <div className="space-y-2">
-                <Label>Scale</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {ZOOMS.map((opt) => {
-                    const active = form.zoom === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => patch({ zoom: opt.value })}
-                        className={cn(
-                          'flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all',
-                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                        )}
-                      >
-                        <Maximize
-                          className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
-                          strokeWidth={opt.stroke}
-                        />
-                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Brightness */}
-              <div className="space-y-2">
-                <Label>Brightness</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {BRIGHTNESS.map((opt) => {
-                    const active = form.brightness === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => patch({ brightness: opt.value })}
-                        className={cn(
-                          'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
-                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                        )}
-                      >
-                        <BrightnessIcon
-                          value={opt.value}
-                          className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
-                        />
-                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Sticky save — only when dirty */}
-      {dirty && (
-        <div className="sticky bottom-4">
-          <div className="flex justify-end rounded-lg bg-background/80 backdrop-blur border p-3 shadow-lg">
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-semibold truncate">{screen.name}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Configure display and theme</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ScreenPresence screenId={screen.id} />
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="w-3.5 h-3.5 mr-1" />
+              Refresh
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                Open
+              </a>
+            </Button>
+            {dirty && (
+              <Button onClick={handleSave} disabled={saving} className="ml-2">
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 pb-24">
+          <div className="max-w-[1600px] mx-auto space-y-8">
+            <Tabs defaultValue="theme" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="theme">Theme</TabsTrigger>
+                <TabsTrigger value="screen">Screen</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="theme" className="space-y-6 mt-0">
+                {/* Theme picker */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium">Choose Theme</h3>
+                    <p className="text-sm text-muted-foreground">Select a visual style for your display</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {themeList.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleThemeChange(t.id)}
+                        className={cn(
+                          'group relative flex flex-col rounded-xl border-2 text-left transition-all overflow-hidden',
+                          form.theme === t.id
+                            ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                            : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                        )}
+                      >
+                        <div className={cn('w-full aspect-video bg-muted', t.preview)} />
+                        <div className="p-3">
+                          <div className="font-medium truncate">{t.name}</div>
+                          <div className="text-xs text-muted-foreground line-clamp-1">{t.description}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Theme-specific settings */}
+                {currentThemeDef && currentThemeDef.fields.length > 0 && (
+                  <div className="space-y-4 pt-6 mt-6 border-t">
+                    <div>
+                      <h3 className="text-lg font-medium">{currentThemeDef.name} Settings</h3>
+                      <p className="text-sm text-muted-foreground">Customize this theme&apos;s appearance</p>
+                    </div>
+                    <div className="max-w-2xl">
+                      <ThemeSettingsForm
+                        theme={currentThemeDef}
+                        savedConfig={asRecord(screen.theme_config)}
+                        onChange={handleConfigChange}
+                      />
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="screen" className="space-y-8 mt-0">
+                <div className="max-w-4xl space-y-8">
+                  {/* Orientation */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Orientation</h3>
+                      <p className="text-sm text-muted-foreground">Set the display rotation</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {ROTATIONS.map((opt) => {
+                        const active = form.rotation === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => patch({ rotation: opt.value })}
+                            className={cn(
+                              'flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all',
+                              active ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/30 hover:bg-muted/50'
+                            )}
+                          >
+                            <Monitor
+                              className={cn('w-8 h-8 transition-transform', active ? 'text-primary' : 'text-muted-foreground')}
+                              style={{ transform: `rotate(${opt.value}deg)` }}
+                            />
+                            <span className={cn('text-sm font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                              {opt.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Scale */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Scale</h3>
+                      <p className="text-sm text-muted-foreground">Adjust interface size</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {ZOOMS.map((opt) => {
+                        const active = form.zoom === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => patch({ zoom: opt.value })}
+                            className={cn(
+                              'flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all',
+                              active ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/30 hover:bg-muted/50'
+                            )}
+                          >
+                            <Maximize
+                              className={cn('w-6 h-6', active ? 'text-primary' : 'text-muted-foreground')}
+                              strokeWidth={opt.stroke}
+                            />
+                            <span className={cn('text-sm font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                              {opt.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Brightness */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Brightness</h3>
+                      <p className="text-sm text-muted-foreground">Screen brightness (supported devices only)</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {BRIGHTNESS.map((opt) => {
+                        const active = form.brightness === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => patch({ brightness: opt.value })}
+                            className={cn(
+                              'flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all',
+                              active ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/30 hover:bg-muted/50'
+                            )}
+                          >
+                            <BrightnessIcon
+                              value={opt.value}
+                              className={cn('w-6 h-6', active ? 'text-primary' : 'text-muted-foreground')}
+                            />
+                            <span className={cn('text-sm font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                              {opt.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Floating Preview - Fixed Bottom Right */}
+        <div className="fixed bottom-6 right-6 w-[400px] z-50">
+          <div className="bg-background rounded-xl border shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
+                <div className="w-2 h-2 rounded-full bg-green-500/20" />
+              </div>
+            </div>
+            <div className="relative w-full aspect-video bg-gray-900">
+               <iframe
+                src={`/display/${screen.slug}?theme=${form.theme}&preview=1`}
+                className="absolute top-0 left-0 border-0 pointer-events-none w-[1920px] h-[1080px] origin-top-left"
+                style={{ transform: `scale(${400 / 1920})` }}
+                title="Preview"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

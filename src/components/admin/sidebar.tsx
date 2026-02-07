@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Monitor, Clock, Globe, ArrowLeft, LogOut } from 'lucide-react';
+import { Monitor, Clock, Globe, ArrowLeft, LogOut, Building2 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -56,24 +56,18 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="px-3 pt-4 pb-2">
-        <Link
-          href="/admin"
-          className="group flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors mb-3 font-medium group-data-[collapsible=icon]:hidden"
-        >
-          <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
-          All Mosques
-        </Link>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">
-            {mosqueName.charAt(0).toUpperCase()}
+    <Sidebar collapsible="icon" className="border-r">
+      <SidebarHeader className="h-16 border-b border-sidebar-border/50">
+        <div className="flex items-center gap-2 px-2 w-full h-full">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <span className="font-bold">{mosqueName.charAt(0).toUpperCase()}</span>
           </div>
-          <span className="font-semibold text-sm truncate group-data-[collapsible=icon]:hidden">{mosqueName}</span>
+          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
+            <span className="font-semibold capitalize">{mosqueName}</span>
+            <span className="text-xs text-muted-foreground">Free Plan</span>
+          </div>
         </div>
       </SidebarHeader>
-
-      <SidebarSeparator />
 
       <SidebarContent>
         <SidebarGroup>
@@ -100,6 +94,14 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="My Mosques">
+              <Link href="/admin">
+                <Building2 />
+                <span>My Mosques</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out">
               <LogOut />

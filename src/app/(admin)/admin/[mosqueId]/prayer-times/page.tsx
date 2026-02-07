@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -15,7 +15,7 @@ import type { PrayerTimesMap, Json } from '@/types/database';
 import type { PrayerName } from '@/types/prayer';
 import { PRAYER_DISPLAY_NAMES, computeIqamahTime } from '@/types/prayer';
 import { prayerTimesSchema } from '@/lib/validations';
-import type { PrayerSourceType, VaktijaBaSourceConfig, PrayerConfigMap, IqamahConfig, IqamahType } from '@/types/prayer-config';
+import type { PrayerSourceType, PrayerSourceConfig, PrayerConfigMap, IqamahConfig, IqamahType } from '@/types/prayer-config';
 import { PrayerSourceSelector } from '@/components/admin/prayer-source-selector';
 
 const CONFIG_PRAYERS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -29,14 +29,14 @@ export default function PrayerTimesPage() {
     asr: '16:30', maghrib: '19:00', isha: '20:30',
   });
   const [prayerSource, setPrayerSource] = useState<PrayerSourceType>('manual');
-  const [sourceConfig, setSourceConfig] = useState<VaktijaBaSourceConfig | Record<string, never>>({});
+  const [sourceConfig, setSourceConfig] = useState<PrayerSourceConfig>({});
   const [prayerConfig, setPrayerConfig] = useState<PrayerConfigMap>({});
 
   useEffect(() => {
     if (!settings) return;
     setPrayerTimes(settings.prayer_times);
     setPrayerSource(settings.prayer_source);
-    setSourceConfig(settings.prayer_source_config as VaktijaBaSourceConfig | Record<string, never>);
+    setSourceConfig(settings.prayer_source_config as PrayerSourceConfig);
     setPrayerConfig(settings.prayer_config);
   }, [settings]);
 
@@ -91,10 +91,10 @@ export default function PrayerTimesPage() {
   if (!settings) return <div className="text-muted-foreground">Settings not found</div>;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Prayer Times</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Configure sources and per-prayer settings</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Prayer Times</h1>
+        <p className="text-muted-foreground mt-1">Configure sources and per-prayer settings</p>
       </div>
 
       <Tabs defaultValue="source">
@@ -103,28 +103,20 @@ export default function PrayerTimesPage() {
           <TabsTrigger value="config">Config</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="source">
-          <Card>
-            <CardHeader>
-              <CardTitle>Prayer Source</CardTitle>
-              <CardDescription>Choose where prayer times come from</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PrayerSourceSelector
-                source={prayerSource}
-                sourceConfig={sourceConfig}
-                onSourceChange={setPrayerSource}
-                onSourceConfigChange={setSourceConfig}
-                onTimesFetched={(times) => {
-                  setPrayerTimes(times);
-                  toast.success('Times fetched — save to apply');
-                }}
-              />
-            </CardContent>
-          </Card>
+        <TabsContent value="source" className="mt-6">
+          <PrayerSourceSelector
+            source={prayerSource}
+            sourceConfig={sourceConfig}
+            onSourceChange={setPrayerSource}
+            onSourceConfigChange={setSourceConfig}
+            onTimesFetched={(times) => {
+              setPrayerTimes(times);
+              toast.success('Times fetched — save to apply');
+            }}
+          />
         </TabsContent>
 
-        <TabsContent value="config">
+        <TabsContent value="config" className="mt-6">
           <Tabs defaultValue="fajr">
             <TabsList className="w-full">
               {CONFIG_PRAYERS.map((p) => (

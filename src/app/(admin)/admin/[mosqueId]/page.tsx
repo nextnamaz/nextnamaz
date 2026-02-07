@@ -13,10 +13,31 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, ExternalLink, Settings, Monitor, Smartphone, Copy, Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  Plus, 
+  Trash2, 
+  ExternalLink, 
+  Settings, 
+  Monitor, 
+  Smartphone, 
+  Copy, 
+  Check, 
+  MoreVertical,
+  Laptop,
+  Tv
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardAction, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Screen, Mosque } from '@/types/database';
 import { ScreenPresence } from '@/components/admin/screen-presence';
@@ -35,33 +56,50 @@ function ScreenPreview({ screen }: { screen: Screen }) {
   const isPortrait = screen.rotation === 90 || screen.rotation === 270;
 
   return (
-    <div className="w-full">
-      <div className="bg-neutral-900 rounded-lg p-1.5 shadow-xl">
-        <div
-          className="relative w-full rounded-sm overflow-hidden"
-          style={{ aspectRatio: isPortrait ? '9/16' : '16/9' }}
-        >
-          <iframe
-            src={`/display/${screen.slug}?preview=1`}
-            title={`Preview: ${screen.name}`}
-            className="absolute inset-0 w-full h-full border-0 pointer-events-none"
-            style={{
-              transform: 'scale(0.4)',
-              transformOrigin: '0 0',
-              width: '250%',
-              height: '250%',
-            }}
-            scrolling="no"
-          />
-          <div className="absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-black/20 pointer-events-none" />
-          <div
-            className="absolute inset-0"
-            style={{ boxShadow: 'inset 0 0 30px rgba(0,0,0,0.4)' }}
-          />
+    <div className="relative w-full overflow-hidden rounded-md border bg-neutral-950 shadow-sm aspect-video group">
+      <div 
+        className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+      >
+        <div className="flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 p-4 rounded-xl backdrop-blur-sm text-white">
+            <ExternalLink className="w-6 h-6" />
+            <span className="text-xs font-medium">Open Preview</span>
         </div>
       </div>
-      {/* Stand */}
-      <div className="mx-auto w-16 h-1.5 bg-neutral-800 rounded-b-full" />
+      
+      <div
+        className="relative w-full h-full"
+      >
+        <iframe
+          src={`/display/${screen.slug}?preview=1`}
+          title={`Preview: ${screen.name}`}
+          className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-90 transition-opacity hover:opacity-100"
+          style={{
+            transform: isPortrait ? 'scale(0.5) rotate(-90deg)' : 'scale(0.5)',
+            transformOrigin: 'top left',
+            width: '200%',
+            height: '200%',
+            // For portrait, we need to adjust the position after rotation if needed, 
+            // but simple scaling is often enough for a quick preview.
+            // Actually, for portrait in a landscape container, we might want to center it.
+             ...(isPortrait ? {
+                width: '200vh', 
+                height: '200vw',
+                transform: 'rotate(-90deg) translateX(-100%) scale(0.5)', 
+                transformOrigin: 'top left' 
+             } : {})
+          }}
+          scrolling="no"
+        />
+      </div>
+      
+      {/* Overlay to catch clicks and redirect if needed */ }
+      <a 
+        href={`/display/${screen.slug}`} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="absolute inset-0 z-20 cursor-pointer"
+        aria-label="Open display"
+      />
     </div>
   );
 }
@@ -80,16 +118,19 @@ function CopyUrlButton({ slug }: { slug: string }) {
   };
 
   return (
-    <button
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-8 gap-2 text-xs font-mono bg-muted/50 hover:bg-muted"
       onClick={(e) => {
         e.stopPropagation();
+        e.preventDefault();
         handleCopy();
       }}
-      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
     >
-      {copied ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
-      {url}
-    </button>
+      {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+      <span className="truncate max-w-[150px]">{url}</span>
+    </Button>
   );
 }
 
@@ -140,7 +181,7 @@ export default function MosqueScreensPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Screen created');
+      toast.success('Screen created successfully');
       setNewScreenName('');
       setDialogOpen(false);
       loadData();
@@ -161,150 +202,143 @@ export default function MosqueScreensPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading screens...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground animate-pulse">Loading displays...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Screens</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {screens.length === 0
-              ? 'Add display screens for your mosque'
-              : `${screens.length} display screen${screens.length !== 1 ? 's' : ''} configured`}
+          <h1 className="text-3xl font-bold tracking-tight">Screens</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your digital signage displays and prayer time screens.
           </p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-1.5" />
-              Add Screen
+            <Button size="lg" className="shadow-sm">
+              <Plus className="w-5 h-5 mr-2" />
+              Add New Screen
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add a new screen</DialogTitle>
+              <DialogTitle>Add New Screen</DialogTitle>
               <DialogDescription>
-                Each screen can have its own theme and display orientation.
+                Create a new digital signage screen for your mosque.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateScreen} className="space-y-4">
+            <form onSubmit={handleCreateScreen} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="screenName">Screen Name</Label>
                 <Input
                   id="screenName"
                   value={newScreenName}
                   onChange={(e) => setNewScreenName(e.target.value)}
-                  placeholder="e.g. Main Hall, Second Floor"
-                  required
+                  placeholder="e.g. Main Hall TV, Ladies Section"
+                  className="col-span-3"
                   autoFocus
                 />
                 {newScreenName.trim() && mosque && (
-                  <p className="text-xs text-muted-foreground">
-                    URL: <span className="font-mono text-foreground/70">/display/{generateSlug(mosque.name, newScreenName)}</span>
+                  <p className="text-[11px] text-muted-foreground bg-muted/50 p-2 rounded border">
+                    Public URL: <span className="font-mono select-all">/display/{generateSlug(mosque.name, newScreenName)}</span>
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={creating}>
-                {creating ? 'Creating...' : 'Create Screen'}
-              </Button>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={creating}>Cancel</Button>
+                <Button type="submit" disabled={creating || !newScreenName.trim()}>
+                  {creating ? 'Creating...' : 'Create Screen'}
+                </Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {screens.length === 0 ? (
-        /* Empty state */
-        <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 flex flex-col items-center justify-center py-20 px-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-            <Monitor className="w-8 h-8 text-primary" />
+        <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed rounded-xl bg-card/30">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <Monitor className="w-10 h-10 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">No screens yet</h3>
-          <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
-            Add a display screen to show prayer times on a TV or monitor in your mosque.
+          <h2 className="text-xl font-semibold mb-2">No screens configured</h2>
+          <p className="text-muted-foreground max-w-md mb-8">
+            You haven't set up any display screens yet. Add your first screen to start displaying prayer times on your TVs.
           </p>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Your First Screen
+          <Button onClick={() => setDialogOpen(true)} variant="secondary" size="lg">
+            <Plus className="w-5 h-5 mr-2" />
+            Create First Screen
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {screens.map((screen) => {
             const isPortrait = screen.rotation === 90 || screen.rotation === 270;
             return (
-              <Card
-                key={screen.id}
-                className="group gap-0 py-0 hover:shadow-md transition-all duration-200"
-              >
-                <CardHeader className="px-4 pt-4 pb-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <CardTitle className="text-sm truncate">{screen.name}</CardTitle>
-                    <ScreenPresence screenId={screen.id} compact />
+              <Card key={screen.id} className="overflow-hidden bg-card hover:shadow-lg transition-all duration-300 border-muted">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 pt-6 px-6">
+                  <div className="space-y-1.5">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      {screen.name}
+                      <ScreenPresence screenId={screen.id} compact />
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      {screen.theme} theme • {isPortrait ? 'Portrait' : 'Landscape'}
+                    </CardDescription>
                   </div>
-                  <CardAction>
-                    <div className="flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground/60 hover:text-foreground"
-                        onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}
-                      >
-                        <Settings className="w-3.5 h-3.5" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground">
+                        <MoreVertical className="w-4 h-4" />
+                        <span className="sr-only">Open menu</span>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground/60 hover:text-foreground"
-                        asChild
-                      >
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}>
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configure
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Open Display
                         </a>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600 focus:text-red-600"
                         onClick={() => {
-                          if (confirm('Delete this screen?')) {
+                          if (confirm('Are you sure you want to delete this screen? This action cannot be undone.')) {
                             handleDeleteScreen(screen.id);
                           }
                         }}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </CardAction>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
-
-                <CardContent className="px-4 pb-3">
+                
+                <CardContent className="pb-6 px-6">
                   <ScreenPreview screen={screen} />
                 </CardContent>
 
-                <CardFooter className="px-4 py-2.5 border-t border-border/50 justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[11px] capitalize">
-                      {screen.theme}
-                    </Badge>
-                    <Badge variant="outline" className="text-[11px]">
-                      {isPortrait ? (
-                        <><Smartphone className="w-3 h-3" /> Portrait</>
-                      ) : (
-                        <><Monitor className="w-3 h-3" /> Landscape</>
-                      )}
-                    </Badge>
-                  </div>
-                  <CopyUrlButton slug={screen.slug} />
+                <CardFooter className="py-4 px-6 border-t bg-muted/30 flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-normal text-[10px] h-6 px-2 gap-1.5 bg-background">
+                        {isPortrait ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
+                        {isPortrait ? '9:16' : '16:9'}
+                      </Badge>
+                   </div>
+                   <CopyUrlButton slug={screen.slug} />
                 </CardFooter>
               </Card>
             );
