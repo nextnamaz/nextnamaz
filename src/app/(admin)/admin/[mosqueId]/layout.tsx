@@ -39,12 +39,14 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar mosqueName={mosque.name} mosqueId={mosqueId} />
       <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
         </header>
-        <div className="w-full mx-auto px-6 py-8">
-          {children}
-        </div>
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-6xl px-6 py-8">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

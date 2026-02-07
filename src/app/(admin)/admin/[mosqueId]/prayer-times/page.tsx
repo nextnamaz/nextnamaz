@@ -98,12 +98,12 @@ export default function PrayerTimesPage() {
       </div>
 
       <Tabs defaultValue="source">
-        <TabsList>
+        <TabsList className="mb-6">
           <TabsTrigger value="source">Source</TabsTrigger>
           <TabsTrigger value="config">Config</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="source" className="mt-6">
+        <TabsContent value="source" className="mt-0">
           <PrayerSourceSelector
             source={prayerSource}
             sourceConfig={sourceConfig}
@@ -116,7 +116,7 @@ export default function PrayerTimesPage() {
           />
         </TabsContent>
 
-        <TabsContent value="config" className="mt-6">
+        <TabsContent value="config" className="mt-0">
           <Tabs defaultValue="fajr">
             <TabsList className="w-full">
               {CONFIG_PRAYERS.map((p) => (
@@ -232,11 +232,14 @@ export default function PrayerTimesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Sticky save */}
-      <div className="sticky bottom-4">
-        <div className="flex justify-end rounded-lg bg-background/80 backdrop-blur-sm border border-border p-3 shadow-lg">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Settings'}
+      {/* Floating Save Bar */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 px-4">
+        <div className="flex items-center justify-between rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl p-2 pl-6">
+          <span className="text-sm font-medium text-muted-foreground">
+            Unsaved changes
+          </span>
+          <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>

@@ -23,18 +23,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  Plus, 
-  Trash2, 
-  ExternalLink, 
-  Settings, 
-  Monitor, 
-  Smartphone, 
-  Copy, 
-  Check, 
+import {
+  Plus,
+  Trash2,
+  ExternalLink,
+  Settings,
+  Monitor,
+  Smartphone,
+  Copy,
+  Check,
   MoreVertical,
-  Laptop,
-  Tv
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -202,19 +200,21 @@ export default function MosqueScreensPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground animate-pulse">Loading displays...</p>
+      <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading screens...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Screens</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Screens</h1>
           <p className="text-muted-foreground mt-1">
             Manage your digital signage displays and prayer time screens.
           </p>
