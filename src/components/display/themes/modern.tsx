@@ -1,8 +1,18 @@
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { formatTime12h } from '@/types/prayer';
 import { Clock } from '../clock';
 import { Countdown } from '../countdown';
 import { cn } from '@/lib/utils';
+
+export const modernDefinition: ThemeDefinition = {
+  id: 'modern',
+  name: 'Modern',
+  description: 'Minimalist dark slate design',
+  preview: 'bg-linear-to-br from-slate-900 to-slate-800',
+  component: ModernTheme,
+  fields: [],
+  defaultConfig: {},
+};
 
 export function ModernTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
   return (

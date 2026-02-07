@@ -54,12 +54,13 @@ export default function MosquesPage() {
         .map((m) => {
           const mosque = m.mosques as unknown as Mosque & { screens: { count: number }[] };
           if (!mosque) return null;
+          const { screens, ...rest } = mosque;
           return {
-            ...mosque,
-            screenCount: mosque.screens?.[0]?.count ?? 0,
+            ...rest,
+            screenCount: screens?.[0]?.count ?? 0,
           };
         })
-        .filter((m): m is MosqueWithScreenCount => m !== null);
+        .filter((m): m is MosqueWithScreenCount => m != null);
       setMosques(mosqueList);
     }
     setLoading(false);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,13 @@ import { ArrowLeft, ExternalLink, RefreshCw, Monitor, Sun, SunDim, SunMedium, Ma
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Screen } from '@/types/database';
+import { asRecord } from '@/types/database';
 import type { ScreenRotation, BrightnessPreset } from '@/types/prayer-config';
 import { ScreenPresence } from './screen-presence';
+import { THEME_REGISTRY } from '@/components/display/themes';
+import { ThemeSettingsForm } from './theme-settings-form';
 
-const THEMES = [
-  { id: 'classic', name: 'Classic', description: 'Traditional green & gold', preview: 'bg-linear-to-br from-emerald-800 to-emerald-950' },
-  { id: 'andalus', name: 'Andalus', description: 'Elegant Al-Andalus inspired', preview: 'bg-linear-to-br from-[#1a2030] to-[#141820]' },
-] as const;
+const themeList = Object.values(THEME_REGISTRY);
 
 const ROTATIONS: { value: ScreenRotation; label: string }[] = [
   { value: 0, label: 'Landscape' },
@@ -39,16 +39,35 @@ const BRIGHTNESS: { value: BrightnessPreset; label: string }[] = [
   { value: 100, label: 'Full' },
 ];
 
+type ThemeConfigMap = Record<string, string | number | boolean>;
+
 interface FormState {
   theme: string;
+  themeConfig: ThemeConfigMap;
   rotation: ScreenRotation;
   zoom: number;
   brightness: number;
 }
 
+function configFromScreen(screen: Screen, themeId: string): ThemeConfigMap {
+  const raw = asRecord(screen.theme_config);
+  const def = THEME_REGISTRY[themeId];
+  if (!def) return {};
+  // Merge defaults with saved values
+  const result: ThemeConfigMap = { ...def.defaultConfig };
+  for (const field of def.fields) {
+    const saved = raw[field.key];
+    if (saved !== undefined && saved !== null) {
+      result[field.key] = saved as string | number | boolean;
+    }
+  }
+  return result;
+}
+
 function formFromScreen(screen: Screen): FormState {
   return {
     theme: screen.theme,
+    themeConfig: configFromScreen(screen, screen.theme),
     rotation: (screen.rotation as ScreenRotation) || 0,
     zoom: screen.zoom ?? 100,
     brightness: screen.brightness ?? 100,
@@ -72,15 +91,29 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
   const [form, setForm] = useState<FormState>(initial);
   const [saved, setSaved] = useState<FormState>(initial);
   const [saving, setSaving] = useState(false);
+  const configRef = useRef(form.themeConfig);
 
   const dirty =
     form.theme !== saved.theme ||
     form.rotation !== saved.rotation ||
     form.zoom !== saved.zoom ||
-    form.brightness !== saved.brightness;
+    form.brightness !== saved.brightness ||
+    JSON.stringify(form.themeConfig) !== JSON.stringify(saved.themeConfig);
 
   const patch = (updates: Partial<FormState>) =>
     setForm((prev) => ({ ...prev, ...updates }));
+
+  const handleThemeChange = (themeId: string) => {
+    const def = THEME_REGISTRY[themeId];
+    const newConfig = def ? { ...def.defaultConfig } : {};
+    patch({ theme: themeId, themeConfig: newConfig });
+    configRef.current = newConfig;
+  };
+
+  const handleConfigChange = useCallback((config: ThemeConfigMap) => {
+    configRef.current = config;
+    setForm((prev) => ({ ...prev, themeConfig: config }));
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -88,6 +121,7 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
       .from('screens')
       .update({
         theme: form.theme,
+        theme_config: configRef.current,
         rotation: form.rotation,
         zoom: form.zoom,
         brightness: form.brightness,
@@ -98,7 +132,7 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
       toast.error('Failed to save');
     } else {
       toast.success('Saved');
-      setSaved(form);
+      setSaved({ ...form, themeConfig: configRef.current });
     }
     setSaving(false);
   };
@@ -115,6 +149,8 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
     supabase.removeChannel(channel);
     toast.success('Refresh sent');
   };
+
+  const currentThemeDef = THEME_REGISTRY[form.theme];
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -137,11 +173,11 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
           <CardTitle>Theme</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {THEMES.map((t) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {themeList.map((t) => (
               <button
                 key={t.id}
-                onClick={() => patch({ theme: t.id })}
+                onClick={() => handleThemeChange(t.id)}
                 className={cn(
                   'rounded-lg p-4 text-left transition-all border-2',
                   form.theme === t.id
@@ -149,7 +185,7 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
                     : 'border-transparent hover:border-border'
                 )}
               >
-                <div className={cn('w-full h-20 rounded-md mb-3', t.preview)} />
+                <div className={cn('w-full h-16 rounded-md mb-3', t.preview)} />
                 <div className="font-medium">{t.name}</div>
                 <div className="text-xs text-muted-foreground">{t.description}</div>
               </button>
@@ -157,6 +193,23 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Theme Settings */}
+      {currentThemeDef && currentThemeDef.fields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{currentThemeDef.name} Settings</CardTitle>
+            <CardDescription>Customize this theme&apos;s appearance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThemeSettingsForm
+              theme={currentThemeDef}
+              savedConfig={asRecord(screen.theme_config)}
+              onChange={handleConfigChange}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Display Controls */}
       <Card>

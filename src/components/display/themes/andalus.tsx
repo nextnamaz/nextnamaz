@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { cn } from '@/lib/utils';
 
 interface TimeState {
@@ -111,6 +111,34 @@ function getIqamahOffset(prayerTime: string, iqamahTime: string): number {
 }
 
 const pad = (n: number) => n.toString().padStart(2, '0');
+
+export const andalusDefinition: ThemeDefinition = {
+  id: 'andalus',
+  name: 'Andalus',
+  description: 'Elegant Al-Andalus inspired',
+  preview: 'bg-linear-to-br from-[#1a2030] to-[#141820]',
+  component: AndalusTheme,
+  fields: [
+    {
+      key: 'verse1',
+      label: 'Verse (top)',
+      type: 'textarea',
+      defaultValue: 'لَا يُكَلِّفُ اللّهُ نَفْسًا إِلَّا وُسْعَهَا',
+      description: 'Quranic verse displayed above the prayer table',
+    },
+    {
+      key: 'verse2',
+      label: 'Verse (bottom)',
+      type: 'textarea',
+      defaultValue: 'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا',
+      description: 'Quranic verse displayed below the prayer table',
+    },
+  ],
+  defaultConfig: {
+    verse1: 'لَا يُكَلِّفُ اللّهُ نَفْسًا إِلَّا وُسْعَهَا',
+    verse2: 'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا',
+  },
+};
 
 export function AndalusTheme({ mosqueName, prayers, nextPrayer, config }: ThemeProps) {
   const time = useCurrentTime();

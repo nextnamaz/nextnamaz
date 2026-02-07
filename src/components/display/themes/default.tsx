@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { Countdown } from '../countdown';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +30,26 @@ function usePrayerStates(
     });
   }, [prayers, nextPrayer]);
 }
+
+export const defaultDefinition: ThemeDefinition = {
+  id: 'default',
+  name: 'Default',
+  description: 'Clean table layout with next prayer panel',
+  preview: 'bg-[#374151]',
+  component: DefaultTheme,
+  fields: [
+    {
+      key: 'displayText',
+      label: 'Footer Text',
+      type: 'text',
+      defaultValue: 'بسم الله الرحمن الرحيم',
+      description: 'Text shown at the bottom of the display',
+    },
+  ],
+  defaultConfig: {
+    displayText: 'بسم الله الرحمن الرحيم',
+  },
+};
 
 export function DefaultTheme({ prayers, nextPrayer, config }: ThemeProps) {
   const [time, setTime] = useState(new Date());

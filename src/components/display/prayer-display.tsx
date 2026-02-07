@@ -7,7 +7,7 @@ import { asRecord, toMosqueSettings, getScreenControls } from '@/types/database'
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { prayerTimesMapToEntries, getNextPrayer } from '@/types/prayer';
 import type { PrayerConfigMap, ScreenCommand, DevicePresenceState } from '@/types/prayer-config';
-import { ClassicTheme, AndalusTheme } from './themes';
+import { THEME_REGISTRY } from './themes';
 
 interface PrayerDisplayProps {
   mosque: Mosque;
@@ -161,13 +161,9 @@ export function PrayerDisplay({
   };
 
   const renderTheme = () => {
-    switch (currentTheme) {
-      case 'andalus':
-        return <AndalusTheme {...themeProps} />;
-      case 'classic':
-      default:
-        return <ClassicTheme {...themeProps} />;
-    }
+    const def = THEME_REGISTRY[currentTheme] ?? THEME_REGISTRY['classic'];
+    const ThemeComponent = def.component;
+    return <ThemeComponent {...themeProps} />;
   };
 
   // Only apply display transforms if not in preview mode (themeOverride)

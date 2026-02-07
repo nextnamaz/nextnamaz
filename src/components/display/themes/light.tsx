@@ -1,8 +1,18 @@
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { formatTime12h } from '@/types/prayer';
 import { Clock } from '../clock';
 import { Countdown } from '../countdown';
 import { cn } from '@/lib/utils';
+
+export const lightDefinition: ThemeDefinition = {
+  id: 'light',
+  name: 'Light',
+  description: 'Clean light mode design',
+  preview: 'bg-linear-to-br from-gray-50 to-white border border-gray-200',
+  component: LightTheme,
+  fields: [],
+  defaultConfig: {},
+};
 
 export function LightTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
   return (

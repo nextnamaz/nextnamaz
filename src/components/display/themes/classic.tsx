@@ -1,8 +1,18 @@
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { formatTime12h } from '@/types/prayer';
 import { Clock } from '../clock';
 import { Countdown } from '../countdown';
 import { cn } from '@/lib/utils';
+
+export const classicDefinition: ThemeDefinition = {
+  id: 'classic',
+  name: 'Classic',
+  description: 'Traditional green & gold',
+  preview: 'bg-linear-to-br from-emerald-800 to-emerald-950',
+  component: ClassicTheme,
+  fields: [],
+  defaultConfig: {},
+};
 
 export function ClassicTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
   return (

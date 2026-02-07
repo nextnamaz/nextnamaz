@@ -1,8 +1,18 @@
-import type { ThemeProps } from './index';
+import type { ThemeProps, ThemeDefinition } from './index';
 import { formatTime12h } from '@/types/prayer';
 import { Clock } from '../clock';
 import { Countdown } from '../countdown';
 import { cn } from '@/lib/utils';
+
+export const ramadanDefinition: ThemeDefinition = {
+  id: 'ramadan',
+  name: 'Ramadan',
+  description: 'Purple night sky with Suhoor & Iftar',
+  preview: 'bg-linear-to-br from-purple-900 to-indigo-900',
+  component: RamadanTheme,
+  fields: [],
+  defaultConfig: {},
+};
 
 export function RamadanTheme({ mosqueName, prayers, nextPrayer }: ThemeProps) {
   const fajr = prayers.find((p) => p.name === 'fajr');
