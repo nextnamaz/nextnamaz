@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,14 +31,48 @@ export default function PrayerTimesPage() {
   const [prayerSource, setPrayerSource] = useState<PrayerSourceType>('manual');
   const [sourceConfig, setSourceConfig] = useState<PrayerSourceConfig>({});
   const [prayerConfig, setPrayerConfig] = useState<PrayerConfigMap>({});
+  const savedSnapshot = useRef('');
 
   useEffect(() => {
     if (!settings) return;
-    setPrayerTimes(settings.prayer_times);
-    setPrayerSource(settings.prayer_source);
-    setSourceConfig(settings.prayer_source_config as PrayerSourceConfig);
-    setPrayerConfig(settings.prayer_config);
+    const times = settings.prayer_times;
+    const source = settings.prayer_source;
+    const srcConfig = settings.prayer_source_config as PrayerSourceConfig;
+    const config = settings.prayer_config;
+
+    setPrayerTimes(times);
+    setPrayerSource(source);
+    setSourceConfig(srcConfig);
+    setPrayerConfig(config);
+
+    // Build snapshot from the same values that go into React state
+    savedSnapshot.current = JSON.stringify({
+      prayer_times: times,
+      prayer_source: source,
+      prayer_source_config: srcConfig,
+      prayer_config: config,
+    });
   }, [settings]);
+
+  const changeCount = (() => {
+    if (!savedSnapshot.current) return 0;
+    const s = JSON.parse(savedSnapshot.current) as Record<string, unknown>;
+    const savedTimes = s.prayer_times as Record<string, string>;
+    const savedConfig = s.prayer_config as Record<string, unknown>;
+    let count = 0;
+    // Count each changed prayer time individually
+    for (const key of Object.keys(prayerTimes)) {
+      if (prayerTimes[key as keyof PrayerTimesMap] !== savedTimes[key]) count++;
+    }
+    if (prayerSource !== s.prayer_source) count++;
+    if (JSON.stringify(sourceConfig) !== JSON.stringify(s.prayer_source_config)) count++;
+    // Count each changed prayer config individually
+    for (const key of CONFIG_PRAYERS) {
+      if (JSON.stringify(prayerConfig[key]) !== JSON.stringify(savedConfig?.[key])) count++;
+    }
+    return count;
+  })();
+  const dirty = changeCount > 0;
 
   const handleIqamahChange = (prayer: PrayerName, config: IqamahConfig | undefined) => {
     setPrayerConfig((prev) => {
@@ -232,17 +266,18 @@ export default function PrayerTimesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Floating Save Bar */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 px-4">
-        <div className="flex items-center justify-between rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl p-2 pl-6">
-          <span className="text-sm font-medium text-muted-foreground">
-            Unsaved changes
-          </span>
-          <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
+      {dirty && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl pl-4 pr-1.5 py-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              {changeCount} {changeCount === 1 ? 'change' : 'changes'}
+            </span>
+            <Button size="sm" onClick={handleSave} disabled={saving} className="rounded-full h-7 px-4 text-xs">
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

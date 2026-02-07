@@ -94,12 +94,14 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
   const [saving, setSaving] = useState(false);
   const configRef = useRef(form.themeConfig);
 
-  const dirty =
-    form.theme !== saved.theme ||
-    form.rotation !== saved.rotation ||
-    form.zoom !== saved.zoom ||
-    form.brightness !== saved.brightness ||
-    JSON.stringify(form.themeConfig) !== JSON.stringify(saved.themeConfig);
+  const changeCount = [
+    form.theme !== saved.theme,
+    form.rotation !== saved.rotation,
+    form.zoom !== saved.zoom,
+    form.brightness !== saved.brightness,
+    JSON.stringify(form.themeConfig) !== JSON.stringify(saved.themeConfig),
+  ].filter(Boolean).length;
+  const dirty = changeCount > 0;
 
   const patch = (updates: Partial<FormState>) =>
     setForm((prev) => ({ ...prev, ...updates }));
@@ -365,15 +367,14 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
           </div>
         </div>
 
-        {/* Floating Save Bar */}
         {dirty && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 px-4">
-            <div className="flex items-center justify-between rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl p-2 pl-6 animate-in slide-in-from-bottom-2 fade-in duration-300">
-              <span className="text-sm font-medium text-muted-foreground">
-                {saving ? 'Saving changes...' : 'Unsaved changes'}
+          <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+            <div className="flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl pl-4 pr-1.5 py-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                {changeCount} {changeCount === 1 ? 'change' : 'changes'}
               </span>
-              <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
-                {saving ? 'Saving...' : 'Save Changes'}
+              <Button size="sm" onClick={handleSave} disabled={saving} className="rounded-full h-7 px-4 text-xs">
+                {saving ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,11 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Check, Pen } from 'lucide-react';
+import { Loader2, Check, Pen, MapPin, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type {
   PrayerSourceType,
   PrayerSourceConfig,
+  AdhanSourceConfig,
+  AdhanCalculationMethod,
   VaktijaBaSourceConfig,
   VaktijaEuSourceConfig,
   IslamiskaForbundetSourceConfig,
@@ -23,6 +27,7 @@ import type { PrayerTimesMap } from '@/types/database';
 import { VAKTIJA_LOCATIONS } from '@/lib/prayer-sources/vaktija-ba';
 import { VAKTIJA_EU_COUNTRIES } from '@/lib/prayer-sources/vaktija-eu';
 import { ISLAMISKA_CITIES } from '@/lib/prayer-sources/islamiska-forbundet';
+import { CALCULATION_METHODS } from '@/lib/prayer-sources/adhan';
 
 interface PrayerSourceSelectorProps {
   source: PrayerSourceType;
@@ -36,14 +41,21 @@ interface SourceCardDef {
   id: PrayerSourceType;
   name: string;
   description: string;
+  icon: 'pen' | 'calc' | 'text';
+  badge?: string;
 }
 
 const SOURCES: SourceCardDef[] = [
-  { id: 'manual', name: 'Manual Entry', description: 'Enter prayer times by hand' },
-  { id: 'vaktija_ba', name: 'Vaktija.ba', description: 'Bosnia & Herzegovina' },
-  { id: 'vaktija_eu', name: 'Vaktija.eu', description: '17 European countries' },
-  { id: 'islamiska_forbundet', name: 'Islamiska Förbundet', description: 'Sweden' },
+  { id: 'manual', name: 'Manual Entry', description: 'Enter prayer times by hand', icon: 'pen' },
+  { id: 'adhan', name: 'Calculated', description: 'Auto-calculate by coordinates', icon: 'calc' },
+  { id: 'vaktija_ba', name: 'Vaktija.ba', description: 'Bosnia & Herzegovina', icon: 'text', badge: 'BA' },
+  { id: 'vaktija_eu', name: 'Vaktija.eu', description: '17 European countries', icon: 'text', badge: 'EU' },
+  { id: 'islamiska_forbundet', name: 'Islamiska Förbundet', description: 'Sweden', icon: 'text', badge: 'SE' },
 ];
+
+function isAdhanConfig(config: PrayerSourceConfig): config is AdhanSourceConfig {
+  return 'latitude' in config && 'method' in config;
+}
 
 function isVaktijaBaConfig(config: PrayerSourceConfig): config is VaktijaBaSourceConfig {
   return 'locationId' in config;
@@ -77,14 +89,16 @@ export function PrayerSourceSelector({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       onTimesFetched(data.times);
-    } catch {
-      // Error handled by parent via toast
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch';
+      toast.error(message);
     } finally {
       setFetching(false);
     }
   };
 
   const canFetch = source !== 'manual' && (
+    (source === 'adhan' && isAdhanConfig(sourceConfig) && sourceConfig.latitude !== 0) ||
     (source === 'vaktija_ba' && isVaktijaBaConfig(sourceConfig)) ||
     (source === 'vaktija_eu' && isVaktijaEuConfig(sourceConfig) && sourceConfig.locationSlug) ||
     (source === 'islamiska_forbundet' && isIslamiskaConfig(sourceConfig) && sourceConfig.city)
@@ -92,8 +106,8 @@ export function PrayerSourceSelector({
 
   return (
     <div className="space-y-6">
-      {/* Source cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Source cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {SOURCES.map((s) => {
           const active = source === s.id;
           return (
@@ -113,13 +127,13 @@ export function PrayerSourceSelector({
                   <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
-              {s.id === 'manual' ? (
-                <Pen className="h-5 w-5 text-muted-foreground mb-1" />
-              ) : (
-                <div className="h-5 w-5 mb-1 flex items-center justify-center text-xs font-bold text-muted-foreground">
-                  {s.id === 'vaktija_ba' ? 'BA' : s.id === 'vaktija_eu' ? 'EU' : 'SE'}
-                </div>
-              )}
+              <div className="flex items-center gap-2 mb-1">
+                {s.icon === 'pen' && <Pen className="h-4 w-4 text-muted-foreground" />}
+                {s.icon === 'calc' && <Calculator className="h-4 w-4 text-muted-foreground" />}
+                {s.icon === 'text' && s.badge && (
+                  <span className="text-xs font-bold text-muted-foreground">{s.badge}</span>
+                )}
+              </div>
               <span className="font-medium text-sm">{s.name}</span>
               <span className="text-xs text-muted-foreground">{s.description}</span>
             </button>
@@ -130,6 +144,13 @@ export function PrayerSourceSelector({
       {/* Config for selected source */}
       {source !== 'manual' && (
         <div className="rounded-lg border bg-muted/30 p-5 space-y-5">
+          {source === 'adhan' && (
+            <AdhanConfig
+              config={isAdhanConfig(sourceConfig) ? sourceConfig : undefined}
+              onChange={onSourceConfigChange}
+            />
+          )}
+
           {source === 'vaktija_ba' && (
             <VaktijaBaConfig
               config={isVaktijaBaConfig(sourceConfig) ? sourceConfig : undefined}
@@ -157,6 +178,149 @@ export function PrayerSourceSelector({
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Adhan Calculation Config ---
+
+function AdhanConfig({
+  config,
+  onChange,
+}: {
+  config: AdhanSourceConfig | undefined;
+  onChange: (config: AdhanSourceConfig) => void;
+}) {
+  const [locating, setLocating] = useState(false);
+
+  const current: AdhanSourceConfig = config ?? {
+    latitude: 0,
+    longitude: 0,
+    method: 'MuslimWorldLeague',
+    madhab: 'shafi',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locationName: '',
+  };
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation not supported');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        onChange({
+          ...current,
+          latitude: Math.round(pos.coords.latitude * 10000) / 10000,
+          longitude: Math.round(pos.coords.longitude * 10000) / 10000,
+        });
+        setLocating(false);
+        toast.success('Location detected');
+      },
+      () => {
+        setLocating(false);
+        toast.error('Could not detect location');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Coordinates */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">Coordinates</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleDetectLocation}
+            disabled={locating}
+          >
+            {locating ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <MapPin className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            {locating ? 'Detecting...' : 'Use My Location'}
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Latitude</Label>
+            <Input
+              type="number"
+              step="0.0001"
+              value={current.latitude || ''}
+              placeholder="e.g. 43.8563"
+              onChange={(e) => onChange({ ...current, latitude: Number(e.target.value) })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Longitude</Label>
+            <Input
+              type="number"
+              step="0.0001"
+              value={current.longitude || ''}
+              placeholder="e.g. 18.4131"
+              onChange={(e) => onChange({ ...current, longitude: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Method + Madhab */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Calculation Method</Label>
+          <Select
+            value={current.method}
+            onValueChange={(v) => onChange({ ...current, method: v as AdhanCalculationMethod })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CALCULATION_METHODS.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Madhab (Asr calculation)</Label>
+          <Select
+            value={current.madhab}
+            onValueChange={(v) => onChange({ ...current, madhab: v as 'shafi' | 'hanafi' })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="shafi">Shafi (earlier Asr)</SelectItem>
+              <SelectItem value="hanafi">Hanafi (later Asr)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Timezone */}
+      <div className="space-y-1.5">
+        <Label className="text-sm">Timezone</Label>
+        <Input
+          value={current.timezone}
+          onChange={(e) => onChange({ ...current, timezone: e.target.value })}
+          placeholder="e.g. Europe/Sarajevo"
+          className="max-w-sm"
+        />
+        <p className="text-xs text-muted-foreground">
+          Auto-detected: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+        </p>
+      </div>
     </div>
   );
 }

@@ -19,7 +19,30 @@ export type PrayerConfigMap = Partial<Record<PrayerName, PrayerConfig>>;
 
 // --- Prayer Source ---
 
-export type PrayerSourceType = 'manual' | 'vaktija_ba' | 'vaktija_eu' | 'islamiska_forbundet';
+export type PrayerSourceType = 'manual' | 'adhan' | 'vaktija_ba' | 'vaktija_eu' | 'islamiska_forbundet';
+
+export interface AdhanSourceConfig {
+  latitude: number;
+  longitude: number;
+  method: AdhanCalculationMethod;
+  madhab: 'shafi' | 'hanafi';
+  timezone: string;
+  locationName: string;
+}
+
+export type AdhanCalculationMethod =
+  | 'MuslimWorldLeague'
+  | 'Egyptian'
+  | 'Karachi'
+  | 'UmmAlQura'
+  | 'Dubai'
+  | 'Qatar'
+  | 'Kuwait'
+  | 'MoonsightingCommittee'
+  | 'Singapore'
+  | 'Turkey'
+  | 'Tehran'
+  | 'NorthAmerica';
 
 export interface VaktijaBaSourceConfig {
   locationId: number;
@@ -38,6 +61,7 @@ export interface IslamiskaForbundetSourceConfig {
 
 /** Union of all source configs — extensible per source type */
 export type PrayerSourceConfig =
+  | AdhanSourceConfig
   | VaktijaBaSourceConfig
   | VaktijaEuSourceConfig
   | IslamiskaForbundetSourceConfig
