@@ -6,15 +6,15 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, Building2, LogOut } from 'lucide-react';
+import { Plus, Trash2, LogOut, Monitor, ChevronRight, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Mosque } from '@/types/database';
 
@@ -25,8 +25,12 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+interface MosqueWithScreenCount extends Mosque {
+  screenCount: number;
+}
+
 export default function MosquesPage() {
-  const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [mosques, setMosques] = useState<MosqueWithScreenCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -42,13 +46,20 @@ export default function MosquesPage() {
 
     const { data: memberships } = await supabase
       .from('mosque_members')
-      .select('mosque_id, mosques(*)')
+      .select('mosque_id, mosques(*, screens(count))')
       .eq('user_id', user.id);
 
     if (memberships) {
       const mosqueList = memberships
-        .map((m) => m.mosques)
-        .filter((m): m is Mosque => m !== null);
+        .map((m) => {
+          const mosque = m.mosques as unknown as Mosque & { screens: { count: number }[] };
+          if (!mosque) return null;
+          return {
+            ...mosque,
+            screenCount: mosque.screens?.[0]?.count ?? 0,
+          };
+        })
+        .filter((m): m is MosqueWithScreenCount => m !== null);
       setMosques(mosqueList);
     }
     setLoading(false);
@@ -136,39 +147,53 @@ export default function MosquesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading your mosques...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-secondary">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">NextNamaz</h1>
-        <Button variant="ghost" size="sm" onClick={handleSignOut}>
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <span className="text-lg font-bold tracking-tight text-primary">NextNamaz</span>
+          <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleSignOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        {/* Welcome + action */}
+        <div className="flex items-start justify-between mb-10">
           <div>
-            <h2 className="text-2xl font-bold">Your Mosques</h2>
-            <p className="text-muted-foreground">Manage your mosques and their displays</p>
+            <h1 className="text-3xl font-bold tracking-tight">Your Mosques</h1>
+            <p className="text-muted-foreground mt-1">
+              {mosques.length === 0
+                ? 'Get started by creating your first mosque'
+                : `Managing ${mosques.length} mosque${mosques.length !== 1 ? 's' : ''}`}
+            </p>
           </div>
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button size="lg">
                 <Plus className="w-4 h-4 mr-2" />
                 New Mosque
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Mosque</DialogTitle>
+                <DialogTitle>Create a new mosque</DialogTitle>
+                <DialogDescription>
+                  Add your mosque to start managing prayer times and display screens.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="space-y-2">
@@ -177,12 +202,18 @@ export default function MosquesPage() {
                     id="name"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Enter mosque name"
+                    placeholder="e.g. Islamic Center of Springfield"
                     required
+                    autoFocus
                   />
+                  {newName.trim() && (
+                    <p className="text-xs text-muted-foreground">
+                      URL slug: <span className="font-mono text-foreground/70">{generateSlug(newName)}</span>
+                    </p>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create'}
+                  {creating ? 'Creating...' : 'Create Mosque'}
                 </Button>
               </form>
             </DialogContent>
@@ -190,32 +221,53 @@ export default function MosquesPage() {
         </div>
 
         {mosques.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Building2 className="w-12 h-12 text-muted-foreground/40 mb-4" />
-              <p className="text-muted-foreground mb-4">No mosques yet. Create your first one.</p>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Mosque
-              </Button>
-            </CardContent>
-          </Card>
+          /* Empty state */
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 flex flex-col items-center justify-center py-20 px-6">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+              <Building2 className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No mosques yet</h3>
+            <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+              Create your first mosque to start configuring prayer times and setting up display screens.
+            </p>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Mosque
+            </Button>
+          </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {mosques.map((mosque) => (
-              <Card
+              <button
                 key={mosque.id}
-                className="hover:shadow-md transition-shadow cursor-pointer"
+                className="group w-full text-left rounded-xl border border-border bg-card p-5 flex items-center gap-4 hover:border-primary/30 hover:shadow-md transition-all duration-200 cursor-pointer"
                 onClick={() => router.push(`/admin/${mosque.id}`)}
               >
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Building2 className="w-5 h-5 text-primary/60" />
-                    <CardTitle className="text-lg">{mosque.name}</CardTitle>
+                {/* Initials avatar */}
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary font-bold text-lg flex items-center justify-center shrink-0">
+                  {mosque.name.charAt(0).toUpperCase()}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base truncate">{mosque.name}</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Monitor className="w-3 h-3" />
+                      {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      /{mosque.slug}
+                    </span>
                   </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (confirm('Delete this mosque? This cannot be undone.')) {
@@ -223,10 +275,11 @@ export default function MosquesPage() {
                       }
                     }}
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
-                </CardHeader>
-              </Card>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                </div>
+              </button>
             ))}
           </div>
         )}

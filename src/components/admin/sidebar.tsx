@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Monitor, Settings, ArrowLeft, LogOut } from 'lucide-react';
+import { Monitor, Clock, Timer, Globe, ArrowLeft, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   mosqueName: string;
@@ -15,10 +15,13 @@ interface SidebarProps {
 export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const base = `/admin/${mosqueId}`;
 
   const navItems = [
-    { href: `/admin/${mosqueId}`, label: 'Screens', icon: Monitor },
-    { href: `/admin/${mosqueId}/settings`, label: 'Settings', icon: Settings },
+    { href: base, label: 'Screens', icon: Monitor, match: 'exact' as const },
+    { href: `${base}/prayer-times`, label: 'Prayer Times', icon: Clock, match: 'prefix' as const },
+    { href: `${base}/iqamah`, label: 'Iqamah', icon: Timer, match: 'prefix' as const },
+    { href: `${base}/localization`, label: 'Localization', icon: Globe, match: 'prefix' as const },
   ];
 
   const handleSignOut = async () => {
@@ -29,44 +32,60 @@ export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
   };
 
   return (
-    <aside className="w-56 bg-sidebar text-sidebar-foreground min-h-screen flex flex-col">
-      <div className="p-4 border-b border-sidebar-border">
-        <Link href="/admin" className="text-xs text-sidebar-foreground/50 hover:text-sidebar-foreground/80 flex items-center gap-1 mb-2">
-          <ArrowLeft className="w-3 h-3" />
+    <aside className="w-60 bg-sidebar text-sidebar-foreground min-h-screen flex flex-col">
+      {/* Brand + mosque */}
+      <div className="p-4 pb-3">
+        <Link
+          href="/admin"
+          className="group flex items-center gap-1.5 text-xs text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors mb-3"
+        >
+          <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
           All Mosques
         </Link>
-        <h1 className="font-bold text-sm truncate">{mosqueName}</h1>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground font-bold text-sm flex items-center justify-center shrink-0">
+            {mosqueName.charAt(0).toUpperCase()}
+          </div>
+          <span className="font-semibold text-sm truncate">{mosqueName}</span>
+        </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1">
+      <div className="h-px bg-sidebar-border mx-4" />
+
+      {/* Navigation */}
+      <nav className="flex-1 p-3 pt-3 space-y-0.5">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.match === 'exact'
+            ? pathname === item.href || pathname.startsWith(`${base}/screen`)
+            : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
+                'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                  : 'text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground/80'
               )}
             >
-              <item.icon className="w-4 h-4" />
+              <item.icon className="w-4 h-4 shrink-0" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-sidebar-border">
+      {/* Footer */}
+      <div className="p-3 pt-0">
+        <div className="h-px bg-sidebar-border mb-3" />
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          className="w-full justify-start text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent text-xs h-9"
           onClick={handleSignOut}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-3.5 h-3.5 mr-2" />
           Sign Out
         </Button>
       </div>
