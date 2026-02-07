@@ -31,10 +31,10 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
   if (!mosque) notFound();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen">
       <Sidebar mosqueName={mosque.name} mosqueId={mosqueId} />
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-8 py-8">
+      <main className="flex-1 overflow-auto bg-background">
+        <div className="max-w-5xl mx-auto px-8 py-10">
           {children}
         </div>
       </main>

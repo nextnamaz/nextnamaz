@@ -16,6 +16,9 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Trash2, LogOut, Monitor, ChevronRight, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import type { Mosque } from '@/types/database';
 
 function generateSlug(name: string): string {
@@ -161,21 +164,21 @@ export default function MosquesPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight text-primary">NextNamaz</span>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
+        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+          <span className="text-base font-bold tracking-tight text-primary">NextNamaz</span>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs" onClick={handleSignOut}>
+            <LogOut className="w-3.5 h-3.5 mr-1.5" />
             Sign Out
           </Button>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-6 py-10">
         {/* Welcome + action */}
-        <div className="flex items-start justify-between mb-10">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Your Mosques</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-xl font-semibold tracking-tight">Your Mosques</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
               {mosques.length === 0
                 ? 'Get started by creating your first mosque'
                 : `Managing ${mosques.length} mosque${mosques.length !== 1 ? 's' : ''}`}
@@ -184,8 +187,8 @@ export default function MosquesPage() {
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg">
-                <Plus className="w-4 h-4 mr-2" />
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1.5" />
                 New Mosque
               </Button>
             </DialogTrigger>
@@ -237,33 +240,35 @@ export default function MosquesPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {mosques.map((mosque) => (
-              <button
+              <Card
                 key={mosque.id}
-                className="group w-full text-left rounded-xl border border-border bg-card p-5 flex items-center gap-4 hover:border-primary/30 hover:shadow-md transition-all duration-200 cursor-pointer"
+                role="button"
+                tabIndex={0}
+                className="group flex-row items-center gap-3.5 px-4 py-3.5 rounded-lg hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
                 onClick={() => router.push(`/admin/${mosque.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
               >
-                {/* Initials avatar */}
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary font-bold text-lg flex items-center justify-center shrink-0">
-                  {mosque.name.charAt(0).toUpperCase()}
-                </div>
+                <Avatar size="lg" className="rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                    {mosque.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-base truncate">{mosque.name}</h3>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <h3 className="font-medium text-sm truncate">{mosque.name}</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant="secondary" className="text-[11px] px-1.5 py-0 font-normal gap-1">
                       <Monitor className="w-3 h-3" />
                       {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-mono">
+                    </Badge>
+                    <span className="text-[11px] text-muted-foreground/60 font-mono">
                       /{mosque.slug}
                     </span>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -280,7 +285,7 @@ export default function MosquesPage() {
                   </Button>
                   <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                 </div>
-              </button>
+              </Card>
             ))}
           </div>
         )}

@@ -44,11 +44,12 @@ export function ScreenPresence({ screenId, compact }: ScreenPresenceProps) {
   const isOnline = count > 0;
 
   if (compact) {
+    if (!isOnline) return null;
     return (
-      <Badge variant={isOnline ? 'default' : 'secondary'} className="text-xs">
-        <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${isOnline ? 'bg-green-400' : 'bg-muted-foreground/40'}`} />
+      <span className="inline-flex items-center gap-1 text-[11px] text-green-600 font-medium">
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
         {count}
-      </Badge>
+      </span>
     );
   }
 

@@ -155,14 +155,13 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
   return (
     <div className="max-w-4xl space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/${mosqueId}`)}>
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.push(`/admin/${mosqueId}`)}>
+          <ArrowLeft className="w-4 h-4" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold truncate">{screen.name}</h1>
-          <p className="text-sm text-muted-foreground">Configure display and theme</p>
+          <h1 className="text-xl font-semibold truncate">{screen.name}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Configure display and theme</p>
         </div>
         <ScreenPresence screenId={screen.id} />
       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMosqueSettings } from '@/hooks/use-mosque-settings';
 import type { Json } from '@/types/database';
 import type { SupportedLocale, DisplayTextConfig, LocaleMetadata } from '@/types/locale';
@@ -60,40 +61,50 @@ export default function LocalizationPage() {
   if (!settings) return <div className="text-muted-foreground">Settings not found</div>;
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Localization</h1>
-        <p className="text-muted-foreground mt-1">Language, date format, and time display settings</p>
+        <h1 className="text-xl font-semibold tracking-tight">Localization</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Language, date format, and time display settings</p>
       </div>
 
-      <LanguageSettingsCard
-        locale={locale}
-        displayText={displayText}
-        onLocaleChange={setLocale}
-        onDisplayTextChange={setDisplayText}
-      />
+      <Tabs defaultValue="language">
+        <TabsList>
+          <TabsTrigger value="language">Language</TabsTrigger>
+          <TabsTrigger value="display">Display</TabsTrigger>
+        </TabsList>
 
-      <DateFormatSettingsCard
-        dateFormat={localeMetadata.dateFormat}
-        onDateFormatChange={(fmt) =>
-          setLocaleMetadata((prev) => ({ ...prev, dateFormat: fmt }))
-        }
-      />
+        <TabsContent value="language">
+          <LanguageSettingsCard
+            locale={locale}
+            displayText={displayText}
+            onLocaleChange={setLocale}
+            onDisplayTextChange={setDisplayText}
+          />
+        </TabsContent>
 
-      <TimeFormatSettingsCard
-        use24Hour={localeMetadata.use24Hour}
-        showSeconds={localeMetadata.showSeconds}
-        timezone={localeMetadata.timezone}
-        onUse24HourChange={(v) =>
-          setLocaleMetadata((prev) => ({ ...prev, use24Hour: v }))
-        }
-        onShowSecondsChange={(v) =>
-          setLocaleMetadata((prev) => ({ ...prev, showSeconds: v }))
-        }
-        onTimezoneChange={(v) =>
-          setLocaleMetadata((prev) => ({ ...prev, timezone: v }))
-        }
-      />
+        <TabsContent value="display" className="space-y-6">
+          <DateFormatSettingsCard
+            dateFormat={localeMetadata.dateFormat}
+            onDateFormatChange={(fmt) =>
+              setLocaleMetadata((prev) => ({ ...prev, dateFormat: fmt }))
+            }
+          />
+          <TimeFormatSettingsCard
+            use24Hour={localeMetadata.use24Hour}
+            showSeconds={localeMetadata.showSeconds}
+            timezone={localeMetadata.timezone}
+            onUse24HourChange={(v) =>
+              setLocaleMetadata((prev) => ({ ...prev, use24Hour: v }))
+            }
+            onShowSecondsChange={(v) =>
+              setLocaleMetadata((prev) => ({ ...prev, showSeconds: v }))
+            }
+            onTimezoneChange={(v) =>
+              setLocaleMetadata((prev) => ({ ...prev, timezone: v }))
+            }
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Sticky save */}
       <div className="sticky bottom-4">
