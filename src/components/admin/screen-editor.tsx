@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, ExternalLink, RefreshCw, Monitor, Sun, SunDim, SunMedium, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
@@ -163,174 +164,178 @@ export function ScreenEditor({ screen, mosqueId }: ScreenEditorProps) {
           <h1 className="text-xl font-semibold truncate">{screen.name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Configure display and theme</p>
         </div>
-        <ScreenPresence screenId={screen.id} />
+        <div className="flex items-center gap-2">
+          <ScreenPresence screenId={screen.id} />
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-3.5 h-3.5 mr-1" />
+              Open
+            </a>
+          </Button>
+        </div>
       </div>
 
-      {/* Theme */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Theme</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {themeList.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => handleThemeChange(t.id)}
-                className={cn(
-                  'rounded-lg p-4 text-left transition-all border-2',
-                  form.theme === t.id
-                    ? 'border-primary ring-2 ring-primary/20'
-                    : 'border-transparent hover:border-border'
-                )}
-              >
-                <div className={cn('w-full h-16 rounded-md mb-3', t.preview)} />
-                <div className="font-medium">{t.name}</div>
-                <div className="text-xs text-muted-foreground">{t.description}</div>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Theme Settings */}
-      {currentThemeDef && currentThemeDef.fields.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{currentThemeDef.name} Settings</CardTitle>
-            <CardDescription>Customize this theme&apos;s appearance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ThemeSettingsForm
-              theme={currentThemeDef}
-              savedConfig={asRecord(screen.theme_config)}
-              onChange={handleConfigChange}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Display Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Display Controls</CardTitle>
-          <CardDescription>Orientation, scale & brightness for connected devices</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Orientation */}
-          <div className="space-y-2">
-            <Label>Orientation</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {ROTATIONS.map((opt) => {
-                const active = form.rotation === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => patch({ rotation: opt.value })}
-                    className={cn(
-                      'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
-                      active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <Monitor
-                      className={cn('w-6 h-6 transition-transform', active ? 'text-primary' : 'text-muted-foreground')}
-                      style={{ transform: `rotate(${opt.value}deg)` }}
-                    />
-                    <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                      {opt.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Scale */}
-          <div className="space-y-2">
-            <Label>Scale</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {ZOOMS.map((opt) => {
-                const active = form.zoom === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => patch({ zoom: opt.value })}
-                    className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all',
-                      active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <Maximize
-                      className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
-                      strokeWidth={opt.stroke}
-                    />
-                    <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                      {opt.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Brightness */}
-          <div className="space-y-2">
-            <Label>Brightness</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {BRIGHTNESS.map((opt) => {
-                const active = form.brightness === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => patch({ brightness: opt.value })}
-                    className={cn(
-                      'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
-                      active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <BrightnessIcon
-                      value={opt.value}
-                      className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
-                    />
-                    <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
-                      {opt.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Preview */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Preview</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Refresh
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-1" />
-                Open
-              </a>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="relative w-full aspect-video bg-gray-900 overflow-hidden rounded-b-lg">
-            <iframe
-              src={`/display/${screen.slug}?theme=${form.theme}&preview=1`}
-              className="absolute top-0 left-0 border-0 pointer-events-none w-[1920px] h-[1080px] origin-top-left"
-              style={{ transform: 'scale(0.465)' }}
-              title="Preview"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="relative w-full aspect-video bg-gray-900 overflow-hidden rounded-xl">
+        <iframe
+          src={`/display/${screen.slug}?theme=${form.theme}&preview=1`}
+          className="absolute top-0 left-0 border-0 pointer-events-none w-[1920px] h-[1080px] origin-top-left"
+          style={{ transform: 'scale(0.465)' }}
+          title="Preview"
+        />
+      </div>
+
+      {/* Tabs: Theme / Screen */}
+      <Tabs defaultValue="theme">
+        <TabsList>
+          <TabsTrigger value="theme">Theme</TabsTrigger>
+          <TabsTrigger value="screen">Screen</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="theme" className="space-y-6">
+          {/* Theme picker */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Choose Theme</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {themeList.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleThemeChange(t.id)}
+                    className={cn(
+                      'rounded-lg p-4 text-left transition-all border-2',
+                      form.theme === t.id
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-transparent hover:border-border'
+                    )}
+                  >
+                    <div className={cn('w-full h-16 rounded-md mb-3', t.preview)} />
+                    <div className="font-medium">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.description}</div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme-specific settings */}
+          {currentThemeDef && currentThemeDef.fields.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{currentThemeDef.name} Settings</CardTitle>
+                <CardDescription>Customize this theme&apos;s appearance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ThemeSettingsForm
+                  theme={currentThemeDef}
+                  savedConfig={asRecord(screen.theme_config)}
+                  onChange={handleConfigChange}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="screen">
+          <Card>
+            <CardHeader>
+              <CardTitle>Screen Settings</CardTitle>
+              <CardDescription>Orientation, scale & brightness for connected devices</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Orientation */}
+              <div className="space-y-2">
+                <Label>Orientation</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {ROTATIONS.map((opt) => {
+                    const active = form.rotation === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => patch({ rotation: opt.value })}
+                        className={cn(
+                          'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
+                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                        )}
+                      >
+                        <Monitor
+                          className={cn('w-6 h-6 transition-transform', active ? 'text-primary' : 'text-muted-foreground')}
+                          style={{ transform: `rotate(${opt.value}deg)` }}
+                        />
+                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Scale */}
+              <div className="space-y-2">
+                <Label>Scale</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {ZOOMS.map((opt) => {
+                    const active = form.zoom === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => patch({ zoom: opt.value })}
+                        className={cn(
+                          'flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all',
+                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                        )}
+                      >
+                        <Maximize
+                          className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
+                          strokeWidth={opt.stroke}
+                        />
+                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Brightness */}
+              <div className="space-y-2">
+                <Label>Brightness</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {BRIGHTNESS.map((opt) => {
+                    const active = form.brightness === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => patch({ brightness: opt.value })}
+                        className={cn(
+                          'flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all',
+                          active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                        )}
+                      >
+                        <BrightnessIcon
+                          value={opt.value}
+                          className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')}
+                        />
+                        <span className={cn('text-xs font-medium', active ? 'text-primary' : 'text-muted-foreground')}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Sticky save — only when dirty */}
       {dirty && (

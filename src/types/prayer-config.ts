@@ -19,15 +19,29 @@ export type PrayerConfigMap = Partial<Record<PrayerName, PrayerConfig>>;
 
 // --- Prayer Source ---
 
-export type PrayerSourceType = 'manual' | 'vaktija_ba';
+export type PrayerSourceType = 'manual' | 'vaktija_ba' | 'vaktija_eu' | 'islamiska_forbundet';
 
 export interface VaktijaBaSourceConfig {
   locationId: number;
   locationName: string;
 }
 
+export interface VaktijaEuSourceConfig {
+  countryCode: string;
+  locationSlug: string;
+  locationName: string;
+}
+
+export interface IslamiskaForbundetSourceConfig {
+  city: string;
+}
+
 /** Union of all source configs — extensible per source type */
-export type PrayerSourceConfig = VaktijaBaSourceConfig | Record<string, never>;
+export type PrayerSourceConfig =
+  | VaktijaBaSourceConfig
+  | VaktijaEuSourceConfig
+  | IslamiskaForbundetSourceConfig
+  | Record<string, never>;
 
 // --- Screen Display Controls ---
 

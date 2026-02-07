@@ -14,9 +14,22 @@ import {
   DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+} from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, LogOut, Monitor, ChevronRight, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { Mosque } from '@/types/database';
@@ -161,135 +174,153 @@ export default function MosquesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-base font-bold tracking-tight text-primary">NextNamaz</span>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs" onClick={handleSignOut}>
-            <LogOut className="w-3.5 h-3.5 mr-1.5" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
-
-      <div className="max-w-4xl mx-auto px-6 py-10">
-        {/* Welcome + action */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">Your Mosques</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {mosques.length === 0
-                ? 'Get started by creating your first mosque'
-                : `Managing ${mosques.length} mosque${mosques.length !== 1 ? 's' : ''}`}
-            </p>
-          </div>
-
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-1.5" />
-                New Mosque
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create a new mosque</DialogTitle>
-                <DialogDescription>
-                  Add your mosque to start managing prayer times and display screens.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Mosque Name</Label>
-                  <Input
-                    id="name"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g. Islamic Center of Springfield"
-                    required
-                    autoFocus
-                  />
-                  {newName.trim() && (
-                    <p className="text-xs text-muted-foreground">
-                      URL slug: <span className="font-mono text-foreground/70">{generateSlug(newName)}</span>
-                    </p>
-                  )}
-                </div>
-                <Button type="submit" className="w-full" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create Mosque'}
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        {/* Nav header */}
+        <nav className="border-b bg-card sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+            <span className="text-base font-bold tracking-tight text-primary">NextNamaz</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4" />
+                  <span className="sr-only">Sign Out</span>
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </TooltipTrigger>
+              <TooltipContent>Sign Out</TooltipContent>
+            </Tooltip>
+          </div>
+        </nav>
 
-        {mosques.length === 0 ? (
-          /* Empty state */
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 flex flex-col items-center justify-center py-20 px-6">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-              <Building2 className="w-8 h-8 text-primary" />
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          {/* Page header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">Your Mosques</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {mosques.length === 0
+                  ? 'Get started by creating your first mosque'
+                  : `Managing ${mosques.length} mosque${mosques.length !== 1 ? 's' : ''}`}
+              </p>
             </div>
-            <h3 className="text-lg font-semibold mb-2">No mosques yet</h3>
-            <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
-              Create your first mosque to start configuring prayer times and setting up display screens.
-            </p>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Mosque
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-2">
-            {mosques.map((mosque) => (
-              <Card
-                key={mosque.id}
-                role="button"
-                tabIndex={0}
-                className="group flex-row items-center gap-3.5 px-4 py-3.5 rounded-lg hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
-                onClick={() => router.push(`/admin/${mosque.id}`)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
-              >
-                <Avatar size="lg" className="rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-sm">
-                    {mosque.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{mosque.name}</h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Badge variant="secondary" className="text-[11px] px-1.5 py-0 font-normal gap-1">
-                      <Monitor className="w-3 h-3" />
-                      {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
-                    </Badge>
-                    <span className="text-[11px] text-muted-foreground/60 font-mono">
-                      /{mosque.slug}
-                    </span>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  New Mosque
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a new mosque</DialogTitle>
+                  <DialogDescription>
+                    Add your mosque to start managing prayer times and display screens.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Mosque Name</Label>
+                    <Input
+                      id="name"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="e.g. Islamic Center of Springfield"
+                      required
+                      autoFocus
+                    />
+                    {newName.trim() && (
+                      <p className="text-xs text-muted-foreground">
+                        URL slug: <span className="font-mono text-foreground/70">{generateSlug(newName)}</span>
+                      </p>
+                    )}
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm('Delete this mosque? This cannot be undone.')) {
-                        handleDelete(mosque.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <Button type="submit" className="w-full" disabled={creating}>
+                    {creating ? 'Creating...' : 'Create Mosque'}
                   </Button>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                </div>
-              </Card>
-            ))}
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-        )}
+
+          <Separator className="mb-8" />
+
+          {mosques.length === 0 ? (
+            /* Empty state */
+            <Card className="border-2 border-dashed items-center justify-center py-20 px-6">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+                <Building2 className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No mosques yet</h3>
+              <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+                Create your first mosque to start configuring prayer times and setting up display screens.
+              </p>
+              <Button onClick={() => setDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Mosque
+              </Button>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {mosques.map((mosque) => (
+                <Card
+                  key={mosque.id}
+                  role="button"
+                  tabIndex={0}
+                  className="group gap-0 py-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200"
+                  onClick={() => router.push(`/admin/${mosque.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
+                >
+                  <CardHeader className="px-4 py-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar size="lg" className="rounded-lg">
+                        <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                          {mosque.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <CardTitle className="text-sm truncate">{mosque.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="secondary" className="text-[11px] px-1.5 py-0 font-normal gap-1">
+                            <Monitor className="w-3 h-3" />
+                            {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
+                          </Badge>
+                          <span className="text-[11px] text-muted-foreground/60 font-mono">
+                            /{mosque.slug}
+                          </span>
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <CardAction>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm('Delete this mosque? This cannot be undone.')) {
+                                  handleDelete(mosque.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete mosque</TooltipContent>
+                        </Tooltip>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                      </div>
+                    </CardAction>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

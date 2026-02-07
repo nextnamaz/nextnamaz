@@ -3,25 +3,49 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Monitor, Clock, Globe, ArrowLeft, LogOut } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+} from '@/components/ui/sidebar';
 
-interface SidebarProps {
+interface AppSidebarProps {
   mosqueName: string;
   mosqueId: string;
 }
 
-export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
+const NAV_MATCH = {
+  exact: 'exact',
+  prefix: 'prefix',
+} as const;
+
+type NavMatch = (typeof NAV_MATCH)[keyof typeof NAV_MATCH];
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof Monitor;
+  match: NavMatch;
+}
+
+export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const base = `/admin/${mosqueId}`;
 
-  const navItems = [
-    { href: base, label: 'Screens', icon: Monitor, match: 'exact' as const },
-    { href: `${base}/prayer-times`, label: 'Prayer Times', icon: Clock, match: 'prefix' as const },
-    { href: `${base}/localization`, label: 'Localization', icon: Globe, match: 'prefix' as const },
+  const navItems: NavItem[] = [
+    { href: base, label: 'Screens', icon: Monitor, match: 'exact' },
+    { href: `${base}/prayer-times`, label: 'Prayer Times', icon: Clock, match: 'prefix' },
+    { href: `${base}/localization`, label: 'Localization', icon: Globe, match: 'prefix' },
   ];
 
   const handleSignOut = async () => {
@@ -32,62 +56,59 @@ export function Sidebar({ mosqueName, mosqueId }: SidebarProps) {
   };
 
   return (
-    <aside className="w-56 shrink-0 bg-sidebar text-sidebar-foreground min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="px-4 pt-5 pb-4">
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="px-3 pt-4 pb-2">
         <Link
           href="/admin"
-          className="group flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-sidebar-foreground/30 hover:text-sidebar-foreground/60 transition-colors mb-5 font-medium"
+          className="group flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors mb-3 font-medium group-data-[collapsible=icon]:hidden"
         >
           <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
           All Mosques
         </Link>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">
             {mosqueName.charAt(0).toUpperCase()}
           </div>
-          <span className="font-semibold text-sm truncate text-sidebar-foreground/90">{mosqueName}</span>
+          <span className="font-semibold text-sm truncate group-data-[collapsible=icon]:hidden">{mosqueName}</span>
         </div>
-      </div>
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 pt-2 space-y-0.5">
-        <p className="px-3 pb-2 text-[11px] uppercase tracking-wider text-sidebar-foreground/25 font-medium">Manage</p>
-        {navItems.map((item) => {
-          const isActive = item.match === 'exact'
-            ? pathname === item.href || pathname.startsWith(`${base}/screen`)
-            : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-all duration-150',
-                isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                  : 'text-sidebar-foreground/45 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground/80'
-              )}
-            >
-              <item.icon className={cn('w-4 h-4 shrink-0', isActive && 'text-sidebar-primary')} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <SidebarSeparator />
 
-      {/* Footer */}
-      <Separator className="mx-3 w-auto bg-sidebar-border/40" />
-      <div className="px-3 pb-4 pt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-sidebar-foreground/30 hover:text-sidebar-foreground/70 hover:bg-sidebar-accent/50 text-xs h-8"
-          onClick={handleSignOut}
-        >
-          <LogOut className="w-3.5 h-3.5 mr-2" />
-          Sign Out
-        </Button>
-      </div>
-    </aside>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarMenu>
+            {navItems.map((item) => {
+              const isActive = item.match === 'exact'
+                ? pathname === item.href || pathname.startsWith(`${base}/screen`)
+                : pathname.startsWith(item.href);
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out">
+              <LogOut />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }

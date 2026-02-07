@@ -7,17 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useMosqueSettings } from '@/hooks/use-mosque-settings';
 import type { PrayerTimesMap, Json } from '@/types/database';
 import type { PrayerName } from '@/types/prayer';
-import { PRAYER_NAMES, PRAYER_DISPLAY_NAMES } from '@/types/prayer';
+import { PRAYER_DISPLAY_NAMES, computeIqamahTime } from '@/types/prayer';
 import { prayerTimesSchema } from '@/lib/validations';
-import type { PrayerSourceType, VaktijaBaSourceConfig, PrayerConfigMap, IqamahConfig } from '@/types/prayer-config';
+import type { PrayerSourceType, VaktijaBaSourceConfig, PrayerConfigMap, IqamahConfig, IqamahType } from '@/types/prayer-config';
 import { PrayerSourceSelector } from '@/components/admin/prayer-source-selector';
-import { IqamahConfigRow } from '@/components/admin/iqamah-config-row';
 
-const IQAMAH_PRAYERS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const CONFIG_PRAYERS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 export default function PrayerTimesPage() {
   const { mosqueId } = useParams<{ mosqueId: string }>();
@@ -93,20 +94,20 @@ export default function PrayerTimesPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Prayer Times</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Manage adhan times and iqamah settings</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Configure sources and per-prayer settings</p>
       </div>
 
-      <Tabs defaultValue="adhan">
+      <Tabs defaultValue="source">
         <TabsList>
-          <TabsTrigger value="adhan">Adhan</TabsTrigger>
-          <TabsTrigger value="iqamah">Iqamah</TabsTrigger>
+          <TabsTrigger value="source">Source</TabsTrigger>
+          <TabsTrigger value="config">Config</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="adhan" className="space-y-6">
+        <TabsContent value="source">
           <Card>
             <CardHeader>
-              <CardTitle>Source</CardTitle>
-              <CardDescription>Choose how prayer times are set</CardDescription>
+              <CardTitle>Prayer Source</CardTitle>
+              <CardDescription>Choose where prayer times come from</CardDescription>
             </CardHeader>
             <CardContent>
               <PrayerSourceSelector
@@ -121,54 +122,121 @@ export default function PrayerTimesPage() {
               />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Adhan Times</CardTitle>
-              <CardDescription>
-                {isExternal ? 'Times from external source (fetch to update)' : 'Set the prayer times for your mosque'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {PRAYER_NAMES.map((prayer) => (
-                  <div key={prayer} className="flex items-center gap-4 rounded-lg bg-muted/40 px-4 py-3">
-                    <Label className="w-24 text-sm font-medium">{PRAYER_DISPLAY_NAMES[prayer]}</Label>
-                    <Input
-                      type="time"
-                      value={prayerTimes[prayer]}
-                      onChange={(e) =>
-                        setPrayerTimes({ ...prayerTimes, [prayer]: e.target.value })
-                      }
-                      className="w-40"
-                      disabled={isExternal}
-                    />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        <TabsContent value="iqamah" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Iqamah Times</CardTitle>
-              <CardDescription>Set a fixed iqamah time or minutes after adhan</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {IQAMAH_PRAYERS.map((prayer) => (
-                <div key={prayer} className="rounded-lg bg-muted/40 px-4 py-3">
-                  <IqamahConfigRow
-                    prayer={prayer}
-                    adhanTime={settings.prayer_times[prayer]}
-                    config={prayerConfig[prayer]?.iqamah}
-                    onChange={(cfg) => handleIqamahChange(prayer, cfg)}
-                  />
-                </div>
+        <TabsContent value="config">
+          <Tabs defaultValue="fajr">
+            <TabsList className="w-full">
+              {CONFIG_PRAYERS.map((p) => (
+                <TabsTrigger key={p} value={p} className="flex-1">
+                  {PRAYER_DISPLAY_NAMES[p]}
+                </TabsTrigger>
               ))}
-            </CardContent>
-          </Card>
+            </TabsList>
+
+            {CONFIG_PRAYERS.map((prayer) => {
+              const iqamah = prayerConfig[prayer]?.iqamah;
+              const mode: 'none' | IqamahType = iqamah?.type ?? 'none';
+              const computed = iqamah ? computeIqamahTime(prayerTimes[prayer], iqamah) : null;
+
+              return (
+                <TabsContent key={prayer} value={prayer}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{PRAYER_DISPLAY_NAMES[prayer]} Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Adhan time */}
+                      <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Adhan</p>
+                          <p className="text-2xl font-semibold font-mono mt-0.5">{prayerTimes[prayer]}</p>
+                        </div>
+                        {computed && (
+                          <div className="text-right">
+                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Iqamah</p>
+                            <p className="text-2xl font-semibold font-mono mt-0.5">{computed}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Manual time override */}
+                      {!isExternal && (
+                        <div className="space-y-2">
+                          <Label className="text-sm">Adhan Time</Label>
+                          <Input
+                            type="time"
+                            value={prayerTimes[prayer]}
+                            onChange={(e) =>
+                              setPrayerTimes({ ...prayerTimes, [prayer]: e.target.value })
+                            }
+                            className="w-40"
+                          />
+                        </div>
+                      )}
+
+                      <Separator />
+
+                      {/* Iqamah config */}
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Iqamah Configuration</Label>
+                        <Select
+                          value={mode}
+                          onValueChange={(v) => {
+                            if (v === 'none') {
+                              handleIqamahChange(prayer, undefined);
+                            } else if (v === 'fixed') {
+                              handleIqamahChange(prayer, { type: 'fixed', value: prayerTimes[prayer] });
+                            } else {
+                              handleIqamahChange(prayer, { type: 'offset', value: 15 });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No Iqamah</SelectItem>
+                            <SelectItem value="fixed">Fixed Time</SelectItem>
+                            <SelectItem value="offset">Minutes After Adhan</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {mode === 'fixed' && (
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Fixed iqamah time</Label>
+                            <Input
+                              type="time"
+                              value={iqamah?.value as string}
+                              onChange={(e) => handleIqamahChange(prayer, { type: 'fixed', value: e.target.value })}
+                              className="w-40"
+                            />
+                          </div>
+                        )}
+
+                        {mode === 'offset' && (
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Delay after adhan</Label>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                max={120}
+                                value={iqamah?.value as number}
+                                onChange={(e) => handleIqamahChange(prayer, { type: 'offset', value: Number(e.target.value) || 15 })}
+                                className="w-24"
+                              />
+                              <span className="text-sm text-muted-foreground">minutes after adhan</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              );
+            })}
+          </Tabs>
         </TabsContent>
       </Tabs>
 

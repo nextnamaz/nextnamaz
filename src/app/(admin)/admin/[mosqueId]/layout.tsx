@@ -1,6 +1,8 @@
 import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { Sidebar } from '@/components/admin/sidebar';
+import { cookies } from 'next/headers';
+import { AppSidebar } from '@/components/admin/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 interface MosqueLayoutProps {
   children: React.ReactNode;
@@ -30,14 +32,20 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
   const mosque = membership.mosques;
   if (!mosque) notFound();
 
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false';
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar mosqueName={mosque.name} mosqueId={mosqueId} />
-      <main className="flex-1 overflow-auto bg-background">
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <AppSidebar mosqueName={mosque.name} mosqueId={mosqueId} />
+      <SidebarInset>
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
         <div className="max-w-5xl mx-auto px-8 py-10">
           {children}
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
