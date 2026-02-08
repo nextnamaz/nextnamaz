@@ -127,7 +127,7 @@ export default function MosquesPage() {
       mosque_id: mosque.id,
       name: 'Main Screen',
       slug: `${slug}-main`,
-      theme: 'classic',
+      theme: 'default',
       theme_config: {},
     });
 

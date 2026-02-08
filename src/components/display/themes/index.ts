@@ -6,6 +6,7 @@ export interface ThemeProps {
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerTimeEntry | null;
   config: Record<string, unknown>;
+  isPortrait: boolean;
 }
 
 // --- Theme registry types ---
@@ -36,20 +37,12 @@ export interface ThemeDefinition {
 
 // --- Theme imports ---
 
-import { ClassicTheme, classicDefinition } from './classic';
 import { AndalusTheme, andalusDefinition } from './andalus';
 import { DefaultTheme, defaultDefinition } from './default';
-import { LightTheme, lightDefinition } from './light';
-import { ModernTheme, modernDefinition } from './modern';
-import { RamadanTheme, ramadanDefinition } from './ramadan';
 
-export { ClassicTheme, AndalusTheme, DefaultTheme, LightTheme, ModernTheme, RamadanTheme };
+export { AndalusTheme, DefaultTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
-  classic: classicDefinition,
-  andalus: andalusDefinition,
   default: defaultDefinition,
-  light: lightDefinition,
-  modern: modernDefinition,
-  ramadan: ramadanDefinition,
+  andalus: andalusDefinition,
 };

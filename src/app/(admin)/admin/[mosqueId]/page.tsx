@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -52,52 +52,85 @@ function generateSlug(mosqueName: string, screenName: string): string {
 
 function ScreenPreview({ screen }: { screen: Screen }) {
   const isPortrait = screen.rotation === 90 || screen.rotation === 270;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        // Calculate scale based on the target virtual resolution
+        // Landscape: 1920x1080
+        // Portrait: 1080x1920
+        const virtualWidth = isPortrait ? 1080 : 1920;
+        const width = entry.contentRect.width;
+        setScale(width / virtualWidth);
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isPortrait]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-md border bg-neutral-950 shadow-sm aspect-video group">
+    <div className="flex justify-center w-full bg-neutral-100/50 dark:bg-neutral-900/50 rounded-lg p-4">
       <div 
-        className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+        ref={containerRef}
+        className={`relative group overflow-hidden bg-neutral-950 shadow-2xl ring-4 ring-neutral-900 ring-opacity-100 rounded-lg ${
+          isPortrait ? 'aspect-[9/16] h-[300px]' : 'aspect-video w-full'
+        }`}
       >
-        <div className="flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 p-4 rounded-xl backdrop-blur-sm text-white">
-            <ExternalLink className="w-6 h-6" />
-            <span className="text-xs font-medium">Open Preview</span>
+        {/* TV Bezel / Frame Details */}
+        <div className="absolute inset-0 border-[6px] border-neutral-800 rounded-lg z-20 pointer-events-none shadow-inner"></div>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-neutral-800/80 rounded-t-sm z-20 pointer-events-none mb-[2px]"></div>
+
+        {/* Glossy Screen Overlay Effects (from Legacy Code) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20 rounded pointer-events-none z-20"></div>
+        <div className="absolute inset-0 rounded z-20 pointer-events-none" style={{ boxShadow: 'inset 0 0 30px rgba(0,0,0,0.4)' }}></div>
+
+        {/* Hover Overlay */}
+        <div 
+          className="absolute inset-x-0 bottom-0 top-auto flex items-end justify-center pointer-events-none z-30 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <div className="flex items-center gap-2 bg-white/10 p-2 px-4 rounded-full backdrop-blur-md text-white border border-white/20 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+              <ExternalLink className="w-4 h-4" />
+              <span className="text-xs font-medium">Open Preview</span>
+          </div>
         </div>
-      </div>
-      
-      <div
-        className="relative w-full h-full"
-      >
-        <iframe
-          src={`/display/${screen.slug}?preview=1`}
-          title={`Preview: ${screen.name}`}
-          className="absolute inset-0 w-full h-full border-0 pointer-events-none opacity-90 transition-opacity hover:opacity-100"
-          style={{
-            transform: isPortrait ? 'scale(0.5) rotate(-90deg)' : 'scale(0.5)',
-            transformOrigin: 'top left',
-            width: '200%',
-            height: '200%',
-            // For portrait, we need to adjust the position after rotation if needed, 
-            // but simple scaling is often enough for a quick preview.
-            // Actually, for portrait in a landscape container, we might want to center it.
-             ...(isPortrait ? {
-                width: '200vh', 
-                height: '200vw',
-                transform: 'rotate(-90deg) translateX(-100%) scale(0.5)', 
-                transformOrigin: 'top left' 
-             } : {})
-          }}
-          scrolling="no"
+        
+        {/* Screen Content */}
+        <div className="relative w-full h-full bg-black overflow-hidden">
+          <div 
+             style={{
+               width: isPortrait ? '1080px' : '1920px',
+               height: isPortrait ? '1920px' : '1080px',
+               transform: `scale(${scale})`,
+               transformOrigin: 'top left',
+               opacity: scale > 0 ? 1 : 0,
+               transition: 'opacity 0.2s',
+             }}
+          >
+            <iframe
+              src={`/display/${screen.slug}?preview=1`}
+              title={`Preview: ${screen.name}`}
+              className="w-full h-full border-0"
+              scrolling="no"
+            />
+          </div>
+        </div>
+        
+        {/* Click Target */}
+        <a 
+          href={`/display/${screen.slug}`} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="absolute inset-0 z-40 cursor-pointer"
+          aria-label="Open display"
         />
       </div>
-      
-      {/* Overlay to catch clicks and redirect if needed */ }
-      <a 
-        href={`/display/${screen.slug}`} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="absolute inset-0 z-20 cursor-pointer"
-        aria-label="Open display"
-      />
     </div>
   );
 }
@@ -172,7 +205,7 @@ export default function MosqueScreensPage() {
       mosque_id: mosqueId,
       name: newScreenName.trim(),
       slug,
-      theme: 'classic',
+      theme: 'default',
       theme_config: {},
     });
 

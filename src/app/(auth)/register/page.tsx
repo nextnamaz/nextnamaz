@@ -78,7 +78,7 @@ export default function RegisterPage() {
       mosque_id: mosque.id,
       name: 'Main Screen',
       slug: `${mosqueSlug}-main`,
-      theme: 'classic',
+      theme: 'default',
       theme_config: {},
     });
 

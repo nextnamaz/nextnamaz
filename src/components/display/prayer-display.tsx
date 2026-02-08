@@ -140,17 +140,31 @@ export function PrayerDisplay({
   }, [mosque.id, screen.id, themeOverride]);
 
   const controls = getScreenControls(currentScreen);
-  const isPortrait = controls.rotation === 90 || controls.rotation === 270;
+  const isPortrait = Number(controls.rotation) === 90 || Number(controls.rotation) === 270;
+  const scaleFactor = controls.zoom / 100;
 
   const displayStyle: React.CSSProperties = {
     position: 'fixed',
     top: '50%',
     left: '50%',
-    transform: `translate(-50%, -50%) rotate(${controls.rotation}deg) scale(${controls.zoom / 100})`,
+    transform: `translate(-50%, -50%) rotate(${controls.rotation}deg)`,
     filter: `brightness(${controls.brightness / 100})`,
     transformOrigin: 'center center',
     width: isPortrait ? '100vh' : '100vw',
     height: isPortrait ? '100vw' : '100vh',
+    overflow: 'hidden',
+    background: '#000',
+  };
+
+  // Container wrapper: establishes a CSS container for cqmin-based theme sizing.
+  // transform: scale() magnifies the rendered output while keeping the container
+  // dimensions at full size — so cqmin stays correct regardless of zoom level.
+  const containerStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    containerType: 'size' as React.CSSProperties['containerType'],
+    transform: scaleFactor !== 1 ? `scale(${scaleFactor})` : undefined,
+    transformOrigin: 'center center',
   };
 
   const themeProps = {
@@ -158,22 +172,39 @@ export function PrayerDisplay({
     prayers,
     nextPrayer,
     config: asRecord(currentScreen.theme_config),
+    isPortrait,
   };
 
   const renderTheme = () => {
-    const def = THEME_REGISTRY[currentTheme] ?? THEME_REGISTRY['classic'];
+    const def = THEME_REGISTRY[currentTheme] ?? THEME_REGISTRY['default'];
     const ThemeComponent = def.component;
     return <ThemeComponent {...themeProps} />;
   };
 
-  // Only apply display transforms if not in preview mode (themeOverride)
+  // Preview paths: use viewport units so the container has real dimensions
+  // (percentage-based height collapses to 0 when body has no explicit height,
+  // which makes cqmin=0 and all text invisible).
   if (themeOverride) {
-    return renderTheme();
+    return (
+      <div style={{ width: '100vw', height: '100vh', containerType: 'size' as React.CSSProperties['containerType'] }}>
+        {renderTheme()}
+      </div>
+    );
+  }
+
+  if (isPreview) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', containerType: 'size' as React.CSSProperties['containerType'] }}>
+        {renderTheme()}
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-hidden" style={displayStyle}>
-      {renderTheme()}
+    <div style={displayStyle}>
+      <div style={containerStyle}>
+        {renderTheme()}
+      </div>
     </div>
   );
 }
