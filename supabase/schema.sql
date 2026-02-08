@@ -12,6 +12,7 @@ create table mosques (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   slug text unique not null,
+  logo_url text,
   created_at timestamptz default now()
 );
 
@@ -41,6 +42,7 @@ create table screens (
   mosque_id uuid references mosques(id) on delete cascade not null,
   name text not null default 'Main Screen',
   slug text unique not null,
+  short_code text unique not null,
   theme text not null default 'classic',
   theme_config jsonb not null default '{}',
   created_at timestamptz default now()
@@ -52,6 +54,7 @@ create index idx_mosque_members_mosque_id on mosque_members(mosque_id);
 create index idx_screens_mosque_id on screens(mosque_id);
 create index idx_mosques_slug on mosques(slug);
 create index idx_screens_slug on screens(slug);
+create index idx_screens_short_code on screens(short_code);
 
 -- Row Level Security
 alter table mosques enable row level security;
@@ -204,6 +207,35 @@ create policy "Members can delete screens" on screens
 -- Realtime
 alter publication supabase_realtime add table mosque_settings;
 alter publication supabase_realtime add table screens;
+
+-- Auto-generate short_code for new screens
+create or replace function generate_short_code()
+returns trigger as $$
+declare
+  new_code text;
+  conflict_found boolean;
+begin
+  if new.short_code is not null then
+    return new;
+  end if;
+
+  loop
+    new_code := substr(
+      replace(replace(encode(gen_random_bytes(6), 'base64'), '/', ''), '+', ''),
+      1, 6
+    );
+    select exists(select 1 from screens where short_code = new_code) into conflict_found;
+    exit when not conflict_found;
+  end loop;
+
+  new.short_code := new_code;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_screen_generate_short_code
+  before insert on screens
+  for each row execute function generate_short_code();
 
 -- Auto-create mosque_settings when a mosque is created
 create or replace function create_mosque_settings()

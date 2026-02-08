@@ -46,18 +46,21 @@ export type Database = {
           id: string;
           name: string;
           slug: string;
+          logo_url: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           name: string;
           slug: string;
+          logo_url?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
           slug?: string;
+          logo_url?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -144,6 +147,7 @@ export type Database = {
           mosque_id: string;
           name: string;
           slug: string;
+          short_code: string;
           theme: string;
           theme_config: Json;
           rotation: number;
@@ -156,6 +160,7 @@ export type Database = {
           mosque_id: string;
           name?: string;
           slug: string;
+          short_code?: string;
           theme?: string;
           theme_config?: Json;
           rotation?: number;
@@ -168,6 +173,7 @@ export type Database = {
           mosque_id?: string;
           name?: string;
           slug?: string;
+          short_code?: string;
           theme?: string;
           theme_config?: Json;
           rotation?: number;

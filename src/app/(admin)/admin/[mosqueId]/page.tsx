@@ -137,9 +137,9 @@ function ScreenPreview({ screen }: { screen: Screen }) {
 
 /* Copy URL button */
 
-function CopyUrlButton({ slug }: { slug: string }) {
+function CopyUrlButton({ shortCode }: { shortCode: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `/display/${slug}`;
+  const url = `/screen/${shortCode}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`${window.location.origin}${url}`);
@@ -278,9 +278,9 @@ export default function MosqueScreensPage() {
                   className="col-span-3"
                   autoFocus
                 />
-                {newScreenName.trim() && mosque && (
+                {newScreenName.trim() && (
                   <p className="text-[11px] text-muted-foreground bg-muted/50 p-2 rounded border">
-                    Public URL: <span className="font-mono select-all">/display/{generateSlug(mosque.name, newScreenName)}</span>
+                    A short URL will be auto-generated for sharing.
                   </p>
                 )}
               </div>
@@ -371,7 +371,7 @@ export default function MosqueScreensPage() {
                         {isPortrait ? '9:16' : '16:9'}
                       </Badge>
                    </div>
-                   <CopyUrlButton slug={screen.slug} />
+                   <CopyUrlButton shortCode={screen.short_code} />
                 </CardFooter>
               </Card>
             );
