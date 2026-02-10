@@ -141,6 +141,47 @@ export type Database = {
           },
         ];
       };
+      display_error_logs: {
+        Row: {
+          id: string;
+          screen_id: string | null;
+          device_id: string;
+          error_type: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
+          message: string;
+          stack: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          screen_id?: string | null;
+          device_id: string;
+          error_type: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
+          message: string;
+          stack?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          screen_id?: string | null;
+          device_id?: string;
+          error_type?: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
+          message?: string;
+          stack?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "display_error_logs_screen_id_fkey";
+            columns: ["screen_id"];
+            isOneToOne: false;
+            referencedRelation: "screens";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       screens: {
         Row: {
           id: string;

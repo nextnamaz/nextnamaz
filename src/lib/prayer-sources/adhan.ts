@@ -35,12 +35,12 @@ function formatTime(date: Date, timezone: string): string {
   return formatter.format(date);
 }
 
-export function calculateAdhanTimes(params: AdhanCalculationParams): PrayerTimesMap {
+export function calculateAdhanTimes(params: AdhanCalculationParams, date?: Date): PrayerTimesMap {
   const coordinates = new Coordinates(params.latitude, params.longitude);
   const calcParams = METHOD_MAP[params.method]();
   calcParams.madhab = params.madhab === 'hanafi' ? Madhab.Hanafi : Madhab.Shafi;
 
-  const prayerTimes = new PrayerTimes(coordinates, new Date(), calcParams);
+  const prayerTimes = new PrayerTimes(coordinates, date ?? new Date(), calcParams);
   const tz = params.timezone;
 
   return {
