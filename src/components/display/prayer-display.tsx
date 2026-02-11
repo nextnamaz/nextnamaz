@@ -4,6 +4,7 @@ import { useMemo, useCallback } from 'react';
 import type { Mosque, Screen, MosqueSettings } from '@/types/database';
 import { asRecord, getScreenControls } from '@/types/database';
 import { getMosqueTimezone } from '@/lib/display-cache';
+import { resolveDisplayLocale } from '@/lib/display-locale';
 import { createDisplayLogger } from '@/lib/display-logger';
 import type { DisplayErrorPayload } from '@/lib/display-logger';
 import { useDisplaySync, usePrayerTimes, useDisplayLifecycle } from '@/hooks/display';
@@ -46,16 +47,21 @@ export function PrayerDisplay({
     { themeOverride, isPreview, onError },
   );
 
+  // Resolve display locale from settings
+  const displayLocale = useMemo(() => resolveDisplayLocale(settings), [settings]);
+
   // Prayer time derivation (zero effects)
   const mosqueTimezone = getMosqueTimezone(settings);
-  const { prayers, nextPrayer } = usePrayerTimes(settings, screen.slug, mosqueTimezone, isPreview);
+  const { prayers, nextPrayer } = usePrayerTimes(
+    settings, screen.slug, mosqueTimezone, isPreview, displayLocale.prayerNames,
+  );
 
   // Lifecycle: cache, watchdog, SW, global error handlers
   const cacheData = useMemo(
     () => ({ screen: currentScreen, mosque, settings }),
     [currentScreen, mosque, settings],
   );
-  useDisplayLifecycle(cacheData, { slug: screen.slug, isPreview, themeOverride, onError });
+  useDisplayLifecycle(cacheData, { slug: screen.slug, shortCode: screen.short_code, isPreview, themeOverride, onError });
 
   // Screen display controls
   const controls = getScreenControls(currentScreen);
@@ -68,6 +74,7 @@ export function PrayerDisplay({
     nextPrayer,
     config: asRecord(currentScreen.theme_config),
     isPortrait,
+    locale: displayLocale,
   };
 
   const def = THEME_REGISTRY[currentTheme] ?? THEME_REGISTRY['default'];

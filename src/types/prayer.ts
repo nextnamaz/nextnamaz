@@ -55,12 +55,13 @@ export function computeIqamahTime(adhanTime: string, config: IqamahConfig): stri
 
 export function prayerTimesMapToEntries(
   times: Record<PrayerName, string>,
-  prayerConfig?: PrayerConfigMap
+  prayerConfig?: PrayerConfigMap,
+  customNames?: Record<PrayerName, string>
 ): PrayerTimeEntry[] {
   return PRAYER_NAMES.map((name) => {
     const entry: PrayerTimeEntry = {
       name,
-      displayName: PRAYER_DISPLAY_NAMES[name],
+      displayName: customNames?.[name] || PRAYER_DISPLAY_NAMES[name],
       time: times[name] || '00:00',
     };
     const cfg = prayerConfig?.[name]?.iqamah;

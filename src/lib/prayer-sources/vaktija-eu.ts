@@ -1,19 +1,31 @@
 import type { PrayerTimesMap } from '@/types/database';
 
+interface VaktijaEuDayData {
+  fajr: string;
+  sunrise: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+}
+
 interface VaktijaEuApiResponse {
   data: {
     months: Record<string, {
-      days: Record<string, {
-        prayers: string[];
-      }>;
+      days: Record<string, VaktijaEuDayData>;
     }>;
   };
 }
 
 const PRAYER_KEYS: (keyof PrayerTimesMap)[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
+function toHHMM(hhmmss: string): string {
+  const [h, m] = hhmmss.split(':');
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+}
+
 export async function fetchVaktijaEu(locationSlug: string): Promise<PrayerTimesMap> {
-  const res = await fetch(`https://api.vaktija.eu/v1/locations/slug/${locationSlug}`, {
+  const res = await fetch(`https://api.vaktija.eu/v3/locations/slug/${locationSlug}`, {
     next: { revalidate: 3600 },
   });
 
@@ -32,10 +44,8 @@ export async function fetchVaktijaEu(locationSlug: string): Promise<PrayerTimesM
   }
 
   const times = {} as PrayerTimesMap;
-  for (let i = 0; i < PRAYER_KEYS.length; i++) {
-    const raw = dayData.prayers[i];
-    const [h, m] = raw.split(':');
-    times[PRAYER_KEYS[i]] = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+  for (const key of PRAYER_KEYS) {
+    times[key] = toHHMM(dayData[key]);
   }
 
   return times;

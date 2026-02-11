@@ -12,6 +12,7 @@ interface CacheData {
 
 interface UseDisplayLifecycleOptions {
   slug: string;
+  shortCode?: string;
   isPreview: boolean;
   themeOverride?: string;
   onError?: (payload: DisplayErrorPayload) => void;
@@ -21,7 +22,7 @@ export function useDisplayLifecycle(
   cacheData: CacheData,
   options: UseDisplayLifecycleOptions,
 ): void {
-  const { slug, isPreview, themeOverride, onError } = options;
+  const { slug, shortCode, isPreview, themeOverride, onError } = options;
   const lastRenderTimestamp = useRef(Date.now());
 
   // Update watchdog heartbeat every time cacheData changes
@@ -30,7 +31,13 @@ export function useDisplayLifecycle(
   // Cache to localStorage on mount and updates
   useEffect(() => {
     saveDisplayCache(slug, cacheData);
-  }, [slug, cacheData]);
+    // Save short_code → slug mapping so offline page can resolve /screen/[code] URLs
+    if (shortCode) {
+      try {
+        localStorage.setItem(`nextnamaz:alias:${shortCode}`, slug);
+      } catch { /* localStorage full */ }
+    }
+  }, [slug, shortCode, cacheData]);
 
   // Watchdog: reload if render stalls > 5 min
   useInterval(
@@ -76,12 +83,22 @@ export function useDisplayLifecycle(
     };
   }, [isPreview, onError]);
 
-  // Service worker registration
+  // Service worker registration (covers /display/ and /screen/ routes)
   useEffect(() => {
     if (isPreview || themeOverride) return;
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/display-sw.js', { scope: '/display/' }).catch((err) => {
-        console.warn('[PrayerDisplay] SW registration failed:', err);
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('/display-sw.js', { scope: '/' }).catch((err) => {
+      console.warn('[PrayerDisplay] SW registration failed:', err);
+    });
+
+    // On first SW activation, reload so all resources get cached through the SW.
+    // Uses a sessionStorage flag to avoid infinite reload loops.
+    const SW_READY_KEY = 'nextnamaz:sw-ready';
+    if (!sessionStorage.getItem(SW_READY_KEY)) {
+      navigator.serviceWorker.ready.then(() => {
+        sessionStorage.setItem(SW_READY_KEY, '1');
+        window.location.reload();
       });
     }
   }, [isPreview, themeOverride]);

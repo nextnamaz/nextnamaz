@@ -3,14 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { ThemeProps, ThemeDefinition } from './index';
 import { cn } from '@/lib/utils';
+import { formatPrayerTime, formatDisplayDate } from '@/lib/display-locale';
+import { useDisplayClock } from '@/hooks/display/use-display-clock';
 
 // --- Hooks ---
-
-interface TimeState {
-  hours: string;
-  minutes: string;
-  seconds: string;
-}
 
 interface CountdownState {
   hours: number;
@@ -19,30 +15,6 @@ interface CountdownState {
 }
 
 type PrayerState = 'past' | 'current' | 'next' | 'upcoming';
-
-function useCurrentTime(): TimeState {
-  const [time, setTime] = useState<TimeState>({
-    hours: '--',
-    minutes: '--',
-    seconds: '--',
-  });
-
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      setTime({
-        hours: now.getHours().toString().padStart(2, '0'),
-        minutes: now.getMinutes().toString().padStart(2, '0'),
-        seconds: now.getSeconds().toString().padStart(2, '0'),
-      });
-    };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return time;
-}
 
 function useCountdown(targetTime: string | undefined): CountdownState {
   const [countdown, setCountdown] = useState<CountdownState>({
@@ -87,20 +59,6 @@ function useHijriDate(): string {
     } catch {
       setDate('');
     }
-  }, []);
-  return date;
-}
-
-function useGregorianDate(): string {
-  const [date, setDate] = useState('');
-  useEffect(() => {
-    setDate(
-      new Date().toLocaleDateString(undefined, {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'short',
-      })
-    );
   }, []);
   return date;
 }
@@ -184,13 +142,20 @@ export function AndalusTheme({
   nextPrayer,
   config,
   isPortrait,
+  locale,
 }: ThemeProps) {
-  const time = useCurrentTime();
+  const { timeStr, date } = useDisplayClock(locale);
   const countdown = useCountdown(nextPrayer?.time);
   const hijriDate = useHijriDate();
-  const gregorianDate = useGregorianDate();
+  const gregorianDate = formatDisplayDate(date, locale);
   const prayerStates = usePrayerStates(prayers, nextPrayer);
   const hasIqamah = prayers.some((p) => p.iqamahTime);
+
+  // Extract HH:MM:SS from clock string for flip display
+  const timeParts = timeStr.replace(/\s*(AM|PM)\s*/i, '').split(':');
+  const hours = timeParts[0] ?? '--';
+  const minutes = timeParts[1] ?? '--';
+  const seconds = timeParts[2] ?? '';
 
   const verse1 =
     (config?.verse1 as string) ||
@@ -199,8 +164,12 @@ export function AndalusTheme({
     (config?.verse2 as string) ||
     'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا';
 
-  const L = !isPortrait; // shorthand: landscape mode
-  const P = isPortrait;  // shorthand: portrait mode
+  const headerPrayer = locale.labels.prayer;
+  const headerBegins = locale.labels.begins;
+  const headerIqamah = locale.labels.iqamah;
+
+  const L = !isPortrait;
+  const P = isPortrait;
 
   return (
     <div className={cn('h-full bg-[#0f1419] text-white flex overflow-hidden relative', L ? 'flex-row' : 'flex-col')}>
@@ -236,14 +205,16 @@ export function AndalusTheme({
 
         {/* Flip clock */}
         <div className={cn('flex items-end gap-2', P ? 'my-4' : 'my-auto')}>
-          <FlipUnit value={time.hours} portrait={P} />
+          <FlipUnit value={hours} portrait={P} />
           <span className="text-[clamp(2rem,7cqmin,4.5rem)] font-bold text-amber-500/40 pb-1 leading-none">
             :
           </span>
-          <FlipUnit value={time.minutes} portrait={P} />
-          <span className="text-[clamp(1rem,3cqmin,1.8rem)] font-bold text-gray-600 pb-2 ml-1 tabular-nums">
-            {time.seconds}
-          </span>
+          <FlipUnit value={minutes} portrait={P} />
+          {seconds && (
+            <span className="text-[clamp(1rem,3cqmin,1.8rem)] font-bold text-gray-600 pb-2 ml-1 tabular-nums">
+              {seconds}
+            </span>
+          )}
         </div>
 
         {/* Next prayer countdown */}
@@ -293,14 +264,14 @@ export function AndalusTheme({
             )}
           >
             <div className="text-[0.6rem] uppercase tracking-[0.25em] text-gray-600 font-medium px-3">
-              Prayer
+              {headerPrayer}
             </div>
             <div className="text-[0.6rem] uppercase tracking-[0.25em] text-gray-600 font-medium text-center px-3">
-              Begins
+              {headerBegins}
             </div>
             {hasIqamah && (
               <div className="text-[0.6rem] uppercase tracking-[0.25em] text-gray-600 font-medium text-center px-3">
-                Iqamah
+                {headerIqamah}
               </div>
             )}
           </div>
@@ -313,6 +284,10 @@ export function AndalusTheme({
               const isCurrent = state === 'current';
               const isPast = state === 'past';
               const isSunrise = prayer.name === 'sunrise';
+              const formattedTime = formatPrayerTime(prayer.time, locale);
+              const formattedIqamah = prayer.iqamahTime
+                ? formatPrayerTime(prayer.iqamahTime, locale)
+                : undefined;
 
               return (
                 <div
@@ -364,7 +339,7 @@ export function AndalusTheme({
                       state === 'upcoming' && 'text-gray-400'
                     )}
                   >
-                    {prayer.time}
+                    {formattedTime}
                   </div>
 
                   {/* Iqamah */}
@@ -379,8 +354,8 @@ export function AndalusTheme({
                         state === 'upcoming' && 'text-gray-400'
                       )}
                     >
-                      {prayer.iqamahTime && !isSunrise
-                        ? prayer.iqamahTime
+                      {formattedIqamah && !isSunrise
+                        ? formattedIqamah
                         : '—'}
                     </div>
                   )}

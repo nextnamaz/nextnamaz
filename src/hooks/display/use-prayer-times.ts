@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import type { MosqueSettings } from '@/types/database';
-import type { PrayerTimeEntry } from '@/types/prayer';
+import type { PrayerName, PrayerTimeEntry } from '@/types/prayer';
 import { prayerTimesMapToEntries, getNextPrayer } from '@/types/prayer';
 import type { PrayerConfigMap } from '@/types/prayer-config';
-import { getTodaysPrayerTimes, todayDateString, getMosqueTimezone } from '@/lib/display-cache';
+import { getTodaysPrayerTimes, todayDateString } from '@/lib/display-cache';
 import { useInterval } from './use-interval';
 
 interface UsePrayerTimesResult {
@@ -16,6 +16,7 @@ export function usePrayerTimes(
   slug: string,
   mosqueTimezone: string | undefined,
   isPreview: boolean,
+  customPrayerNames?: Record<PrayerName, string>,
 ): UsePrayerTimesResult {
   // Tick every 60s to recompute nextPrayer
   const [minuteTick, setMinuteTick] = useState(() => Math.floor(Date.now() / 60000));
@@ -44,8 +45,8 @@ export function usePrayerTimes(
 
   // Convert to display entries
   const prayers = useMemo(
-    () => prayerTimesMapToEntries(prayerTimesMap, settings.prayer_config as PrayerConfigMap),
-    [prayerTimesMap, settings.prayer_config],
+    () => prayerTimesMapToEntries(prayerTimesMap, settings.prayer_config as PrayerConfigMap, customPrayerNames),
+    [prayerTimesMap, settings.prayer_config, customPrayerNames],
   );
 
   // Derive next prayer (recomputes on prayers or minuteTick change)

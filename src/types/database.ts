@@ -182,6 +182,32 @@ export type Database = {
           },
         ];
       };
+      mosque_yearly_times: {
+        Row: {
+          mosque_id: string;
+          times: Json;
+          computed_at: string;
+        };
+        Insert: {
+          mosque_id: string;
+          times?: Json;
+          computed_at?: string;
+        };
+        Update: {
+          mosque_id?: string;
+          times?: Json;
+          computed_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mosque_yearly_times_mosque_id_fkey";
+            columns: ["mosque_id"];
+            isOneToOne: true;
+            referencedRelation: "mosques";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       screens: {
         Row: {
           id: string;
@@ -237,7 +263,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      upsert_yearly_times: {
+        Args: { p_mosque_id: string; p_times: Json };
+        Returns: undefined;
+      };
     };
     Enums: {
       member_role: MemberRole;

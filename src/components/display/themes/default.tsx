@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { ThemeProps, ThemeDefinition } from './index';
 import { cn } from '@/lib/utils';
+import { formatPrayerTime } from '@/lib/display-locale';
+import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { Check, Sunrise } from 'lucide-react';
 
 type PrayerState = 'past' | 'current' | 'next' | 'upcoming';
@@ -224,16 +226,8 @@ export const defaultDefinition: ThemeDefinition = {
 
 // --- Theme component ---
 
-export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeProps) {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const timeStr = time.toLocaleTimeString('en-GB', { hour12: false });
-  const dateStr = time.toLocaleDateString('en-GB');
+export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
+  const { timeStr, dateStr } = useDisplayClock(locale);
   const prayerStates = usePrayerStates(prayers, nextPrayer);
   const hasIqamah = prayers.some((p) => p.iqamahTime);
   const countdown = useCountdown(nextPrayer?.time ?? '00:00');
@@ -248,6 +242,12 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
       ? config.displayText
       : 'بسم الله الرحمن الرحيم';
 
+  // Column headers from locale
+  const headerPrayer = locale.labels.prayer;
+  const headerBegins = locale.labels.begins;
+  const headerIqamah = locale.labels.iqamah;
+  const nextLabel = locale.labels.next;
+
   const rootStyle = {
     '--dt-pulse-rgb': palette.pulseRgb,
   } as React.CSSProperties;
@@ -256,10 +256,10 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
     <div className={cn('default-theme', isPortrait ? 'dt-portrait' : 'dt-landscape')} style={rootStyle}>
       {/* Header */}
       <header className={cn('default-header shadow-md flex flex-col items-center justify-center', m.header)}>
-        <p className={cn('default-clock font-extrabold leading-[90%] m-0', m.clockText)}>
+        <p className={cn('default-clock font-extrabold leading-[90%] m-0', m.clockText)} suppressHydrationWarning>
           {timeStr}
         </p>
-        <p className={cn('default-date font-semibold m-0', m.dateText)}>
+        <p className={cn('default-date font-semibold m-0', m.dateText)} suppressHydrationWarning>
           {dateStr}
         </p>
       </header>
@@ -269,12 +269,23 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
         <div className="default-table">
           {/* Table Header */}
           <section className={cn('flex items-center border-b border-t uppercase', m.thBg, m.border)}>
-            <h2 className={cn('default-th flex-1 flex items-center justify-start border-r-2 m-0 pl-[3%] font-extrabold', m.thText, m.border)}>
-              Prayer
+            <h2 className={cn('default-th flex-1 flex items-center justify-start border-r-2 m-0 pl-[3cqmin] font-extrabold', m.thText, m.border)}>
+              {headerPrayer}
             </h2>
-            <h2 className={cn('default-th flex-2 flex items-center justify-center m-0 font-extrabold', m.thText)}>
-              Begins
-            </h2>
+            {hasIqamah ? (
+              <>
+                <h2 className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+                  {headerBegins}
+                </h2>
+                <h2 className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+                  {headerIqamah}
+                </h2>
+              </>
+            ) : (
+              <h2 className={cn('default-th flex-2 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+                {headerBegins}
+              </h2>
+            )}
           </section>
 
           {/* Prayer Rows */}
@@ -286,6 +297,10 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
             const isSunrise = prayer.name === 'sunrise';
             const isOdd = idx % 2 === 1;
             const plain = !isCurrent && !isNext && !isPast;
+            const formattedTime = formatPrayerTime(prayer.time, locale);
+            const formattedIqamah = prayer.iqamahTime
+              ? formatPrayerTime(prayer.iqamahTime, locale)
+              : undefined;
 
             return (
               <section
@@ -322,7 +337,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                 {/* Prayer Name */}
                 <h2
                   className={cn(
-                    'default-cell flex-1 flex items-center border-b border-r h-full pl-[3%] m-0 font-bold',
+                    'default-cell flex-1 flex items-center border-b border-r h-full pl-[3cqmin] m-0 font-bold',
                     m.cellText,
                     m.border,
                     plain && isOdd && m.rowOdd,
@@ -348,13 +363,13 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                       className="default-next-badge inline-flex items-center justify-center text-white font-bold"
                       style={{ backgroundColor: palette.next }}
                     >
-                      Next
+                      {nextLabel}
                     </span>
                   )}
                 </h2>
 
                 {/* Times */}
-                {hasIqamah && prayer.iqamahTime ? (
+                {hasIqamah && formattedIqamah ? (
                   <>
                     <h2
                       className={cn(
@@ -364,7 +379,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                         isPast && 'line-through'
                       )}
                     >
-                      {prayer.time}
+                      {formattedTime}
                     </h2>
                     <h2
                       className={cn(
@@ -374,7 +389,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                         isPast && 'line-through'
                       )}
                     >
-                      {prayer.iqamahTime}
+                      {formattedIqamah}
                     </h2>
                   </>
                 ) : (
@@ -386,7 +401,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                       isPast && 'line-through'
                     )}
                   >
-                    {prayer.time}
+                    {formattedTime}
                   </h2>
                 )}
               </section>
@@ -407,7 +422,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
           {/* "Next..." label */}
           <div className="default-next-secondary">
             <p className="text-white/90 m-0 leading-none font-medium opacity-85">
-              Next...
+              {nextLabel}...
             </p>
           </div>
 
@@ -417,7 +432,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
               {nextPrayer?.displayName ?? '--'}
             </p>
             <p className="text-white m-0 leading-none font-black tracking-tight">
-              {nextPrayer?.time ?? '--:--'}
+              {nextPrayer ? formatPrayerTime(nextPrayer.time, locale) : '--:--'}
             </p>
           </div>
 
@@ -432,6 +447,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
                 countdown.urgency === 'imminent' &&
                   'text-red-200 animate-pulse'
               )}
+              suppressHydrationWarning
             >
               {countdown.text}
             </p>
@@ -491,7 +507,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
         .dt-landscape {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          grid-template-rows: auto 1fr auto;
+          grid-template-rows: auto minmax(0, 1fr) auto;
           grid-template-areas:
             "headers headers"
             "body next-prayer"
@@ -530,7 +546,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait }: ThemeP
           width: 100%;
           height: 100%;
           grid-template-columns: 1fr;
-          grid-template-rows: repeat(7, 1fr);
+          grid-template-rows: auto repeat(6, minmax(0, 1fr));
         }
 
         /* Next prayer section */

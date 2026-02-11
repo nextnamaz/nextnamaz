@@ -4,3 +4,4 @@ export { useInterval } from './use-interval';
 export { usePrayerTimes } from './use-prayer-times';
 export { useDisplaySync } from './use-display-sync';
 export { useDisplayLifecycle } from './use-display-lifecycle';
+export { useDisplayClock } from './use-display-clock';

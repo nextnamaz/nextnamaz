@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { PrayerTimeEntry } from '@/types/prayer';
+import type { DisplayLocale } from '@/lib/display-locale';
 
 export interface ThemeProps {
   mosqueName: string;
@@ -7,6 +8,7 @@ export interface ThemeProps {
   nextPrayer: PrayerTimeEntry | null;
   config: Record<string, unknown>;
   isPortrait: boolean;
+  locale: DisplayLocale;
 }
 
 // --- Theme registry types ---

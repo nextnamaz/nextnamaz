@@ -1,6 +1,6 @@
 // Service Worker for NextNamaz Display Screens
 // Provides offline capability for TV/kiosk devices
-// Scoped to /display/ — does not interfere with admin/auth pages
+// Scoped to /display/ and /screen/ — does not interfere with admin/auth pages
 
 const CACHE_VERSION = 'nextnamaz-display-v1';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
@@ -51,9 +51,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Next.js build artifacts (content-hashed, safe to cache forever)
+  // Next.js build artifacts — network-first so cache always has latest chunks.
+  // In production chunks are content-hashed (safe forever), but in dev they change often.
   if (url.pathname.startsWith('/_next/static/')) {
-    event.respondWith(cacheFirst(event.request, STATIC_CACHE));
+    event.respondWith(networkFirst(event.request, STATIC_CACHE));
     return;
   }
 
@@ -70,7 +71,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Display pages: network-first, fall back to cache
-  if (url.pathname.startsWith('/display/')) {
+  if (url.pathname.startsWith('/display/') || url.pathname.startsWith('/screen/')) {
     event.respondWith(networkFirst(event.request, PAGE_CACHE));
     return;
   }
@@ -184,11 +185,25 @@ function offlinePageHtml() {
 
     function getSlug() {
       var parts = window.location.pathname.split('/');
-      // /display/[slug] -> slug is the last non-empty segment
+      // Get the last non-empty segment from the URL
+      var segment = null;
       for (var i = parts.length - 1; i >= 0; i--) {
-        if (parts[i]) return parts[i];
+        if (parts[i]) { segment = parts[i]; break; }
       }
-      return null;
+      if (!segment) return null;
+
+      // /display/[slug] — segment IS the slug
+      if (window.location.pathname.startsWith('/display/')) return segment;
+
+      // /screen/[code] — segment is a short_code, resolve via alias
+      if (window.location.pathname.startsWith('/screen/')) {
+        try {
+          var alias = localStorage.getItem('nextnamaz:alias:' + segment);
+          if (alias) return alias;
+        } catch(e) {}
+      }
+
+      return segment;
     }
 
     function todayStr() {

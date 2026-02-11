@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NextNamaz - Digital Prayer Times Display",
   description: "A modern prayer times display system for mosques with customizable themes and real-time updates",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
