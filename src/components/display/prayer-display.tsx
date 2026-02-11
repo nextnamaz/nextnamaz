@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import type { Mosque, Screen, MosqueSettings } from '@/types/database';
 import { asRecord, getScreenControls } from '@/types/database';
 import { getMosqueTimezone } from '@/lib/display-cache';
@@ -11,6 +11,20 @@ import { useDisplaySync, usePrayerTimes, useDisplayLifecycle } from '@/hooks/dis
 import { THEME_REGISTRY } from './themes';
 import { DisplayErrorBoundary } from './display-error-boundary';
 import { ConnectionIndicator } from './connection-indicator';
+
+/** Detect whether the viewport is physically portrait (height > width). */
+function useViewportPortrait(): boolean {
+  const [portrait, setPortrait] = useState(false);
+
+  useEffect(() => {
+    const check = () => setPortrait(window.innerHeight > window.innerWidth);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  return portrait;
+}
 
 interface PrayerDisplayProps {
   mosque: Mosque;
@@ -65,7 +79,12 @@ export function PrayerDisplay({
 
   // Screen display controls
   const controls = getScreenControls(currentScreen);
-  const isPortrait = Number(controls.rotation) === 90 || Number(controls.rotation) === 270;
+  const rotationDeg = Number(controls.rotation);
+  const swapDimensions = rotationDeg === 90 || rotationDeg === 270;
+  const viewportPortrait = useViewportPortrait();
+  // XOR: if viewport is already portrait and rotation doesn't swap → portrait
+  //       if viewport is landscape and rotation swaps → portrait
+  const isPortrait = viewportPortrait !== swapDimensions;
   const scaleFactor = controls.zoom / 100;
 
   const themeProps = {
@@ -108,11 +127,11 @@ export function PrayerDisplay({
         position: 'fixed',
         top: '50%',
         left: '50%',
-        transform: `translate(-50%, -50%) rotate(${controls.rotation}deg)`,
+        transform: `translate(-50%, -50%) rotate(${rotationDeg}deg)`,
         filter: `brightness(${controls.brightness / 100})`,
         transformOrigin: 'center center',
-        width: isPortrait ? '100vh' : '100vw',
-        height: isPortrait ? '100vw' : '100vh',
+        width: swapDimensions ? '100vh' : '100vw',
+        height: swapDimensions ? '100vw' : '100vh',
         overflow: 'hidden',
         background: '#000',
       }}
