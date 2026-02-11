@@ -221,7 +221,7 @@ begin
 
   loop
     new_code := substr(
-      replace(replace(encode(gen_random_bytes(6), 'base64'), '/', ''), '+', ''),
+      replace(replace(encode(extensions.gen_random_bytes(6), 'base64'), '/', ''), '+', ''),
       1, 6
     );
     select exists(select 1 from screens where short_code = new_code) into conflict_found;
