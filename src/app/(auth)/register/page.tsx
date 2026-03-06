@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/ui/logo';
 import { registerSchema, generateSlug } from '@/lib/validations';
 
 export default function RegisterPage() {
@@ -96,7 +97,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-secondary via-background to-secondary px-4">
       <Card className="w-full max-w-md shadow-lg animate-fade-in">
         <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">N</div>
+          <Logo size="lg" className="mx-auto mb-3" />
           <CardTitle className="text-2xl">Create Your Account</CardTitle>
           <CardDescription>Sign up and set up your mosque</CardDescription>
         </CardHeader>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none">
+  <!-- Outer bezel -->
+  <rect x="0" y="0" width="640" height="380" rx="20" fill="#1a1a1a"/>
+  <!-- Inner screen cutout -->
+  <rect x="16" y="16" width="608" height="332" rx="8" fill="#000"/>
+  <!-- Chin / bottom bar -->
+  <rect x="0" y="360" width="640" height="20" rx="0" fill="#1a1a1a"/>
+  <!-- Bottom corners -->
+  <rect x="0" y="360" width="640" height="20" rx="0" fill="#1a1a1a"/>
+  <path d="M0 370 Q0 380 10 380 H630 Q640 380 640 370 V360 H0Z" fill="#1a1a1a"/>
+  <!-- Stand -->
+  <rect x="260" y="380" width="120" height="8" rx="4" fill="#2a2a2a"/>
+  <rect x="220" y="388" width="200" height="6" rx="3" fill="#333"/>
+  <!-- LED indicator -->
+  <circle cx="320" cy="370" r="3" fill="#22c55e" opacity="0.8"/>
+  <!-- Subtle bezel highlight -->
+  <rect x="1" y="1" width="638" height="378" rx="19" stroke="white" stroke-opacity="0.05" stroke-width="1" fill="none"/>
+</svg>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/ui/logo';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -42,7 +43,7 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-lg animate-fade-in">
       <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">N</div>
+        <Logo size="lg" className="mx-auto mb-3" />
         <CardTitle className="text-2xl">Welcome Back</CardTitle>
         <CardDescription>Sign in to manage your mosque display</CardDescription>
       </CardHeader>

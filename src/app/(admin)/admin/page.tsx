@@ -32,6 +32,7 @@ import { Plus, Trash2, LogOut, Monitor, ChevronRight, Building2 } from 'lucide-r
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Logo } from '@/components/ui/logo';
 import type { Mosque } from '@/types/database';
 
 function generateSlug(name: string): string {
@@ -179,7 +180,7 @@ export default function MosquesPage() {
         {/* Nav header */}
         <nav className="border-b bg-card sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-            <span className="text-base font-bold tracking-tight text-primary">NextNamaz</span>
+            <Logo size="sm" />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>

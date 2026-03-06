@@ -1,11 +1,11 @@
 {
-  "name": "NextNamaz Prayer Display",
+  "name": "NextNamaz - Digital Prayer Times Display",
   "short_name": "NextNamaz",
-  "description": "Prayer times display for mosques",
+  "description": "A modern prayer times display system for mosques with customizable themes and real-time updates",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#FAFAF8",
+  "theme_color": "#E8A817",
   "orientation": "any",
   "icons": [
     {

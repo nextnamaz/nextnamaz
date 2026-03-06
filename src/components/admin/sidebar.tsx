@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown, User2, Settings2 } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 import {
   Sidebar,
   SidebarContent,
@@ -71,9 +72,7 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Building2 className="size-4" />
-              </div>
+              <Logo variant="round" size="sm" />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{mosqueName}</span>
                 <span className="truncate text-xs">Free Plan</span>
