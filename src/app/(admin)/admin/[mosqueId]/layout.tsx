@@ -19,7 +19,6 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
 
   if (!user) redirect('/login');
 
-  // Verify user has access to this mosque
   const { data: membership } = await supabase
     .from('mosque_members')
     .select('role, mosques(id, name)')
@@ -29,7 +28,7 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
 
   if (!membership) notFound();
 
-  const mosque = membership.mosques;
+  const mosque = membership.mosques as unknown as { id: string; name: string };
   if (!mosque) notFound();
 
   const cookieStore = await cookies();
@@ -37,7 +36,7 @@ export default async function MosqueLayout({ children, params }: MosqueLayoutPro
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar mosqueName={mosque.name} mosqueId={mosqueId} />
+      <AppSidebar mosqueName={mosque.name} mosqueId={mosqueId} userEmail={user.email ?? ''} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />

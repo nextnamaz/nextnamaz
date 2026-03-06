@@ -22,13 +22,20 @@ import {
   CardAction,
 } from '@/components/ui/card';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, LogOut, Monitor, ChevronRight, Building2 } from 'lucide-react';
+import { Plus, Trash2, Monitor, ChevronRight, Building2, CreditCard, User2, LogOut, ChevronsUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -46,9 +53,24 @@ interface MosqueWithScreenCount extends Mosque {
   screenCount: number;
 }
 
+type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled';
+
+function getStatusBadge(status: string | null) {
+  const s = (status ?? 'trialing') as SubscriptionStatus;
+  const config: Record<SubscriptionStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    active: { label: 'Active', variant: 'default' },
+    trialing: { label: 'Trial', variant: 'secondary' },
+    past_due: { label: 'Past Due', variant: 'destructive' },
+    canceled: { label: 'Canceled', variant: 'outline' },
+  };
+  const c = config[s] ?? config.canceled;
+  return <Badge variant={c.variant} className="text-[10px] px-1.5 py-0">{c.label}</Badge>;
+}
+
 export default function MosquesPage() {
   const [mosques, setMosques] = useState<MosqueWithScreenCount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -60,6 +82,8 @@ export default function MosquesPage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
+
+    setUserEmail(user.email ?? null);
 
     const { data: memberships } = await supabase
       .from('mosque_members')
@@ -168,7 +192,7 @@ export default function MosquesPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading your mosques...</p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -181,20 +205,33 @@ export default function MosquesPage() {
         <nav className="border-b bg-card sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             <Logo size="sm" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                  <span className="sr-only">Sign Out</span>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
+                    <User2 className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span className="text-sm hidden sm:inline">{userEmail}</span>
+                  <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>Sign Out</TooltipContent>
-            </Tooltip>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{userEmail}</p>
+                  <p className="text-xs text-muted-foreground">Account</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 w-4 h-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </nav>
 
         <div className="max-w-4xl mx-auto px-6 py-10">
-          {/* Page header */}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-xl font-semibold tracking-tight">Your Mosques</h1>
@@ -247,7 +284,6 @@ export default function MosquesPage() {
           <Separator className="mb-8" />
 
           {mosques.length === 0 ? (
-            /* Empty state */
             <Card className="border-2 border-dashed items-center justify-center py-20 px-6">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
                 <Building2 className="w-8 h-8 text-primary" />
@@ -266,26 +302,29 @@ export default function MosquesPage() {
               {mosques.map((mosque) => (
                 <Card
                   key={mosque.id}
-                  role="button"
-                  tabIndex={0}
-                  className="group gap-0 py-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200"
-                  onClick={() => router.push(`/admin/${mosque.id}`)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
+                  className="group gap-0 py-0 hover:shadow-md hover:border-primary/30 transition-all duration-200"
                 >
                   <CardHeader className="px-4 py-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 min-w-0 cursor-pointer flex-1"
+                      onClick={() => router.push(`/admin/${mosque.id}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
+                    >
                       <Avatar size="lg" className="rounded-lg">
                         <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-sm">
                           {mosque.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <CardTitle className="text-sm truncate">{mosque.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-0.5">
+                        <CardDescription className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <Badge variant="secondary" className="text-[11px] px-1.5 py-0 font-normal gap-1">
                             <Monitor className="w-3 h-3" />
                             {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
                           </Badge>
+                          {getStatusBadge(mosque.subscription_status)}
                           <span className="text-[11px] text-muted-foreground/60 font-mono">
                             /{mosque.slug}
                           </span>
@@ -299,9 +338,21 @@ export default function MosquesPage() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => router.push(`/admin/${mosque.id}/billing`)}
+                            >
+                              <CreditCard className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Billing</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={() => {
                                 if (confirm('Delete this mosque? This cannot be undone.')) {
                                   handleDelete(mosque.id);
                                 }
@@ -312,7 +363,10 @@ export default function MosquesPage() {
                           </TooltipTrigger>
                           <TooltipContent>Delete mosque</TooltipContent>
                         </Tooltip>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                        <ChevronRight
+                          className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors cursor-pointer"
+                          onClick={() => router.push(`/admin/${mosque.id}`)}
+                        />
                       </div>
                     </CardAction>
                   </CardHeader>

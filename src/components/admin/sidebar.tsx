@@ -3,7 +3,10 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown, User2, Settings2, CreditCard } from 'lucide-react';
+import {
+  Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown,
+  User2, Settings2, CreditCard,
+} from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import {
   Sidebar,
@@ -25,26 +28,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface AppSidebarProps {
-  mosqueName: string;
-  mosqueId: string;
-}
-
-const NAV_MATCH = {
-  exact: 'exact',
-  prefix: 'prefix',
-} as const;
-
-type NavMatch = (typeof NAV_MATCH)[keyof typeof NAV_MATCH];
-
 interface NavItem {
   href: string;
   label: string;
   icon: typeof Monitor;
-  match: NavMatch;
+  match: 'exact' | 'prefix';
 }
 
-export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
+interface AppSidebarProps {
+  mosqueName: string;
+  mosqueId: string;
+  userEmail: string;
+}
+
+export function AppSidebar({ mosqueName, mosqueId, userEmail }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const base = `/admin/${mosqueId}`;
@@ -69,15 +66,14 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Logo variant="round" size="sm" />
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{mosqueName}</span>
-                <span className="truncate text-xs">Free Plan</span>
-              </div>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/admin">
+                <Logo variant="round" size="sm" />
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{mosqueName}</span>
+                  <span className="truncate text-xs text-muted-foreground">Manage</span>
+                </div>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -119,8 +115,8 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
                     <User2 className="size-4" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">My Account</span>
-                    <span className="truncate text-xs">Manage account</span>
+                    <span className="truncate font-semibold text-xs">{userEmail}</span>
+                    <span className="truncate text-xs text-muted-foreground">Account</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -131,14 +127,18 @@ export function AppSidebar({ mosqueName, mosqueId }: AppSidebarProps) {
                 align="end"
                 sideOffset={4}
               >
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{userEmail}</p>
+                </div>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/admin">
                     <Building2 className="mr-2 size-4" />
-                    <span>My Mosques</span>
+                    <span>All Mosques</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
                   <LogOut className="mr-2 size-4" />
                   <span>Sign out</span>
                 </DropdownMenuItem>

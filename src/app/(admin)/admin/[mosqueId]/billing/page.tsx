@@ -5,8 +5,8 @@ import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PLANS } from '@/lib/stripe';
-import type { PlanId } from '@/lib/stripe';
+import { PLANS } from '@/lib/plans';
+import type { PlanId } from '@/lib/plans';
 
 interface MosqueSubscription {
   subscription_status: string | null;
