@@ -47,6 +47,12 @@ export type Database = {
           name: string;
           slug: string;
           logo_url: string | null;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          subscription_status: string | null;
+          subscription_plan: string | null;
+          trial_ends_at: string | null;
+          subscription_ends_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -54,6 +60,12 @@ export type Database = {
           name: string;
           slug: string;
           logo_url?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          subscription_status?: string | null;
+          subscription_plan?: string | null;
+          trial_ends_at?: string | null;
+          subscription_ends_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -61,6 +73,12 @@ export type Database = {
           name?: string;
           slug?: string;
           logo_url?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          subscription_status?: string | null;
+          subscription_plan?: string | null;
+          trial_ends_at?: string | null;
+          subscription_ends_at?: string | null;
           created_at?: string;
         };
         Relationships: [];

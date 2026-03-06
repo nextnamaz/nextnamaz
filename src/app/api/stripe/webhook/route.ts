@@ -50,8 +50,8 @@ export async function POST(request: Request) {
           trial_ends_at: subscription.trial_end
             ? new Date(subscription.trial_end * 1000).toISOString()
             : null,
-          subscription_ends_at: subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000).toISOString()
+          subscription_ends_at: subscription.items.data[0]?.current_period_end
+            ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
             : null,
         })
         .eq('id', mosqueId);
