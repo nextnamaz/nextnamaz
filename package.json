@@ -39,6 +39,7 @@
     "react-hook-form": "^7.71.1",
     "react-simple-maps": "^3.0.0",
     "sonner": "^2.0.7",
+    "stripe": "^20.4.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"
   },
