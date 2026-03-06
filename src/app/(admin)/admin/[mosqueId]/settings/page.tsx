@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Building2, Upload, Trash2 } from 'lucide-react';
+import { Building2, Upload, Trash2, CreditCard, ExternalLink } from 'lucide-react';
 
 interface MosqueData {
   name: string;
@@ -23,6 +23,7 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [name, setName] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -41,7 +42,7 @@ export default function SettingsPage() {
         .single();
 
       if (error || !data) {
-        toast.error('Failed to load mosque settings');
+        toast.error('Failed to load settings');
         setLoading(false);
         return;
       }
@@ -98,7 +99,6 @@ export default function SettingsPage() {
     let newLogoUrl = logoUrl;
 
     try {
-      // Upload new logo
       if (logoFile) {
         const ext = logoFile.name.split('.').pop() ?? 'png';
         const path = `${mosqueId}/logo.${ext}`;
@@ -118,7 +118,6 @@ export default function SettingsPage() {
         newLogoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       }
 
-      // Remove logo
       if (removeLogo && savedSnapshot.current?.logo_url) {
         const url = savedSnapshot.current.logo_url;
         const bucketPath = url.split('/mosque-logos/')[1]?.split('?')[0];
@@ -128,19 +127,17 @@ export default function SettingsPage() {
         newLogoUrl = null;
       }
 
-      // Update mosque record
       const { error } = await supabase
         .from('mosques')
         .update({ name: name.trim(), logo_url: newLogoUrl })
         .eq('id', mosqueId);
 
       if (error) {
-        toast.error('Failed to save settings');
+        toast.error('Failed to save');
         setSaving(false);
         return;
       }
 
-      // Reset state
       setLogoUrl(newLogoUrl);
       setLogoFile(null);
       setLogoPreview(null);
@@ -157,44 +154,47 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm('Are you sure? This will permanently delete this mosque, all screens, and all settings.')) return;
+
+    setDeleting(true);
+    const { error } = await supabase.from('mosques').delete().eq('id', mosqueId);
+    if (error) {
+      toast.error(error.message);
+      setDeleting(false);
+    } else {
+      toast.success('Mosque deleted');
+      router.push('/admin');
+    }
+  };
+
   const displayLogoUrl = removeLogo ? null : (logoPreview ?? logoUrl);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading settings...</p>
-        </div>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="w-full space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">General</h1>
-        <p className="text-muted-foreground mt-1">Mosque name and branding</p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
       <div className="max-w-2xl space-y-6">
         {/* Name */}
         <Card>
           <CardHeader>
             <CardTitle>Mosque Name</CardTitle>
-            <CardDescription>This is displayed on your screens and in the admin panel.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="mosque-name">Name</Label>
-              <Input
-                id="mosque-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter mosque name"
-                maxLength={100}
-              />
-            </div>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter mosque name"
+              maxLength={100}
+            />
           </CardContent>
         </Card>
 
@@ -202,19 +202,17 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Logo</CardTitle>
-            <CardDescription>Upload a logo to display on your screens. Max 2MB, image files only.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
-              <Avatar className="size-20 rounded-lg">
+              <Avatar className="size-16 rounded-lg">
                 {displayLogoUrl ? (
-                  <AvatarImage src={displayLogoUrl} alt="Mosque logo" />
+                  <AvatarImage src={displayLogoUrl} alt="Logo" />
                 ) : null}
-                <AvatarFallback className="rounded-lg text-lg">
-                  <Building2 className="size-8 text-muted-foreground" />
+                <AvatarFallback className="rounded-lg">
+                  <Building2 className="size-6 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-
               <div className="flex flex-col gap-2">
                 <input
                   ref={fileInputRef}
@@ -223,21 +221,12 @@ export default function SettingsPage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="size-4 mr-2" />
-                  Upload logo
+                  Upload
                 </Button>
                 {displayLogoUrl && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveLogo}
-                    className="text-destructive hover:text-destructive"
-                  >
+                  <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive">
                     <Trash2 className="size-4 mr-2" />
                     Remove
                   </Button>
@@ -246,9 +235,38 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Billing */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Billing</CardTitle>
+            <CardDescription>Manage your subscription and payment method</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" size="sm" onClick={() => router.push(`/admin/${mosqueId}/billing`)}>
+              <CreditCard className="size-4 mr-2" />
+              Manage Billing
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Danger zone */}
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Permanently delete this mosque and all its data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
+              <Trash2 className="size-4 mr-2" />
+              {deleting ? 'Deleting...' : 'Delete Mosque'}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Floating save bar */}
       {dirty && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
           <div className="flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-xl border shadow-2xl pl-4 pr-1.5 py-1.5">

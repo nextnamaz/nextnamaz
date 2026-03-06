@@ -114,10 +114,7 @@ export default function PrayerTimesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading settings...</p>
-        </div>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -126,10 +123,7 @@ export default function PrayerTimesPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Prayer Times</h1>
-        <p className="text-muted-foreground mt-1">Configure sources and per-prayer settings</p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Prayer Times</h1>
 
       <Tabs defaultValue="source">
         <TabsList className="mb-6">

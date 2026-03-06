@@ -19,7 +19,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -29,14 +28,12 @@ import {
   ExternalLink,
   Settings,
   Monitor,
-  Smartphone,
   Copy,
   Check,
   MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import type { Screen, Mosque } from '@/types/database';
 import { ScreenPresence } from '@/components/admin/screen-presence';
 
@@ -234,10 +231,7 @@ export default function MosqueScreensPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading screens...</p>
-        </div>
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -246,48 +240,37 @@ export default function MosqueScreensPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Screens</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your digital signage displays and prayer time screens.
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Screens</h1>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="lg" className="shadow-sm">
-              <Plus className="w-5 h-5 mr-2" />
-              Add New Screen
+            <Button size="sm">
+              <Plus className="w-4 h-4 mr-1.5" />
+              New Screen
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Screen</DialogTitle>
+              <DialogTitle>New Screen</DialogTitle>
               <DialogDescription>
-                Create a new digital signage screen for your mosque.
+                Add a display screen for your mosque.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateScreen} className="space-y-4 py-4">
+            <form onSubmit={handleCreateScreen} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="screenName">Screen Name</Label>
                 <Input
                   id="screenName"
                   value={newScreenName}
                   onChange={(e) => setNewScreenName(e.target.value)}
-                  placeholder="e.g. Main Hall TV, Ladies Section"
-                  className="col-span-3"
+                  placeholder="e.g. Main Hall, Ladies Section"
                   autoFocus
                 />
-                {newScreenName.trim() && (
-                  <p className="text-[11px] text-muted-foreground bg-muted/50 p-2 rounded border">
-                    A short URL will be auto-generated for sharing.
-                  </p>
-                )}
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={creating}>Cancel</Button>
                 <Button type="submit" disabled={creating || !newScreenName.trim()}>
-                  {creating ? 'Creating...' : 'Create Screen'}
+                  {creating ? 'Creating...' : 'Create'}
                 </Button>
               </DialogFooter>
             </form>
@@ -296,19 +279,17 @@ export default function MosqueScreensPage() {
       </div>
 
       {screens.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed rounded-xl bg-card/30">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-            <Monitor className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2">No screens configured</h2>
-          <p className="text-muted-foreground max-w-md mb-8">
-            You haven't set up any display screens yet. Add your first screen to start displaying prayer times on your TVs.
+        <Card className="border-2 border-dashed items-center justify-center py-20 px-6">
+          <Monitor className="w-12 h-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No screens yet</h3>
+          <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+            Add a screen to start displaying prayer times.
           </p>
-          <Button onClick={() => setDialogOpen(true)} variant="secondary" size="lg">
-            <Plus className="w-5 h-5 mr-2" />
-            Create First Screen
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Screen
           </Button>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {screens.map((screen) => {
@@ -333,7 +314,6 @@ export default function MosqueScreensPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}>
                         <Settings className="w-4 h-4 mr-2" />
                         Configure
@@ -364,13 +344,7 @@ export default function MosqueScreensPage() {
                   <ScreenPreview screen={screen} />
                 </CardContent>
 
-                <CardFooter className="py-4 px-6 border-t bg-muted/30 flex items-center justify-between">
-                   <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-normal text-[10px] h-6 px-2 gap-1.5 bg-background">
-                        {isPortrait ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
-                        {isPortrait ? '9:16' : '16:9'}
-                      </Badge>
-                   </div>
+                <CardFooter className="py-3 px-6 border-t bg-muted/30 flex items-center justify-end">
                    <CopyUrlButton shortCode={screen.short_code} />
                 </CardFooter>
               </Card>

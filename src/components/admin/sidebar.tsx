@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown,
-  User2, Settings2, CreditCard,
+  User2, Settings2,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import {
@@ -50,8 +50,7 @@ export function AppSidebar({ mosqueName, mosqueId, userEmail }: AppSidebarProps)
     { href: base, label: 'Screens', icon: Monitor, match: 'exact' },
     { href: `${base}/prayer-times`, label: 'Prayer Times', icon: Clock, match: 'prefix' },
     { href: `${base}/localization`, label: 'Localization', icon: Globe, match: 'prefix' },
-    { href: `${base}/settings`, label: 'General', icon: Settings2, match: 'prefix' },
-    { href: `${base}/billing`, label: 'Billing', icon: CreditCard, match: 'prefix' },
+    { href: `${base}/settings`, label: 'Settings', icon: Settings2, match: 'prefix' },
   ];
 
   const handleSignOut = async () => {
