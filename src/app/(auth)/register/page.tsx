@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/ui/logo';
-import { registerSchema, generateSlug } from '@/lib/validations';
+import { registerSchema } from '@/lib/validations';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -44,61 +44,30 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // 1. Create account + mosque via server route (bypasses RLS)
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, mosqueName }),
+    });
+    const result = await res.json() as { success?: boolean; error?: string };
+
+    if (!res.ok || result.error) {
+      setError(result.error ?? 'Registration failed');
+      setLoading(false);
+      return;
+    }
+
+    // 2. Sign in to establish session
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (!authData.user) {
-      setError('Failed to create account');
-      setLoading(false);
-      return;
-    }
-
-    const mosqueSlug = generateSlug(mosqueName);
-
-    const { data: mosque, error: mosqueError } = await supabase
-      .from('mosques')
-      .insert({ name: mosqueName, slug: mosqueSlug })
-      .select()
-      .single();
-
-    if (mosqueError) {
-      setError(mosqueError.message);
-      setLoading(false);
-      return;
-    }
-
-    const { error: memberError } = await supabase.from('mosque_members').insert({
-      mosque_id: mosque.id,
-      user_id: authData.user.id,
-      role: 'owner',
-    });
-
-    if (memberError) {
-      setError(memberError.message);
-      setLoading(false);
-      return;
-    }
-
-    const { error: screenError } = await supabase.from('screens').insert({
-      mosque_id: mosque.id,
-      name: 'Main Screen',
-      slug: `${mosqueSlug}-main`,
-      theme: 'default',
-      theme_config: {},
-    });
-
-    if (screenError) {
-      setError(screenError.message);
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
       return;
     }

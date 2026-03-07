@@ -14,7 +14,6 @@ import {
   DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,9 +21,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, ChevronRight, Building2, User2, LogOut, ChevronsUpDown } from 'lucide-react';
+import { Plus, Building2, User2, LogOut, ChevronsUpDown, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/ui/logo';
 import type { Mosque } from '@/types/database';
 
@@ -159,7 +158,7 @@ export default function MosquesPage() {
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b bg-card sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-6 h-14 flex items-center justify-between">
           <Logo size="sm" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -174,6 +173,10 @@ export default function MosquesPage() {
                 <p className="text-sm font-medium">{userEmail}</p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/admin/billing')}>
+                <CreditCard className="mr-2 w-4 h-4" />
+                Billing
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 w-4 h-4" />
                 Sign out
@@ -183,8 +186,8 @@ export default function MosquesPage() {
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-8">
           <h1 className="text-xl font-semibold tracking-tight">Your Mosques</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -221,40 +224,44 @@ export default function MosquesPage() {
         </div>
 
         {mosques.length === 0 ? (
-          <Card className="border-2 border-dashed items-center justify-center py-20 px-6">
-            <Building2 className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No mosques yet</h3>
-            <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <Building2 className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">No mosques yet</h3>
+            <p className="text-muted-foreground text-sm mb-6">
               Create your first mosque to get started.
             </p>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Mosque
             </Button>
-          </Card>
+          </div>
         ) : (
-          <div className="grid gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {mosques.map((mosque) => (
               <div
                 key={mosque.id}
                 role="button"
                 tabIndex={0}
-                className="group flex items-center gap-3 px-4 py-3 rounded-xl border bg-card cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+                className="group flex flex-col items-center gap-3 p-5 rounded-2xl border bg-card cursor-pointer hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 transition-all"
                 onClick={() => router.push(`/admin/${mosque.id}`)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/admin/${mosque.id}`); }}
               >
-                <Avatar className="size-10 rounded-lg shrink-0">
-                  <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                <Avatar className="size-14 rounded-xl shrink-0">
+                  {mosque.logo_url && (
+                    <AvatarImage src={mosque.logo_url} alt={mosque.name} className="rounded-xl object-cover" />
+                  )}
+                  <AvatarFallback className="rounded-xl bg-primary/10 text-primary font-bold text-lg">
                     {mosque.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
+                <div className="text-center min-w-0 w-full">
                   <p className="text-sm font-semibold truncate">{mosque.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {mosque.screenCount} screen{mosque.screenCount !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
               </div>
             ))}
           </div>

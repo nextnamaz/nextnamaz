@@ -10,34 +10,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json() as { mosqueId: string };
-  const { mosqueId } = body;
-
-  // Verify user owns/admins this mosque
-  const { data: member } = await supabase
-    .from('mosque_members')
-    .select('role')
-    .eq('mosque_id', mosqueId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (!member || !['owner', 'admin'].includes(member.role)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  const { data: mosque } = await supabase
-    .from('mosques')
+  const { data: profile } = await supabase
+    .from('profiles')
     .select('stripe_customer_id')
-    .eq('id', mosqueId)
+    .eq('id', user.id)
     .single();
 
-  if (!mosque?.stripe_customer_id) {
+  if (!profile?.stripe_customer_id) {
     return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
   }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: mosque.stripe_customer_id,
-    return_url: `${request.headers.get('origin')}/admin/${mosqueId}`,
+    customer: profile.stripe_customer_id,
+    return_url: `${request.headers.get('origin')}/admin/billing`,
   });
 
   return NextResponse.json({ url: session.url });

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Building2, Upload, Trash2, CreditCard, ExternalLink } from 'lucide-react';
+import { Building2, Upload, Trash2 } from 'lucide-react';
 
 interface MosqueData {
   name: string;
@@ -233,20 +233,6 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Billing */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing</CardTitle>
-            <CardDescription>Manage your subscription and payment method</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" size="sm" onClick={() => router.push(`/admin/${mosqueId}/billing`)}>
-              <CreditCard className="size-4 mr-2" />
-              Manage Billing
-            </Button>
           </CardContent>
         </Card>
 

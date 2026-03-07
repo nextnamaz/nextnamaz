@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { stripe, PLANS } from '@/lib/stripe';
-import type { PlanId } from '@/lib/stripe';
+import type { PlanId, BillingInterval } from '@/lib/stripe';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -11,52 +11,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json() as { mosqueId: string; plan: PlanId };
-  const { mosqueId, plan } = body;
+  const body = await request.json() as { plan: PlanId; interval: BillingInterval };
+  const { plan, interval } = body;
 
-  if (!mosqueId || !PLANS[plan]) {
+  if (!PLANS[plan] || !['month', 'year'].includes(interval)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  // Verify user owns/admins this mosque
-  const { data: member } = await supabase
-    .from('mosque_members')
-    .select('role')
-    .eq('mosque_id', mosqueId)
-    .eq('user_id', user.id)
+  // Get profile for existing stripe customer
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('stripe_customer_id')
+    .eq('id', user.id)
     .single();
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  // Get mosque for existing stripe customer
-  const { data: mosque } = await supabase
-    .from('mosques')
-    .select('id, name, stripe_customer_id')
-    .eq('id', mosqueId)
-    .single();
-
-  if (!mosque) {
-    return NextResponse.json({ error: 'Mosque not found' }, { status: 404 });
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
   // Create or reuse Stripe customer
-  let customerId = mosque.stripe_customer_id;
+  let customerId = profile.stripe_customer_id;
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email,
-      metadata: { mosque_id: mosqueId, user_id: user.id },
+      metadata: { user_id: user.id },
     });
     customerId = customer.id;
 
     await supabase
-      .from('mosques')
+      .from('profiles')
       .update({ stripe_customer_id: customerId })
-      .eq('id', mosqueId);
+      .eq('id', user.id);
   }
 
   const selectedPlan = PLANS[plan];
+  const price = interval === 'year' ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -65,11 +54,11 @@ export async function POST(request: Request) {
       {
         price_data: {
           currency: 'usd',
-          unit_amount: selectedPlan.price,
-          recurring: { interval: selectedPlan.interval },
+          unit_amount: price,
+          recurring: { interval },
           product_data: {
-            name: `NextNamaz ${plan === 'yearly' ? 'Yearly' : 'Monthly'}`,
-            description: `Prayer display subscription for ${mosque.name}`,
+            name: `NextNamaz ${selectedPlan.name}`,
+            description: selectedPlan.description,
           },
         },
         quantity: 1,
@@ -77,11 +66,11 @@ export async function POST(request: Request) {
     ],
     subscription_data: {
       trial_period_days: selectedPlan.trialDays,
-      metadata: { mosque_id: mosqueId },
+      metadata: { user_id: user.id, plan },
     },
-    metadata: { mosque_id: mosqueId },
-    success_url: `${request.headers.get('origin')}/admin/${mosqueId}?billing=success`,
-    cancel_url: `${request.headers.get('origin')}/admin/${mosqueId}?billing=cancelled`,
+    metadata: { user_id: user.id, plan },
+    success_url: `${request.headers.get('origin')}/admin/billing?status=success`,
+    cancel_url: `${request.headers.get('origin')}/admin/billing?status=cancelled`,
   });
 
   return NextResponse.json({ url: session.url });

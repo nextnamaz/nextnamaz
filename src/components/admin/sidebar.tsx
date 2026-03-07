@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   Monitor, Clock, Globe, LogOut, Building2, ChevronsUpDown,
-  User2, Settings2,
+  User2, Settings2, CreditCard,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import {
@@ -134,6 +134,12 @@ export function AppSidebar({ mosqueName, mosqueId, userEmail }: AppSidebarProps)
                   <Link href="/admin">
                     <Building2 className="mr-2 size-4" />
                     <span>All Mosques</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/billing">
+                    <CreditCard className="mr-2 size-4" />
+                    <span>Billing</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

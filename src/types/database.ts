@@ -23,6 +23,7 @@ export type PrayerTimesMap = {
 export type Mosque = Database['public']['Tables']['mosques']['Row'];
 export type MosqueMember = Database['public']['Tables']['mosque_members']['Row'];
 export type Screen = Database['public']['Tables']['screens']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 // Typed settings with proper JSONB shapes
 export type MosqueSettings = {
@@ -47,6 +48,27 @@ export type Database = {
           name: string;
           slug: string;
           logo_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          logo_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          logo_url?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          id: string;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           subscription_status: string | null;
@@ -56,10 +78,7 @@ export type Database = {
           created_at: string;
         };
         Insert: {
-          id?: string;
-          name: string;
-          slug: string;
-          logo_url?: string | null;
+          id: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           subscription_status?: string | null;
@@ -70,9 +89,6 @@ export type Database = {
         };
         Update: {
           id?: string;
-          name?: string;
-          slug?: string;
-          logo_url?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           subscription_status?: string | null;

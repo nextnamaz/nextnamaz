@@ -90,6 +90,11 @@ function LoginForm() {
               required
             />
           </div>
+          <div className="flex justify-end">
+            <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>

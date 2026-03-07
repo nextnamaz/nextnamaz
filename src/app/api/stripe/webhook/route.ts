@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
-      const mosqueId = subscription.metadata.mosque_id;
-      if (!mosqueId) break;
+      const userId = subscription.metadata.user_id;
+      if (!userId) break;
 
       const status = subscription.status === 'trialing' ? 'trialing'
         : subscription.status === 'active' ? 'active'
@@ -43,10 +43,11 @@ export async function POST(request: Request) {
         : 'canceled';
 
       await supabase
-        .from('mosques')
+        .from('profiles')
         .update({
           stripe_subscription_id: subscription.id,
           subscription_status: status,
+          subscription_plan: subscription.metadata.plan || null,
           trial_ends_at: subscription.trial_end
             ? new Date(subscription.trial_end * 1000).toISOString()
             : null,
@@ -54,22 +55,22 @@ export async function POST(request: Request) {
             ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
             : null,
         })
-        .eq('id', mosqueId);
+        .eq('id', userId);
       break;
     }
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
-      const mosqueId = subscription.metadata.mosque_id;
-      if (!mosqueId) break;
+      const userId = subscription.metadata.user_id;
+      if (!userId) break;
 
       await supabase
-        .from('mosques')
+        .from('profiles')
         .update({
           subscription_status: 'canceled',
           stripe_subscription_id: null,
         })
-        .eq('id', mosqueId);
+        .eq('id', userId);
       break;
     }
   }

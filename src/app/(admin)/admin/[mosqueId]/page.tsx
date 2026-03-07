@@ -29,7 +29,6 @@ import {
   Settings,
   Monitor,
   Copy,
-  Check,
   MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -133,34 +132,6 @@ function ScreenPreview({ screen }: { screen: Screen }) {
 }
 
 /* Copy URL button */
-
-function CopyUrlButton({ shortCode }: { shortCode: string }) {
-  const [copied, setCopied] = useState(false);
-  const url = `/screen/${shortCode}`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`${window.location.origin}${url}`);
-    setCopied(true);
-    toast.success('Display URL copied');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-8 gap-2 text-xs font-mono bg-muted/50 hover:bg-muted"
-      onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleCopy();
-      }}
-    >
-      {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-      <span className="truncate max-w-[150px]">{url}</span>
-    </Button>
-  );
-}
 
 export default function MosqueScreensPage() {
   const { mosqueId } = useParams<{ mosqueId: string }>();
@@ -314,21 +285,28 @@ export default function MosqueScreensPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/admin/${mosqueId}/screen/${screen.id}`)}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        Configure
-                      </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <a href={`/display/${screen.slug}`} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Open Display
                         </a>
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const url = `${window.location.origin}/screen/${screen.short_code}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('Display URL copied');
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy URL
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
                         onClick={() => {
-                          if (confirm('Are you sure you want to delete this screen? This action cannot be undone.')) {
+                          if (confirm('Delete this screen? This cannot be undone.')) {
                             handleDeleteScreen(screen.id);
                           }
                         }}
@@ -345,7 +323,18 @@ export default function MosqueScreensPage() {
                 </CardContent>
 
                 <CardFooter className="py-3 px-6 border-t bg-muted/30 flex items-center justify-end">
-                   <CopyUrlButton shortCode={screen.short_code} />
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     className="h-8 text-xs"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       router.push(`/admin/${mosqueId}/screen/${screen.id}`);
+                     }}
+                   >
+                     <Settings className="w-3.5 h-3.5 mr-1.5" />
+                     Configure
+                   </Button>
                 </CardFooter>
               </Card>
             );
