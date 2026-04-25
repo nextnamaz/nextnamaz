@@ -717,8 +717,9 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
             </div>
             <div style={{
               marginTop: '1.7cqmin',
-              fontSize: '2.8cqmin', fontWeight: 500, color: fgSub,
+              fontSize: '4cqmin', fontWeight: 500, color: fgSub,
               letterSpacing: 0.2, lineHeight: 1.2,
+              textTransform: 'capitalize',
             }}>
               {dateStr}
             </div>
@@ -822,7 +823,7 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
             </div>
           </div>
           <div style={{
-            fontSize: '2.8cqmin', fontWeight: 500, color: fgSub, letterSpacing: 1.6,
+            fontSize: '3.6cqmin', fontWeight: 500, color: fgSub, letterSpacing: 1.6,
             textTransform: 'uppercase', marginTop: '2.6cqmin',
           }}>
             {dateStr}

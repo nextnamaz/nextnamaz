@@ -4,6 +4,20 @@ import type { DisplayTextConfig, LocaleMetadata, DateFormatOption, SupportedLoca
 import { parseDisplayText, parseLocaleMetadata } from '@/lib/locale/helpers';
 import { DATE_FORMAT_OPTIONS } from '@/lib/locale/presets';
 import { format } from 'date-fns';
+import type { Locale } from 'date-fns';
+import { ar, bs, de, enGB, enUS, es, fr, sv, tr } from 'date-fns/locale';
+
+const DATE_FNS_LOCALES: Record<string, Locale> = {
+  en: enGB,
+  ar: ar,
+  bs: bs,
+  sv: sv,
+  tr: tr,
+  ur: enUS,
+  de: de,
+  fr: fr,
+  es: es,
+};
 
 // --- Resolved locale config consumed by themes ---
 
@@ -75,8 +89,9 @@ export function formatClockTime(date: Date, locale: DisplayLocale): string {
 export function formatDisplayDate(date: Date, locale: DisplayLocale): string {
   const entry = DATE_FORMAT_OPTIONS.find((o) => o.value === locale.dateFormat);
   if (!entry) return date.toLocaleDateString('en-GB');
+  const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
   try {
-    return format(date, entry.dateFnsFormat);
+    return format(date, entry.dateFnsFormat, { locale: fnsLocale });
   } catch {
     return date.toLocaleDateString('en-GB');
   }

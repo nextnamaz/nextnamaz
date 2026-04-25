@@ -62,6 +62,7 @@ export const DATE_FORMAT_OPTIONS: DateFormatChoice[] = [
   { value: 'YYYY-MM-DD',    label: 'YYYY-MM-DD',       dateFnsFormat: 'yyyy-MM-dd' },
   { value: 'DD MMM YYYY',   label: 'DD MMM YYYY',      dateFnsFormat: 'dd MMM yyyy' },
   { value: 'MMMM DD, YYYY', label: 'MMMM DD, YYYY',    dateFnsFormat: 'MMMM dd, yyyy' },
+  { value: 'EEEE · MMMM DD, YYYY', label: 'Day · MMMM DD, YYYY', dateFnsFormat: "EEEE · MMMM dd, yyyy" },
 ];
 
 export const COMMON_TIMEZONES = [

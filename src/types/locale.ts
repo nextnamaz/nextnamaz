@@ -39,7 +39,8 @@ export type DateFormatOption =
   | 'MM/DD/YYYY'
   | 'YYYY-MM-DD'
   | 'DD MMM YYYY'
-  | 'MMMM DD, YYYY';
+  | 'MMMM DD, YYYY'
+  | 'EEEE · MMMM DD, YYYY';
 
 export interface DateFormatChoice {
   value: DateFormatOption;
