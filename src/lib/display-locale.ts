@@ -14,6 +14,7 @@ export interface DisplayLocale {
     begins: string;
     iqamah: string;
     next: string;
+    now: string;
   };
   use24Hour: boolean;
   showSeconds: boolean;

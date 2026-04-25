@@ -26,6 +26,7 @@ export function parseDisplayText(
       iqamah:  raw.iqamah  ?? preset.labels.iqamah,
       begins:  raw.begins  ?? preset.labels.begins,
       next:    raw.next    ?? preset.labels.next,
+      now:     raw.now     ?? preset.labels.now,
     },
   };
 }

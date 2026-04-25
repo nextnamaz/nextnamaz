@@ -4,6 +4,7 @@ import type { DisplayLocale } from '@/lib/display-locale';
 
 export interface ThemeProps {
   mosqueName: string;
+  mosqueLogoUrl: string | null;
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerTimeEntry | null;
   config: Record<string, unknown>;
@@ -40,11 +41,13 @@ export interface ThemeDefinition {
 // --- Theme imports ---
 
 import { AndalusTheme, andalusDefinition } from './andalus';
+import { AtmosphericTheme, atmosphericDefinition } from './atmospheric';
 import { DefaultTheme, defaultDefinition } from './default';
 
-export { AndalusTheme, DefaultTheme };
+export { AndalusTheme, AtmosphericTheme, DefaultTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   default: defaultDefinition,
   andalus: andalusDefinition,
+  atmospheric: atmosphericDefinition,
 };

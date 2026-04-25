@@ -25,6 +25,7 @@ const LABEL_KEYS: { key: keyof DisplayTextConfig['labels']; label: string }[] = 
   { key: 'iqamah', label: 'Iqamah' },
   { key: 'begins', label: 'Begins' },
   { key: 'next', label: 'Next' },
+  { key: 'now', label: 'Now' },
 ];
 
 interface LanguageSettingsCardProps {

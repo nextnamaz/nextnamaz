@@ -89,6 +89,7 @@ export function PrayerDisplay({
 
   const themeProps = {
     mosqueName: mosque.name,
+    mosqueLogoUrl: mosque.logo_url,
     prayers,
     nextPrayer,
     config: asRecord(currentScreen.theme_config),

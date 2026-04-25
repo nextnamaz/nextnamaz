@@ -25,7 +25,7 @@ const SAMPLE_LOCALE: DisplayLocale = {
     maghrib: 'Maghrib',
     isha: 'Isha',
   },
-  labels: { prayer: 'Prayer', begins: 'Begins', iqamah: 'Iqamah', next: 'Next...' },
+  labels: { prayer: 'Prayer', begins: 'Begins', iqamah: 'Iqamah', next: 'Next...', now: 'Now' },
   use24Hour: true,
   showSeconds: true,
   dateFormat: 'DD/MM/YYYY',
@@ -38,6 +38,7 @@ export function ShowcaseDemo() {
 
   const props: ThemeProps = {
     mosqueName: 'Al-Noor Mosque',
+    mosqueLogoUrl: null,
     prayers: SAMPLE_PRAYERS,
     nextPrayer,
     config: { mode: 'light', colorScheme: 'classic', displayText: 'بسم الله الرحمن الرحيم' },

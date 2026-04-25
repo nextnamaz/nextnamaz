@@ -24,6 +24,7 @@ export interface UILabelTranslations {
   iqamah: string;
   begins: string;
   next: string;
+  now: string;
 }
 
 export interface DisplayTextConfig {

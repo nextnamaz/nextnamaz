@@ -20,39 +20,39 @@ export const LANGUAGES: LanguageOption[] = [
 export const DEFAULT_TRANSLATIONS: Record<SupportedLocale, DisplayTextConfig> = {
   en: {
     prayers: { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Prayer', iqamah: 'Iqamah', begins: 'Begins', next: 'Next' },
+    labels:  { prayer: 'Prayer', iqamah: 'Iqamah', begins: 'Begins', next: 'Next', now: 'Now' },
   },
   ar: {
     prayers: { fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' },
-    labels:  { prayer: 'الصلاة', iqamah: 'الإقامة', begins: 'يبدأ', next: 'التالي' },
+    labels:  { prayer: 'الصلاة', iqamah: 'الإقامة', begins: 'يبدأ', next: 'التالي', now: 'الآن' },
   },
   bs: {
     prayers: { fajr: 'Zora', sunrise: 'Izlazak sunca', dhuhr: 'Podne', asr: 'Ikindija', maghrib: 'Akšam', isha: 'Jacija' },
-    labels:  { prayer: 'Namaz', iqamah: 'Ikamet', begins: 'Počinje', next: 'Sljedeći' },
+    labels:  { prayer: 'Namaz', iqamah: 'Ikamet', begins: 'Počinje', next: 'Sljedeći', now: 'Sada' },
   },
   sv: {
     prayers: { fajr: 'Fajr', sunrise: 'Soluppgång', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Bön', iqamah: 'Iqamah', begins: 'Börjar', next: 'Nästa' },
+    labels:  { prayer: 'Bön', iqamah: 'Iqamah', begins: 'Börjar', next: 'Nästa', now: 'Nu' },
   },
   tr: {
     prayers: { fajr: 'İmsak', sunrise: 'Güneş', dhuhr: 'Öğle', asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı' },
-    labels:  { prayer: 'Namaz', iqamah: 'Kamet', begins: 'Başlar', next: 'Sonraki' },
+    labels:  { prayer: 'Namaz', iqamah: 'Kamet', begins: 'Başlar', next: 'Sonraki', now: 'Şimdi' },
   },
   ur: {
     prayers: { fajr: 'فجر', sunrise: 'طلوع آفتاب', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء' },
-    labels:  { prayer: 'نماز', iqamah: 'اقامت', begins: 'شروع', next: 'اگلی' },
+    labels:  { prayer: 'نماز', iqamah: 'اقامت', begins: 'شروع', next: 'اگلی', now: 'ابھی' },
   },
   de: {
     prayers: { fajr: 'Fajr', sunrise: 'Sonnenaufgang', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Gebet', iqamah: 'Iqama', begins: 'Beginnt', next: 'Nächstes' },
+    labels:  { prayer: 'Gebet', iqamah: 'Iqama', begins: 'Beginnt', next: 'Nächstes', now: 'Jetzt' },
   },
   fr: {
     prayers: { fajr: 'Fajr', sunrise: 'Lever du soleil', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Prière', iqamah: 'Iqama', begins: 'Commence', next: 'Suivante' },
+    labels:  { prayer: 'Prière', iqamah: 'Iqama', begins: 'Commence', next: 'Suivante', now: 'Maintenant' },
   },
   es: {
     prayers: { fajr: 'Fajr', sunrise: 'Amanecer', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Oración', iqamah: 'Iqama', begins: 'Comienza', next: 'Siguiente' },
+    labels:  { prayer: 'Oración', iqamah: 'Iqama', begins: 'Comienza', next: 'Siguiente', now: 'Ahora' },
   },
 };
 
