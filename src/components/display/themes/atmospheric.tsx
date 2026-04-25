@@ -370,10 +370,10 @@ function Birds({ alt, isMorning }: { alt: number; isMorning: boolean }) {
 
 function Moon({ opacity, isPortrait }: { opacity: number; isPortrait: boolean }) {
   if (opacity <= 0.05) return null;
-  const cx = isPortrait ? '88%' : '82%';
-  const cy = isPortrait ? '14%' : '20%';
-  const cxOff = isPortrait ? '89.5%' : '83.5%';
-  const cyOff = isPortrait ? '12.5%' : '18.5%';
+  const cx = '82%';
+  const cy = isPortrait ? '13%' : '20%';
+  const cxOff = '83.5%';
+  const cyOff = isPortrait ? '11.8%' : '18.5%';
   return (
     <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity }}>
       <defs>
@@ -399,8 +399,8 @@ function Sun({ alt, mins, geo, isPortrait }: { alt: number; mins: number; geo: S
   const H = dt * HOUR_ANGLE_PER_MIN;
   const xPct = 50 + (H / 90) * 42;
 
-  const HORIZON_Y = isPortrait ? 22 : 70;
-  const TOP_Y = isPortrait ? 4 : 8;
+  const HORIZON_Y = isPortrait ? 25 : 70;
+  const TOP_Y = isPortrait ? 5 : 8;
   const altClamped = Math.max(-2, Math.min(geo.maxAltDeg, alt));
   const yPct = HORIZON_Y - (altClamped / geo.maxAltDeg) * (HORIZON_Y - TOP_Y);
 
@@ -514,7 +514,6 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
   const fgInk = brightness(palette.bg[1]) > 140 ? '#0A0A0A' : '#FFFFFF';
   const fgSub = brightness(palette.bg[1]) > 140 ? '#5a5448' : '#c4cce0';
   const accentInk = brightness(accent) > 160 ? '#0A0A0A' : '#FFFFFF';
-  const inkLine = fgInk === '#FFFFFF' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.22)';
   const inkSoft = fgInk === '#FFFFFF' ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
 
   // ─── Clock formatting (respect locale) ─────────────────────────────
@@ -535,7 +534,6 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
 
   // ─── Prayer schedule ───────────────────────────────────────────────
   const active = prayers.filter((p) => p.name !== 'sunrise');
-  const sunrisePrayer = prayers.find((p) => p.name === 'sunrise');
 
   const isMorning = mins < geo.solarNoonMin;
 
@@ -584,23 +582,17 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
   const cdM = pad(Math.max(0, Math.floor((cdTotal % 3600) / 60)));
   const cdS = pad(Math.max(0, Math.floor(cdTotal % 60)));
 
-  // Header card label
-  let cardLabel: string;
-  let isUrgent = false;
-  let isAlert = false;
+  // Urgent/alert overlay banner copy (landscape uses a bottom-center banner;
+  // portrait shows the same in the next prayer's row).
+  let urgentLabel: string | null = null;
+  let urgentAlert = false;
   if (iqamahPhase === 'now' && currentPrayer) {
-    cardLabel = `Iqamah Now · ${currentPrayer.displayName}`;
-    isAlert = true;
+    urgentLabel = `${locale.labels.iqamah} ${locale.labels.now} · ${currentPrayer.displayName}`;
+    urgentAlert = true;
   } else if (iqamahPhase === 'pending' && currentPrayer) {
-    cardLabel = `${currentPrayer.displayName} Iqamah`;
-    isUrgent = true;
+    urgentLabel = `${currentPrayer.displayName} ${locale.labels.iqamah}`;
   } else if (iqamahPhase === 'approaching' && next) {
-    cardLabel = `${next.displayName} Adhan`;
-    isUrgent = true;
-  } else if (next) {
-    cardLabel = `${locale.labels.next} · ${next.displayName}`;
-  } else {
-    cardLabel = '';
+    urgentLabel = `${next.displayName} Adhan`;
   }
 
   // Timeline domain
@@ -647,19 +639,6 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
     </>
   );
 
-  const headerCard = next && cardLabel ? renderHeaderCard({
-    label: cardLabel,
-    cdH,
-    cdM,
-    cdS,
-    isUrgent,
-    isAlert,
-    accent,
-    accentInk,
-    fgInk,
-    isPortrait,
-  }) : null;
-
   if (isPortrait) {
     return (
       <div style={containerStyle}>
@@ -667,7 +646,7 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
         <svg
           viewBox="0 0 1080 220"
           preserveAspectRatio="none"
-          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: 220, pointerEvents: 'none' }}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: '20cqmin', pointerEvents: 'none' }}
         >
           <path
             d={`M 0 220 L 0 195 L 200 195 L 220 191 L 260 195 L 540 195 L 560 191 L 600 195 L 880 195 L 900 191 L 940 195 L 1080 195 L 1080 220 Z`}
@@ -680,39 +659,31 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
           style={{
             position: 'absolute',
             inset: 0,
-            padding: '5cqmin 4cqmin 6cqmin',
+            padding: '6.5cqmin 5.5cqmin 8.3cqmin',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            gap: '3cqmin',
           }}
         >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2cqmin', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5cqmin', flexWrap: 'wrap' }}>
-                <BrandMark logoUrl={mosqueLogoUrl} accent={accent} size="3.2cqmin" />
-                <div style={{ fontSize: '3.2cqmin', fontWeight: 600, letterSpacing: -0.4 }}>{mosqueName}</div>
-              </div>
-              <div style={{ fontSize: '2.2cqmin', fontWeight: 500, color: fgSub, marginTop: '1.2cqmin' }}>
-                {dateStr}
-              </div>
-            </div>
-            {headerCard}
+          {/* Header — brand only */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.7cqmin', flexShrink: 0 }}>
+            <BrandMark logoUrl={mosqueLogoUrl} accent={accent} size="3.7cqmin" />
+            <div style={{ fontSize: '3.7cqmin', fontWeight: 600, letterSpacing: -0.4 }}>{mosqueName}</div>
           </div>
 
-          {/* Hero clock */}
-          <div style={{ textAlign: 'center' }}>
+          {/* Hero clock + date */}
+          <div style={{ textAlign: 'center', width: '100%', flexShrink: 0 }}>
             <div
               style={{
                 fontFamily: '"Inter Tight", Inter, sans-serif',
-                fontSize: '28cqmin',
-                lineHeight: 0.85,
+                fontSize: '29.6cqmin',
+                lineHeight: 0.82,
                 letterSpacing: '-0.9cqmin',
-                fontWeight: 500,
+                fontWeight: 600,
                 fontFeatureSettings: '"tnum" 1, "ss01" 1',
                 display: 'inline-flex',
                 alignItems: 'baseline',
+                position: 'relative',
               }}
               suppressHydrationWarning
             >
@@ -720,25 +691,54 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
               <span style={{ color: accent }}>:</span>
               <span>{mStr}</span>
               {showSeconds && (
-                <span style={{ fontSize: '5.2cqmin', marginLeft: '1.9cqmin', color: fgSub, letterSpacing: '-0.1cqmin' }}>
+                <span
+                  style={{
+                    fontFamily: '"Inter Tight", Inter, sans-serif',
+                    position: 'absolute',
+                    left: '100%',
+                    bottom: '1.5cqmin',
+                    marginLeft: '1.1cqmin',
+                    fontSize: '4.8cqmin',
+                    fontWeight: 400,
+                    fontFeatureSettings: '"tnum" 1',
+                    color: fgSub,
+                    letterSpacing: '-0.05cqmin',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    textAlign: 'left',
+                  }}
+                >
                   :{sStr}
-                  {!locale.use24Hour && <span style={{ marginLeft: '0.8cqmin' }}>{suffix}</span>}
+                  {!locale.use24Hour && (
+                    <div style={{ marginTop: '0.55cqmin', fontSize: '2.4cqmin', letterSpacing: 2, textTransform: 'uppercase' }}>{suffix}</div>
+                  )}
                 </span>
               )}
             </div>
+            <div style={{
+              marginTop: '1.7cqmin',
+              fontSize: '2.8cqmin', fontWeight: 500, color: fgSub,
+              letterSpacing: 0.2, lineHeight: 1.2,
+            }}>
+              {dateStr}
+            </div>
           </div>
 
-          {/* Vertical timeline */}
-          <PortraitTimeline
+          {/* Vertical prayer list */}
+          <PortraitPrayerList
             prayers={timelinePrayers}
             currentKey={currentKey}
+            nextKey={next?.name ?? null}
             nowMins={nowMins}
             accent={accent}
-            inkLine={inkLine}
-            inkSoft={inkSoft}
+            accentInk={accentInk}
             fgInk={fgInk}
+            inkSoft={inkSoft}
             locale={locale}
-            sunrisePrayer={sunrisePrayer}
+            iqamahPhase={iqamahPhase}
+            cdH={cdH}
+            cdM={cdM}
+            cdS={cdS}
           />
         </div>
 
@@ -758,7 +758,7 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
           left: 0,
           right: 0,
           bottom: 0,
-          height: '24cqmin',
+          height: '17cqmin',
           background: `linear-gradient(180deg, transparent 0%, ${palette.bg[2]}66 50%, ${palette.bg[2]} 100%)`,
           pointerEvents: 'none',
         }}
@@ -766,7 +766,7 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
       <svg
         viewBox="0 0 1920 240"
         preserveAspectRatio="none"
-        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: '24cqmin', pointerEvents: 'none' }}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: '22cqmin', pointerEvents: 'none' }}
       >
         <path
           d={`M 0 240 L 0 215 L 320 215 L 340 209 L 380 215 L 720 215 L 740 211 L 780 215 L 1140 215 L 1160 211 L 1200 215 L 1540 215 L 1560 209 L 1600 215 L 1920 215 L 1920 240 Z`}
@@ -775,31 +775,23 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
         />
       </svg>
 
-      <div style={{ position: 'absolute', inset: 0, padding: '4cqmin 5cqmin', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '2cqmin' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.4cqmin' }}>
-              <BrandMark logoUrl={mosqueLogoUrl} accent={accent} size="2.4cqmin" />
-              <div style={{ fontSize: '2cqmin', fontWeight: 600, letterSpacing: -0.2 }}>{mosqueName}</div>
-            </div>
-            <div style={{ fontSize: '1.6cqmin', fontWeight: 500, color: fgSub, letterSpacing: 0.2, marginTop: '0.8cqmin' }}>
-              {dateStr}
-            </div>
-          </div>
-          {headerCard}
+      <div style={{ position: 'absolute', inset: 0, padding: '5.2cqmin 7.4cqmin', display: 'flex', flexDirection: 'column' }}>
+        {/* Header — brand only */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.7cqmin' }}>
+          <BrandMark logoUrl={mosqueLogoUrl} accent={accent} size="2.6cqmin" />
+          <div style={{ fontSize: '2.6cqmin', fontWeight: 600, letterSpacing: -0.2 }}>{mosqueName}</div>
         </div>
 
-        {/* Hero clock */}
+        {/* Hero clock + date below */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ display: 'inline-block', position: 'relative' }}>
             <div
               style={{
                 fontFamily: '"Inter Tight", Inter, sans-serif',
-                fontSize: '24cqmin',
+                fontSize: '33cqmin',
                 lineHeight: 0.85,
                 letterSpacing: '-1.1cqmin',
-                fontWeight: 500,
+                fontWeight: 600,
                 fontFeatureSettings: '"tnum" 1, "ss01" 1',
                 display: 'flex',
                 alignItems: 'baseline',
@@ -816,18 +808,24 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
                     position: 'absolute',
                     left: '100%',
                     bottom: 0,
-                    marginLeft: '2cqmin',
-                    fontSize: '5cqmin',
+                    marginLeft: '2.2cqmin',
+                    fontSize: '5.9cqmin',
                     color: fgSub,
                     letterSpacing: '-0.18cqmin',
                     whiteSpace: 'nowrap',
                   }}
                 >
                   :{sStr}
-                  {!locale.use24Hour && <span style={{ marginLeft: '1cqmin' }}>{suffix}</span>}
+                  {!locale.use24Hour && <span style={{ marginLeft: '1.1cqmin' }}>{suffix}</span>}
                 </span>
               )}
             </div>
+          </div>
+          <div style={{
+            fontSize: '2.8cqmin', fontWeight: 500, color: fgSub, letterSpacing: 1.6,
+            textTransform: 'uppercase', marginTop: '2.6cqmin',
+          }}>
+            {dateStr}
           </div>
         </div>
 
@@ -836,16 +834,33 @@ export function AtmosphericTheme({ mosqueName, mosqueLogoUrl, prayers, nextPraye
           prayers={timelinePrayers}
           active={active}
           currentKey={currentKey}
+          nextKey={next?.name ?? null}
           nowMins={nowMins}
           dayStart={dayStart}
           dayEnd={dayEnd}
           accent={accent}
-          inkLine={inkLine}
           inkSoft={inkSoft}
           fgInk={fgInk}
           locale={locale}
+          iqamahPhase={iqamahPhase}
+          cdH={cdH}
+          cdM={cdM}
+          cdS={cdS}
         />
       </div>
+
+      {/* Urgent / alert banner — bottom-center overlay */}
+      {urgentLabel && (
+        <UrgentBanner
+          label={urgentLabel}
+          isAlert={urgentAlert}
+          accent={accent}
+          accentInk={accentInk}
+          cdH={cdH}
+          cdM={cdM}
+          cdS={cdS}
+        />
+      )}
 
       <AtmoStyles />
     </div>
@@ -874,138 +889,91 @@ function BrandMark({ logoUrl, accent, size }: { logoUrl: string | null; accent: 
   return <div style={{ width: size, height: size, background: accent, borderRadius: 2 }} />;
 }
 
-// ─── Header card (next prayer / iqamah) ──────────────────────────────
+// ─── Urgent / alert overlay banner ───────────────────────────────────
 
-interface HeaderCardArgs {
+interface UrgentBannerProps {
   label: string;
-  cdH: string;
-  cdM: string;
-  cdS: string;
-  isUrgent: boolean;
   isAlert: boolean;
   accent: string;
   accentInk: string;
-  fgInk: string;
-  isPortrait: boolean;
+  cdH: string;
+  cdM: string;
+  cdS: string;
 }
 
-function renderHeaderCard({ label, cdH, cdM, cdS, isUrgent, isAlert, accent, accentInk, isPortrait }: HeaderCardArgs) {
-  const emphasized = isUrgent || isAlert;
-  // Default state: solid dark scrim + light text — guarantees readability
-  // against any sky color (bright daylight or twilight glow).
-  const cardBg = emphasized ? accent : 'rgba(10,12,30,0.78)';
-  const cardBorder = emphasized
-    ? `2px solid ${accent}`
-    : '1px solid rgba(255,255,255,0.12)';
-  const cardBlur = emphasized ? undefined : 'blur(12px)';
-  const labelColor = emphasized ? accentInk : 'rgba(255,255,255,0.85)';
-  const digitColor = emphasized ? accentInk : '#FFFFFF';
-  const sepColor = emphasized ? `${accentInk}66` : 'rgba(255,255,255,0.4)';
-
-  // cqmin units scale with container so portrait/landscape can share sizing
-  const padV = emphasized ? (isPortrait ? '2.2cqmin' : '1.8cqmin') : (isPortrait ? '1.4cqmin' : '1cqmin');
-  const padH = emphasized ? (isPortrait ? '3.2cqmin' : '2.6cqmin') : (isPortrait ? '2.2cqmin' : '1.8cqmin');
-  const padL = emphasized ? (isPortrait ? '2.4cqmin' : '2cqmin') : (isPortrait ? '1.6cqmin' : '1.4cqmin');
-  const labelSize = emphasized ? (isPortrait ? '1.8cqmin' : '1.4cqmin') : (isPortrait ? '1.4cqmin' : '1.1cqmin');
-  const labelGap = emphasized ? '0.8cqmin' : '0.4cqmin';
-  const digitSize = emphasized ? (isPortrait ? '6.4cqmin' : '5.2cqmin') : (isPortrait ? '3.6cqmin' : '2.8cqmin');
-  const tickWidth = emphasized ? '0.4cqmin' : '0.2cqmin';
-  const gap = emphasized ? '2cqmin' : '1.4cqmin';
-
+function UrgentBanner({ label, isAlert, accent, accentInk, cdH, cdM, cdS }: UrgentBannerProps) {
+  const sepColor = `${accentInk}66`;
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'stretch',
-        gap,
-        padding: `${padV} ${padH} ${padV} ${padL}`,
-        border: cardBorder,
-        background: cardBg,
-        backdropFilter: cardBlur,
-        WebkitBackdropFilter: cardBlur,
-        boxShadow: emphasized ? 'none' : '0 4px 20px rgba(0,0,0,0.18)',
-        maxWidth: '100%',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      {!emphasized && (
-        <div
-          style={{
-            width: tickWidth,
-            alignSelf: 'stretch',
-            background: accent,
-            flexShrink: 0,
-            opacity: 0.5,
-          }}
-        />
-      )}
-      <div style={{ textAlign: 'left' }}>
-        <div
-          style={{
-            fontSize: labelSize,
-            fontWeight: 700,
-            letterSpacing: 2.4,
-            textTransform: 'uppercase',
-            color: labelColor,
-            marginBottom: labelGap,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {label}
-        </div>
-        {!isAlert && (
-          <div
-            style={{
-              fontFamily: '"Inter Tight", Inter, sans-serif',
-              fontSize: digitSize,
-              fontWeight: 700,
-              letterSpacing: -0.5,
-              fontFeatureSettings: '"tnum" 1',
-              color: digitColor,
-              lineHeight: 1,
-            }}
-            suppressHydrationWarning
-          >
-            {cdH}
-            <span style={{ color: sepColor, margin: '0 3px' }}>:</span>
-            {cdM}
-            <span style={{ color: sepColor, margin: '0 3px' }}>:</span>
-            {cdS}
-          </div>
-        )}
+    <div style={{
+      position: 'absolute', left: '50%', bottom: '2.2cqmin',
+      transform: 'translateX(-50%)',
+      display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+      padding: '2cqmin 5.2cqmin',
+      background: accent,
+      animation: isAlert ? 'atmoPulse 1.6s ease-in-out infinite' : 'none',
+      zIndex: 10,
+    }}>
+      <div style={{
+        fontSize: '2cqmin', fontWeight: 700, letterSpacing: '0.3cqmin',
+        textTransform: 'uppercase', color: accentInk,
+        marginBottom: isAlert ? 0 : '0.9cqmin',
+        whiteSpace: 'nowrap', textAlign: 'center',
+      }}>
+        {label}
       </div>
+      {!isAlert && (
+        <div
+          style={{
+            fontFamily: '"Inter Tight", Inter, sans-serif',
+            fontSize: '8.1cqmin', fontWeight: 700, letterSpacing: -0.5,
+            fontFeatureSettings: '"tnum" 1',
+            color: accentInk, lineHeight: 1,
+          }}
+          suppressHydrationWarning
+        >
+          {cdH}<span style={{ color: sepColor, margin: '0 4px' }}>:</span>{cdM}<span style={{ color: sepColor, margin: '0 4px' }}>:</span>{cdS}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Portrait timeline ───────────────────────────────────────────────
+// ─── Portrait prayer list ────────────────────────────────────────────
 
-interface PortraitTimelineProps {
+type IqPhaseStr = 'none' | 'approaching' | 'pending' | 'now';
+
+interface PortraitPrayerListProps {
   prayers: PrayerTimeEntry[];
   currentKey: string | null;
+  nextKey: string | null;
   nowMins: number;
   accent: string;
-  inkLine: string;
-  inkSoft: string;
+  accentInk: string;
   fgInk: string;
+  inkSoft: string;
   locale: DisplayLocale;
-  sunrisePrayer: PrayerTimeEntry | undefined;
+  iqamahPhase: IqPhaseStr;
+  cdH: string;
+  cdM: string;
+  cdS: string;
 }
 
-function PortraitTimeline({ prayers, currentKey, nowMins, accent, inkLine, inkSoft, fgInk, locale }: PortraitTimelineProps) {
-  const N = prayers.length;
+function PortraitPrayerList({
+  prayers, currentKey, nextKey, nowMins, accent, accentInk, fgInk, inkSoft, locale,
+  iqamahPhase, cdH, cdM, cdS,
+}: PortraitPrayerListProps) {
+  const active = prayers.filter((p) => p.name !== 'sunrise');
+  const N = active.length;
   if (!N) return null;
-  const positions = prayers.map((_, i) => (N === 1 ? 0.5 : i / (N - 1)));
+  const positions = active.map((_, i) => (N === 1 ? 0.5 : i / (N - 1)));
 
   let evenProgress = 0;
-  if (nowMins <= toMins(prayers[0].time)) {
-    evenProgress = 0;
-  } else if (nowMins >= toMins(prayers[N - 1].time)) {
-    evenProgress = 1;
-  } else {
+  if (nowMins <= toMins(active[0].time)) evenProgress = 0;
+  else if (nowMins >= toMins(active[N - 1].time)) evenProgress = 1;
+  else {
     for (let i = 0; i < N - 1; i++) {
-      const a = toMins(prayers[i].time);
-      const b = toMins(prayers[i + 1].time);
+      const a = toMins(active[i].time);
+      const b = toMins(active[i + 1].time);
       if (nowMins >= a && nowMins < b) {
         const segFrac = (nowMins - a) / (b - a);
         evenProgress = (i + segFrac) / (N - 1);
@@ -1014,94 +982,141 @@ function PortraitTimeline({ prayers, currentKey, nowMins, accent, inkLine, inkSo
     }
   }
 
+  const TRACK_X = '3.3cqmin';
+  const trackColor = fgInk === '#FFFFFF' ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.38)';
+
   return (
-    <div style={{ position: 'relative', height: '78cqmin', paddingLeft: '0.8cqmin', alignSelf: 'stretch' }}>
-      <div style={{ position: 'absolute', left: '1.4cqmin', top: '2cqmin', bottom: '2cqmin', width: 1, background: inkLine }} />
-      <div
-        style={{
-          position: 'absolute',
-          left: '1.25cqmin',
-          top: '2cqmin',
-          width: '0.3cqmin',
-          height: `calc((100% - 4cqmin) * ${evenProgress})`,
-          background: accent,
-          boxShadow: `0 0 10px ${accent}aa`,
-          transition: 'height 0.6s ease',
-        }}
-      />
-      {prayers.map((p, i) => {
+    <div style={{ position: 'relative', height: '88cqmin', flexShrink: 0 }}>
+      {/* Track */}
+      <div style={{
+        position: 'absolute', left: TRACK_X, top: '2.8cqmin', bottom: '2.8cqmin',
+        width: '0.3cqmin', background: trackColor,
+      }} />
+      {/* Progress fill */}
+      <div style={{
+        position: 'absolute', left: `calc(${TRACK_X} - 0.1cqmin)`, top: '2.8cqmin',
+        width: '0.5cqmin',
+        height: `calc((100% - 5.6cqmin) * ${evenProgress})`,
+        background: accent, boxShadow: `0 0 16px ${accent}aa`,
+        transition: 'height 0.6s ease',
+      }} />
+      {active.map((p, i) => {
         const pct = positions[i];
         const passed = nowMins >= toMins(p.time);
         const current = p.name === currentKey;
-        const muted = p.name === 'sunrise';
+        const isNext = p.name === nextKey && !current;
+        const dotSize = current ? '3.3cqmin' : '1.7cqmin';
+        const dotOffset = current ? `calc(${TRACK_X} + 0.1cqmin - 1.65cqmin)` : `calc(${TRACK_X} + 0.1cqmin - 0.85cqmin)`;
         return (
-          <div
-            key={p.name}
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: `calc(2cqmin + (100% - 4cqmin) * ${pct})`,
-              transform: 'translateY(-50%)',
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr auto',
-              alignItems: 'center',
-              gap: '2.6cqmin',
-              opacity: muted ? 0.65 : passed && !current ? 0.55 : 1,
-              transition: 'opacity 0.6s',
-            }}
-          >
-            <div
-              style={{
-                width: current ? '2cqmin' : '1.3cqmin',
-                height: current ? '2cqmin' : '1.3cqmin',
-                marginLeft: current ? '0.5cqmin' : '0.9cqmin',
-                background: current ? accent : passed ? inkSoft : fgInk,
-                borderRadius: '50%',
-                boxShadow: current ? `0 0 16px ${accent}` : 'none',
-                border: current ? `2px solid ${accent}` : 'none',
-                flexShrink: 0,
-              }}
-            />
-            <div
-              style={{
-                fontSize: '4.8cqmin',
-                fontWeight: 600,
-                letterSpacing: -1,
-                color: current ? accent : fgInk,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1.4cqmin',
-              }}
-            >
-              {p.displayName}
-              {current && (
-                <span
-                  style={{
-                    fontSize: '1.3cqmin',
-                    fontWeight: 700,
-                    letterSpacing: 1.8,
-                    textTransform: 'uppercase',
-                    color: accent,
-                    border: `1.5px solid ${accent}`,
-                    padding: '0.3cqmin 0.8cqmin',
-                  }}
-                >
-                  {locale.labels.now}
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                fontFamily: '"Inter Tight", Inter, sans-serif',
-                fontSize: '5.2cqmin',
-                fontWeight: 600,
-                letterSpacing: -1,
-                fontFeatureSettings: '"tnum" 1',
-                color: current ? accent : fgInk,
-              }}
-            >
-              {formatPrayerTime(p.time, locale)}
+          <div key={p.name} style={{
+            position: 'absolute',
+            left: 0, right: 0,
+            top: `calc(2.8cqmin + (100% - 5.6cqmin) * ${pct})`,
+            transform: 'translateY(-50%)',
+            display: 'flex', alignItems: 'center',
+            opacity: passed && !current ? 0.5 : 1,
+            transition: 'opacity 0.6s',
+          }}>
+            <div style={{
+              width: dotSize, height: dotSize,
+              marginLeft: dotOffset,
+              background: current ? accent : passed ? inkSoft : fgInk,
+              borderRadius: '50%',
+              boxShadow: current ? `0 0 28px ${accent}` : 'none',
+              flexShrink: 0,
+            }} />
+            <div style={{
+              flex: 1,
+              marginLeft: '3cqmin',
+              display: 'flex', flexDirection: 'column', gap: '0.55cqmin',
+            }}>
+              {/* Top line: name ........ time */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2.2cqmin' }}>
+                <div style={{
+                  fontSize: '7cqmin', fontWeight: 600, letterSpacing: '-0.14cqmin',
+                  color: current ? accent : fgInk,
+                  display: 'flex', alignItems: 'center', gap: '2cqmin',
+                  lineHeight: 1,
+                }}>
+                  {p.displayName}
+                  {current && (
+                    <span style={{
+                      fontSize: '2.2cqmin', fontWeight: 800, letterSpacing: '0.24cqmin',
+                      textTransform: 'uppercase', color: accentInk,
+                      background: accent, padding: '0.7cqmin 1.3cqmin 0.55cqmin',
+                      lineHeight: 1,
+                    }}>
+                      {locale.labels.now}
+                    </span>
+                  )}
+                </div>
+                <div style={{
+                  flex: 1, height: 0,
+                  borderBottom: `0.27cqmin dotted ${current ? accent : passed ? inkSoft : `${fgInk}55`}`,
+                  opacity: current ? 0.9 : 0.5,
+                }} />
+                <div style={{
+                  fontFamily: '"Inter Tight", Inter, sans-serif',
+                  fontSize: '7cqmin', fontWeight: 600, letterSpacing: '-0.14cqmin',
+                  fontFeatureSettings: '"tnum" 1',
+                  color: current ? accent : fgInk,
+                  lineHeight: 1,
+                }}>
+                  {formatPrayerTime(p.time, locale)}
+                </div>
+              </div>
+              {/* Countdown row for the next prayer */}
+              {isNext && (() => {
+                const urgent = iqamahPhase === 'approaching' || iqamahPhase === 'pending';
+                const alert = iqamahPhase === 'now';
+                const labelText = iqamahPhase === 'pending'
+                  ? `${locale.labels.iqamah}`
+                  : iqamahPhase === 'approaching'
+                    ? 'Adhan'
+                    : null;
+                if (urgent) {
+                  return (
+                    <div style={{
+                      display: 'inline-flex', flexDirection: 'column',
+                      alignSelf: 'flex-start',
+                      padding: '0.9cqmin 1.7cqmin',
+                      background: accent,
+                      animation: alert ? 'atmoPulse 1.6s ease-in-out infinite' : 'none',
+                      marginTop: '0.4cqmin',
+                    }}>
+                      <div style={{
+                        fontSize: '1.5cqmin', fontWeight: 800, letterSpacing: '0.22cqmin',
+                        textTransform: 'uppercase', color: accentInk,
+                        marginBottom: '0.4cqmin',
+                      }}>{labelText}</div>
+                      <div
+                        style={{
+                          fontFamily: '"Inter Tight", Inter, sans-serif',
+                          fontSize: '3.3cqmin', fontWeight: 700, letterSpacing: -0.4,
+                          fontFeatureSettings: '"tnum" 1',
+                          color: accentInk, lineHeight: 1,
+                        }}
+                        suppressHydrationWarning
+                      >
+                        {cdH}<span style={{ color: `${accentInk}66`, margin: '0 3px' }}>:</span>{cdM}<span style={{ color: `${accentInk}66`, margin: '0 3px' }}>:</span>{cdS}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    style={{
+                      fontFamily: '"Inter Tight", Inter, sans-serif',
+                      fontSize: '4cqmin', fontWeight: 700, letterSpacing: -0.5,
+                      fontFeatureSettings: '"tnum" 1',
+                      color: accent, lineHeight: 1,
+                    }}
+                    suppressHydrationWarning
+                  >
+                    {cdH}:{cdM}:{cdS}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
@@ -1116,14 +1131,18 @@ interface LandscapeTimelineProps {
   prayers: PrayerTimeEntry[];
   active: PrayerTimeEntry[];
   currentKey: string | null;
+  nextKey: string | null;
   nowMins: number;
   dayStart: number;
   dayEnd: number;
   accent: string;
-  inkLine: string;
   inkSoft: string;
   fgInk: string;
   locale: DisplayLocale;
+  iqamahPhase: IqPhaseStr;
+  cdH: string;
+  cdM: string;
+  cdS: string;
 }
 
 interface LabelLayout {
@@ -1135,7 +1154,10 @@ interface LabelLayout {
   row: 0 | 1;
 }
 
-function LandscapeTimeline({ prayers, active, currentKey, nowMins, dayStart, dayEnd, accent, inkLine, inkSoft, fgInk, locale }: LandscapeTimelineProps) {
+function LandscapeTimeline({
+  prayers, active, currentKey, nextKey, nowMins, dayStart, dayEnd,
+  accent, inkSoft, fgInk, locale, iqamahPhase, cdH, cdM, cdS,
+}: LandscapeTimelineProps) {
   const span = dayEnd - dayStart;
   const TIMELINE_PX = 1760;
 
@@ -1143,7 +1165,8 @@ function LandscapeTimeline({ prayers, active, currentKey, nowMins, dayStart, day
     const pct = (toMins(p.time) - dayStart) / span;
     const passed = nowMins >= toMins(p.time);
     const current = p.name === currentKey;
-    const widthPx = current ? 150 : 100;
+    // Time digits at 42–60px Inter Tight 600 measure ~110–150px; +30px breathing
+    const widthPx = current ? 180 : 140;
     const halfPctW = widthPx / 2 / TIMELINE_PX;
     return { p, pct, passed, current, halfPctW, row: 0 };
   });
@@ -1151,12 +1174,12 @@ function LandscapeTimeline({ prayers, active, currentKey, nowMins, dayStart, day
     const cur = labels[i];
     const prev = labels[i - 1];
     const gap = cur.pct - cur.halfPctW - (prev.pct + prev.halfPctW);
-    if (gap < 0.005) {
+    if (gap < 0) {
       cur.row = prev.row === 0 ? 1 : 0;
     }
   }
 
-  // Progress fill
+  // Progress fill on baseline
   const passedList = active.filter((p) => nowMins >= toMins(p.time));
   const cur = passedList[passedList.length - 1];
   let fillPct: number;
@@ -1182,69 +1205,111 @@ function LandscapeTimeline({ prayers, active, currentKey, nowMins, dayStart, day
     }
   }
 
+  // Calm "Next · in" countdown only renders when no urgent state is active.
+  const showCalmCountdown = iqamahPhase === 'none';
+
   return (
-    <div style={{ position: 'relative', paddingTop: '1.2cqmin', paddingBottom: '0.8cqmin' }}>
-      <div style={{ position: 'relative', height: '20cqmin', paddingLeft: '5cqmin', paddingRight: '5cqmin' }}>
-        <div style={{ position: 'absolute', left: '5cqmin', right: '5cqmin', top: 0, bottom: 0 }}>
+    <div style={{ position: 'relative', paddingTop: '1.1cqmin', paddingBottom: '0.7cqmin' }}>
+      <div style={{ position: 'relative', height: '30cqmin', paddingLeft: '7.4cqmin', paddingRight: '7.4cqmin' }}>
+        <div style={{ position: 'absolute', left: '7.4cqmin', right: '7.4cqmin', top: 0, bottom: 0 }}>
           {labels.map(({ p, pct, passed, current, row }) => {
+            const isNext = p.name === nextKey && !current;
             const muted = p.name === 'sunrise';
+            const showBadge = showCalmCountdown && isNext;
             return (
-              <div
-                key={p.name}
-                style={{
-                  position: 'absolute',
-                  left: `${pct * 100}%`,
-                  transform: 'translateX(-50%)',
-                  ...(row === 1 ? { top: '10cqmin' } : { top: current ? 0 : '3.6cqmin' }),
-                  textAlign: 'center',
-                  opacity: muted ? 0.6 : passed && !current ? 0.55 : 1,
-                  transition: 'opacity 0.6s',
-                  width: '24cqmin',
-                }}
-              >
+              <div key={p.name}>
                 <div
                   style={{
-                    fontSize: current ? '2.2cqmin' : '1.4cqmin',
-                    fontWeight: 600,
-                    letterSpacing: current ? 1.6 : 1.2,
-                    textTransform: 'uppercase',
-                    color: current ? accent : fgInk,
-                    marginBottom: current ? '0.2cqmin' : 0,
-                    lineHeight: 1.1,
+                    position: 'absolute',
+                    left: `${pct * 100}%`,
+                    transform: 'translateX(-50%)',
+                    ...(row === 0 ? { bottom: '22.1cqmin' } : { top: '10cqmin' }),
+                    textAlign: 'center',
+                    opacity: muted ? 0.6 : passed && !current ? 0.5 : 1,
+                    transition: 'opacity 0.6s',
+                    width: '26cqmin',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
                   }}
                 >
-                  {p.displayName}
+                  <div
+                    style={{
+                      fontSize: current ? '2.8cqmin' : isNext ? '2.4cqmin' : '2cqmin',
+                      fontWeight: 600,
+                      letterSpacing: '0.18cqmin',
+                      textTransform: 'uppercase',
+                      color: current ? accent : fgInk,
+                      lineHeight: 1.1,
+                      marginBottom: '0.55cqmin',
+                    }}
+                  >
+                    {p.displayName}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: '"Inter Tight", Inter, sans-serif',
+                      fontSize: current ? '5.5cqmin' : isNext ? '4.8cqmin' : '3.9cqmin',
+                      fontWeight: 600,
+                      fontFeatureSettings: '"tnum" 1',
+                      letterSpacing: current ? '-0.13cqmin' : '-0.1cqmin',
+                      color: current ? accent : fgInk,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {formatPrayerTime(p.time, locale)}
+                  </div>
+                  {showBadge && row === 1 && (
+                    <div
+                      style={{
+                        marginTop: '1.3cqmin',
+                        fontFamily: '"Inter Tight", Inter, sans-serif',
+                        fontFeatureSettings: '"tnum" 1',
+                        fontSize: '4.4cqmin', fontWeight: 600, letterSpacing: -0.6,
+                        color: accent,
+                      }}
+                      suppressHydrationWarning
+                    >
+                      {cdH}<span style={{ color: `${accent}55`, margin: '0 4px' }}>:</span>{cdM}<span style={{ color: `${accent}55`, margin: '0 4px' }}>:</span>{cdS}
+                    </div>
+                  )}
                 </div>
-                <div
-                  style={{
-                    fontFamily: '"Inter Tight", Inter, sans-serif',
-                    fontSize: current ? '3.8cqmin' : '2.4cqmin',
-                    fontWeight: 600,
-                    fontFeatureSettings: '"tnum" 1',
-                    letterSpacing: current ? -1 : 0,
-                    color: current ? accent : fgInk,
-                    lineHeight: 1,
-                  }}
-                >
-                  {formatPrayerTime(p.time, locale)}
-                </div>
+                {showBadge && row === 0 && (
+                  <div
+                    style={{
+                      position: 'absolute', left: `${pct * 100}%`,
+                      transform: 'translateX(-50%)',
+                      top: '10.7cqmin',
+                      textAlign: 'center',
+                      width: '33cqmin',
+                      fontFamily: '"Inter Tight", Inter, sans-serif',
+                      fontFeatureSettings: '"tnum" 1',
+                      fontSize: '4.4cqmin', fontWeight: 600, letterSpacing: -0.6,
+                      color: accent,
+                    }}
+                    suppressHydrationWarning
+                  >
+                    {cdH}<span style={{ color: `${accent}55`, margin: '0 4px' }}>:</span>{cdM}<span style={{ color: `${accent}55`, margin: '0 4px' }}>:</span>{cdS}
+                  </div>
+                )}
               </div>
             );
           })}
 
-          <div style={{ position: 'absolute', left: 0, right: 0, top: '9.2cqmin', height: 1, background: inkLine }} />
+          {/* Baseline */}
+          <div style={{ position: 'absolute', left: 0, right: 0, top: '8.5cqmin', height: 1, background: inkSoft }} />
+          {/* Progress fill */}
           <div
             style={{
               position: 'absolute',
               left: 0,
               width: `${fillPct * 100}%`,
-              top: '9.1cqmin',
+              top: '8.4cqmin',
               height: '0.3cqmin',
               background: accent,
               boxShadow: `0 0 10px ${accent}80`,
             }}
           />
 
+          {/* Vertical ticks at each prayer */}
           {prayers.map((p) => {
             const pct = (toMins(p.time) - dayStart) / span;
             const passed = nowMins >= toMins(p.time);
@@ -1257,9 +1322,9 @@ function LandscapeTimeline({ prayers, active, currentKey, nowMins, dayStart, day
                   position: 'absolute',
                   left: `${pct * 100}%`,
                   transform: 'translateX(-50%)',
-                  top: current ? '8cqmin' : '8.4cqmin',
+                  top: current ? '7.4cqmin' : '7.8cqmin',
                   width: current ? '0.3cqmin' : '0.1cqmin',
-                  height: current ? '2.4cqmin' : '1.6cqmin',
+                  height: current ? '2.2cqmin' : '1.5cqmin',
                   background: current ? accent : passed ? inkSoft : fgInk,
                   opacity: muted ? 0.6 : passed && !current ? 0.55 : 1,
                   transition: 'opacity 0.6s',
@@ -1306,6 +1371,10 @@ function AtmoStyles() {
       @keyframes atmoBirdsDrift {
         0% { transform: translateX(0); }
         100% { transform: translateX(450%); }
+      }
+      @keyframes atmoPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%      { opacity: 0.85; transform: scale(1.03); }
       }
     `}</style>
   );
