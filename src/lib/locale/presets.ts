@@ -64,20 +64,3 @@ export const DATE_FORMAT_OPTIONS: DateFormatChoice[] = [
   { value: 'MMMM DD, YYYY', label: 'MMMM DD, YYYY',    dateFnsFormat: 'MMMM dd, yyyy' },
   { value: 'EEEE · MMMM DD, YYYY', label: 'Day · MMMM DD, YYYY', dateFnsFormat: "EEEE · MMMM dd, yyyy" },
 ];
-
-export const COMMON_TIMEZONES = [
-  { value: 'auto', label: 'Auto-detect' },
-  { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
-  { value: 'Europe/London', label: 'London (GMT/BST)' },
-  { value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
-  { value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
-  { value: 'Europe/Stockholm', label: 'Stockholm (CET/CEST)' },
-  { value: 'Europe/Sarajevo', label: 'Sarajevo (CET/CEST)' },
-  { value: 'Europe/Istanbul', label: 'Istanbul (TRT)' },
-  { value: 'Asia/Karachi', label: 'Karachi (PKT)' },
-  { value: 'Asia/Riyadh', label: 'Riyadh (AST)' },
-  { value: 'Asia/Dubai', label: 'Dubai (GST)' },
-  { value: 'America/New_York', label: 'New York (EST/EDT)' },
-  { value: 'America/Chicago', label: 'Chicago (CST/CDT)' },
-  { value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)' },
-];

@@ -52,25 +52,26 @@
    ──────────────────────────────────────────────────── */
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
   --background: #FAFAF8;
   --foreground: #1A1A1A;
   --card: #FFFFFF;
   --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A1A;
-  --primary: #E8A817;
+  /* Deep gold — keeps the brand hue but passes contrast with white text */
+  --primary: #A16207;
   --primary-foreground: #FFFFFF;
-  --secondary: #F5F0E6;
+  --secondary: #F3F1EC;
   --secondary-foreground: #1A1A1A;
-  --muted: #F5F2ED;
-  --muted-foreground: #6B6556;
-  --accent: #FDF4DC;
+  --muted: #F3F2EF;
+  --muted-foreground: #64604F;
+  --accent: #F2F0EB;
   --accent-foreground: #1A1A1A;
   --destructive: #DC2626;
-  --border: #E8E2D9;
-  --input: #E8E2D9;
-  --ring: #E8A817;
+  --border: #DED9CF;
+  --input: #DED9CF;
+  --ring: #A16207;
   --chart-1: #E8A817;
   --chart-2: #D4940A;
   --chart-3: #B87A08;

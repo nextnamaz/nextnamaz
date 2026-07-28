@@ -3,11 +3,10 @@ import { Github, Linkedin, Globe } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 
 interface FooterProps {
-  signInLabel?: string;
   getStartedLabel?: string;
 }
 
-export function Footer({ signInLabel = 'Sign In', getStartedLabel = 'Get Started' }: FooterProps) {
+export function Footer({ getStartedLabel = 'Get Started' }: FooterProps) {
   return (
     <footer className="border-t border-border py-10 px-6">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
@@ -17,8 +16,7 @@ export function Footer({ signInLabel = 'Sign In', getStartedLabel = 'Get Started
             <span className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} NextNamaz</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/login" className="hover:text-foreground transition-colors">{signInLabel}</Link>
-            <Link href="/register" className="hover:text-foreground transition-colors">{getStartedLabel}</Link>
+            <Link href="/s" className="hover:text-foreground transition-colors">{getStartedLabel}</Link>
           </div>
         </div>
         <div className="flex items-center justify-center gap-5">

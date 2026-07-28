@@ -49,16 +49,24 @@ function useCountdown(targetTime: string | undefined): CountdownState {
 function useHijriDate(): string {
   const [date, setDate] = useState('');
   useEffect(() => {
-    try {
-      setDate(
-        new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
-          day: 'numeric',
-          month: 'long',
-        }).format(new Date())
-      );
-    } catch {
-      setDate('');
-    }
+    const update = () => {
+      try {
+        setDate(
+          new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+            day: 'numeric',
+            month: 'long',
+          }).format(new Date())
+        );
+      } catch {
+        setDate('');
+      }
+    };
+    const timeout = setTimeout(update, 0);
+    const interval = setInterval(update, 60_000);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, []);
   return date;
 }

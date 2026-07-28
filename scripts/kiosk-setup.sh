@@ -4,11 +4,11 @@
 #
 # Usage:
 #   chmod +x kiosk-setup.sh
-#   NEXTNAMAZ_URL="https://nextnamaz.com/display" ./display-setup.sh
+#   NEXTNAMAZ_URL="https://nextnamaz.com/s" ./display-setup.sh
 
 set -euo pipefail
 
-NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/display}"
+NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/s}"
 AUTOSTART_DIR="$HOME/.config/autostart"
 AUTOSTART_FILE="$AUTOSTART_DIR/nextnamaz-kiosk.desktop"
 
@@ -29,7 +29,7 @@ cat > "$KIOSK_SCRIPT" << 'INNER'
 #!/usr/bin/env bash
 set -euo pipefail
 
-NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/display}"
+NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/s}"
 
 # Disable screen blanking and power management
 xset s off

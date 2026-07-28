@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -51,10 +52,22 @@ const c = {
   textMuted: '#78716C',
 };
 
+const emptySubscribe = () => () => {};
+
 export function NetworkIllustration() {
+  /* d3-geo's floating-point path output differs between Node and the
+     browser, so the map must render client-side only to avoid a
+     hydration mismatch. */
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
   return (
-    <div className="relative w-full max-w-md mx-auto">
-      <ComposableMap
+    <div className="relative w-full max-w-md mx-auto aspect-4/5">
+      {mounted && (
+        <ComposableMap
         projection="geoMercator"
         projectionConfig={{
           center: [15, 59.5],
@@ -127,7 +140,8 @@ export function NetworkIllustration() {
             </Marker>
           );
         })}
-      </ComposableMap>
+        </ComposableMap>
+      )}
     </div>
   );
 }

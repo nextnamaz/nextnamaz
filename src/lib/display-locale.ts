@@ -1,8 +1,7 @@
 import type { PrayerName } from '@/types/prayer';
-import type { MosqueSettings } from '@/types/database';
-import type { DisplayTextConfig, LocaleMetadata, DateFormatOption, SupportedLocale } from '@/types/locale';
-import { parseDisplayText, parseLocaleMetadata } from '@/lib/locale/helpers';
-import { DATE_FORMAT_OPTIONS } from '@/lib/locale/presets';
+import type { DateFormatOption, SupportedLocale } from '@/types/locale';
+import { DATE_FORMAT_OPTIONS, DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
+import { parseDisplayText } from '@/lib/locale/helpers';
 import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { ar, bs, de, enGB, enUS, es, fr, sv, tr } from 'date-fns/locale';
@@ -37,20 +36,22 @@ export interface DisplayLocale {
   locale: string;
 }
 
-// --- Resolve from MosqueSettings ---
+// --- Resolve from a locale code + per-screen text overrides ---
 
-export function resolveDisplayLocale(settings: MosqueSettings): DisplayLocale {
-  const parsed: DisplayTextConfig = parseDisplayText(settings.display_text, settings.locale);
-  const meta: LocaleMetadata = parseLocaleMetadata(settings.metadata);
-  const safeLocale = settings.locale || 'en';
+export function resolveDisplayLocale(
+  locale: string,
+  displayText: Record<string, string> = {}
+): DisplayLocale {
+  const safeLocale = (locale in DEFAULT_TRANSLATIONS ? locale : 'en') as SupportedLocale;
+  const parsed = parseDisplayText(displayText, safeLocale);
 
   return {
     prayerNames: parsed.prayers,
     labels: parsed.labels,
-    use24Hour: meta.use24Hour,
-    showSeconds: meta.showSeconds,
-    dateFormat: meta.dateFormat,
-    timezone: meta.timezone,
+    use24Hour: true,
+    showSeconds: true,
+    dateFormat: 'DD/MM/YYYY',
+    timezone: 'auto',
     locale: safeLocale,
   };
 }
@@ -94,6 +95,16 @@ export function formatDisplayDate(date: Date, locale: DisplayLocale): string {
     return format(date, entry.dateFnsFormat, { locale: fnsLocale });
   } catch {
     return date.toLocaleDateString('en-GB');
+  }
+}
+
+/** "Saturday, 25 July" in the given app locale — stable across browsers. */
+export function formatTodayDate(locale: string): string {
+  const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;
+  try {
+    return format(new Date(), 'EEEE, d MMMM', { locale: fnsLocale });
+  } catch {
+    return new Date().toLocaleDateString('en-GB');
   }
 }
 

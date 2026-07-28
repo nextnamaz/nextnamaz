@@ -47,12 +47,3 @@ export interface DateFormatChoice {
   label: string;
   dateFnsFormat: string;
 }
-
-// --- Time Format ---
-
-export interface LocaleMetadata {
-  dateFormat: DateFormatOption;
-  use24Hour: boolean;
-  showSeconds: boolean;
-  timezone: string;
-}

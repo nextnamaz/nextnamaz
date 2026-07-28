@@ -1,7 +1,3 @@
-import type { PrayerSourceType, PrayerSourceConfig, PrayerConfigMap, ScreenRotation } from './prayer-config';
-
-export type MemberRole = 'owner' | 'admin' | 'viewer';
-
 export type Json =
   | string
   | number
@@ -19,275 +15,66 @@ export type PrayerTimesMap = {
   isha: string;
 };
 
-// Row types — convenience aliases for typed app code
-export type Mosque = Database['public']['Tables']['mosques']['Row'];
-export type MosqueMember = Database['public']['Tables']['mosque_members']['Row'];
-export type Screen = Database['public']['Tables']['screens']['Row'];
-
-// Typed settings with proper JSONB shapes
-export type MosqueSettings = {
-  mosque_id: string;
-  prayer_times: PrayerTimesMap;
-  prayer_source: PrayerSourceType;
-  prayer_source_config: PrayerSourceConfig;
-  prayer_config: PrayerConfigMap;
-  locale: string;
-  display_text: Record<string, string>;
-  metadata: Record<string, unknown>;
-  updated_at: string;
-};
-
-// Supabase Database type — gives full type safety on all queries
 export type Database = {
   public: {
     Tables: {
-      mosques: {
-        Row: {
-          id: string;
-          name: string;
-          slug: string;
-          logo_url: string | null;
-          stripe_customer_id: string | null;
-          stripe_subscription_id: string | null;
-          subscription_status: string | null;
-          subscription_plan: string | null;
-          trial_ends_at: string | null;
-          subscription_ends_at: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          slug: string;
-          logo_url?: string | null;
-          stripe_customer_id?: string | null;
-          stripe_subscription_id?: string | null;
-          subscription_status?: string | null;
-          subscription_plan?: string | null;
-          trial_ends_at?: string | null;
-          subscription_ends_at?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          slug?: string;
-          logo_url?: string | null;
-          stripe_customer_id?: string | null;
-          stripe_subscription_id?: string | null;
-          subscription_status?: string | null;
-          subscription_plan?: string | null;
-          trial_ends_at?: string | null;
-          subscription_ends_at?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      mosque_members: {
-        Row: {
-          id: string;
-          mosque_id: string;
-          user_id: string;
-          role: MemberRole;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          mosque_id: string;
-          user_id: string;
-          role?: MemberRole;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          mosque_id?: string;
-          user_id?: string;
-          role?: MemberRole;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "mosque_members_mosque_id_fkey";
-            columns: ["mosque_id"];
-            isOneToOne: false;
-            referencedRelation: "mosques";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      mosque_settings: {
-        Row: {
-          mosque_id: string;
-          prayer_times: Json;
-          prayer_source: string;
-          prayer_source_config: Json;
-          prayer_config: Json;
-          locale: string;
-          display_text: Json;
-          metadata: Json;
-          updated_at: string;
-        };
-        Insert: {
-          mosque_id: string;
-          prayer_times?: Json;
-          prayer_source?: string;
-          prayer_source_config?: Json;
-          prayer_config?: Json;
-          locale?: string;
-          display_text?: Json;
-          metadata?: Json;
-          updated_at?: string;
-        };
-        Update: {
-          mosque_id?: string;
-          prayer_times?: Json;
-          prayer_source?: string;
-          prayer_source_config?: Json;
-          prayer_config?: Json;
-          locale?: string;
-          display_text?: Json;
-          metadata?: Json;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "mosque_settings_mosque_id_fkey";
-            columns: ["mosque_id"];
-            isOneToOne: true;
-            referencedRelation: "mosques";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      display_error_logs: {
-        Row: {
-          id: string;
-          screen_id: string | null;
-          device_id: string;
-          error_type: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
-          message: string;
-          stack: string | null;
-          metadata: Json;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          screen_id?: string | null;
-          device_id: string;
-          error_type: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
-          message: string;
-          stack?: string | null;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          screen_id?: string | null;
-          device_id?: string;
-          error_type?: 'render_crash' | 'unhandled_error' | 'unhandled_rejection' | 'network_error';
-          message?: string;
-          stack?: string | null;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "display_error_logs_screen_id_fkey";
-            columns: ["screen_id"];
-            isOneToOne: false;
-            referencedRelation: "screens";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      mosque_yearly_times: {
-        Row: {
-          mosque_id: string;
-          times: Json;
-          computed_at: string;
-        };
-        Insert: {
-          mosque_id: string;
-          times?: Json;
-          computed_at?: string;
-        };
-        Update: {
-          mosque_id?: string;
-          times?: Json;
-          computed_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "mosque_yearly_times_mosque_id_fkey";
-            columns: ["mosque_id"];
-            isOneToOne: true;
-            referencedRelation: "mosques";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       screens: {
         Row: {
           id: string;
-          mosque_id: string;
           name: string;
-          slug: string;
-          short_code: string;
+          prayer_times: Json;
+          locale: string;
+          display_text: Json;
+          prayer_source: string;
+          prayer_source_config: Json;
           theme: string;
           theme_config: Json;
-          rotation: number;
-          zoom: number;
-          brightness: number;
+          configured: boolean;
+          pin: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
-          mosque_id: string;
           name?: string;
-          slug: string;
-          short_code?: string;
+          prayer_times?: Json;
+          locale?: string;
+          display_text?: Json;
+          prayer_source?: string;
+          prayer_source_config?: Json;
           theme?: string;
           theme_config?: Json;
-          rotation?: number;
-          zoom?: number;
-          brightness?: number;
+          configured?: boolean;
+          pin?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
-          mosque_id?: string;
           name?: string;
-          slug?: string;
-          short_code?: string;
+          prayer_times?: Json;
+          locale?: string;
+          display_text?: Json;
+          prayer_source?: string;
+          prayer_source_config?: Json;
           theme?: string;
           theme_config?: Json;
-          rotation?: number;
-          zoom?: number;
-          brightness?: number;
+          configured?: boolean;
+          pin?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "screens_mosque_id_fkey";
-            columns: ["mosque_id"];
-            isOneToOne: false;
-            referencedRelation: "mosques";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      upsert_yearly_times: {
-        Args: { p_mosque_id: string; p_times: Json };
-        Returns: undefined;
-      };
+      [_ in never]: never;
     };
     Enums: {
-      member_role: MemberRole;
+      [_ in never]: never;
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -295,9 +82,7 @@ export type Database = {
   };
 };
 
-// Helper: extract typed Row from table name
-export type Tables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row'];
+export type Screen = Database['public']['Tables']['screens']['Row'];
 
 // Type-safe JSONB → PrayerTimesMap
 export function asPrayerTimes(json: Json): PrayerTimesMap {
@@ -330,31 +115,4 @@ export function asRecord(json: Json): Record<string, unknown> {
     return json as Record<string, unknown>;
   }
   return {};
-}
-
-// DB Row type for mosque_settings (JSONB fields are Json)
-export type MosqueSettingsRow = Database['public']['Tables']['mosque_settings']['Row'];
-
-// Convert DB row → app-level MosqueSettings
-export function toMosqueSettings(row: MosqueSettingsRow): MosqueSettings {
-  return {
-    mosque_id: row.mosque_id,
-    prayer_times: asPrayerTimes(row.prayer_times),
-    prayer_source: (row.prayer_source as PrayerSourceType) || 'manual',
-    prayer_source_config: asRecord(row.prayer_source_config) as PrayerSourceConfig,
-    prayer_config: asRecord(row.prayer_config) as PrayerConfigMap,
-    locale: row.locale,
-    display_text: asStringRecord(row.display_text),
-    metadata: asRecord(row.metadata),
-    updated_at: row.updated_at,
-  };
-}
-
-/** Extract typed screen display controls */
-export function getScreenControls(screen: Screen): { rotation: ScreenRotation; zoom: number; brightness: number } {
-  return {
-    rotation: (screen.rotation as ScreenRotation) || 0,
-    zoom: screen.zoom ?? 100,
-    brightness: screen.brightness ?? 100,
-  };
 }

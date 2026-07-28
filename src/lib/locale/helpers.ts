@@ -1,4 +1,4 @@
-import type { DisplayTextConfig, LocaleMetadata, SupportedLocale } from '@/types/locale';
+import type { DisplayTextConfig, SupportedLocale } from '@/types/locale';
 import { DEFAULT_TRANSLATIONS } from './presets';
 
 /**
@@ -38,17 +38,5 @@ export function flattenDisplayText(config: DisplayTextConfig): Record<string, st
   return {
     ...config.prayers,
     ...config.labels,
-  };
-}
-
-/**
- * Parse metadata JSONB into typed LocaleMetadata with defaults.
- */
-export function parseLocaleMetadata(raw: Record<string, unknown>): LocaleMetadata {
-  return {
-    dateFormat:  (raw.dateFormat as LocaleMetadata['dateFormat']) ?? 'DD/MM/YYYY',
-    use24Hour:   typeof raw.use24Hour === 'boolean' ? raw.use24Hour : true,
-    showSeconds: typeof raw.showSeconds === 'boolean' ? raw.showSeconds : true,
-    timezone:    typeof raw.timezone === 'string' ? raw.timezone : 'auto',
   };
 }

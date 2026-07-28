@@ -44,7 +44,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar signInLabel={t.nav.signIn} getStartedLabel={t.nav.getStarted} />
+      <Navbar getStartedLabel={t.nav.getStarted} />
 
       {/* Hero */}
       <main className="relative pt-32 pb-16 px-6 sm:pt-40 sm:pb-20 overflow-hidden">
@@ -74,7 +74,7 @@ export default async function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-3 mb-16">
             <Button asChild size="lg" className="rounded-full px-8 h-12">
-              <Link href="/register">
+              <Link href="/s">
                 {t.hero.cta} <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
@@ -189,14 +189,14 @@ export default async function HomePage() {
             {t.cta.subtitle}
           </p>
           <Button asChild size="lg" className="rounded-full px-8 h-12">
-            <Link href="/register">
+            <Link href="/s">
               {t.cta.button} <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </Button>
         </div>
       </section>
 
-      <Footer signInLabel={t.footer.signIn} getStartedLabel={t.footer.getStarted} />
+      <Footer getStartedLabel={t.footer.getStarted} />
     </div>
   );
 }
