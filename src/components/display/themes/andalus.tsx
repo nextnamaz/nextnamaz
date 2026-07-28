@@ -116,7 +116,6 @@ export const andalusDefinition: ThemeDefinition = {
   id: 'andalus',
   name: 'Andalus',
   description: 'Elegant Al-Andalus inspired',
-  preview: 'bg-linear-to-br from-[#1a2030] to-[#141820]',
   component: AndalusTheme,
   fields: [
     {
@@ -145,7 +144,6 @@ export const andalusDefinition: ThemeDefinition = {
 // --- Theme component ---
 
 export function AndalusTheme({
-  mosqueName,
   prayers,
   nextPrayer,
   config,
@@ -237,13 +235,6 @@ export function AndalusTheme({
                 :{pad(countdown.seconds)}
               </span>
             </div>
-          </div>
-        )}
-
-        {/* Mosque name — landscape only, pinned to bottom */}
-        {L && (
-          <div className="text-gray-600 text-xs tracking-widest uppercase mt-4">
-            {mosqueName}
           </div>
         )}
       </div>
@@ -373,16 +364,11 @@ export function AndalusTheme({
           </div>
         </div>
 
-        {/* Verse 2 + mosque name (portrait) */}
+        {/* Verse 2 */}
         <div className={cn('shrink-0 text-center px-6', L ? 'py-4' : 'py-3')}>
           <p className="text-sm text-amber-500/35 truncate" dir="rtl">
             {verse2}
           </p>
-          {P && (
-            <div className="text-gray-600 text-xs tracking-widest uppercase mt-2">
-              {mosqueName}
-            </div>
-          )}
         </div>
       </div>
     </div>

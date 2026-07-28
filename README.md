@@ -1,6 +1,6 @@
 # NextNamaz
 
-Prayer time display for mosques. No accounts, no logins — a TV and a phone.
+Prayer time display for mosques. No accounts, no sign-in — a TV and a phone.
 
 ## How it works
 
@@ -22,7 +22,16 @@ Next.js 16 · Supabase (Postgres + Realtime broadcast) · Tailwind CSS 4 · Verc
 All database access goes through the Next.js server with the service-role key.
 The `screens` table has RLS enabled with no policies, so the public anon key
 can't read or write anything — possession of a screen's uuid is the only
-authorization. The anon key is used solely for realtime broadcast channels.
+credential. The anon key is used solely for realtime broadcast channels.
+
+## Themes
+
+Themes live in `src/components/display/themes/` and are listed in
+`THEME_REGISTRY`. Each exports a component plus a definition describing its
+configurable fields. Themes size themselves against the whole viewport, so they
+must render inside a container with `container-type: size` and a real width and
+height — the settings thumbnails do this by rendering the theme at stage size
+and scaling it down with a CSS transform.
 
 ## Getting Started
 
@@ -40,4 +49,4 @@ Create a Supabase project and run `supabase/schema.sql` in the SQL editor.
 
 ## License
 
-MIT
+AGPL-3.0-only. See [LICENSE](LICENSE).

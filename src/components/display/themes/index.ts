@@ -3,8 +3,6 @@ import type { PrayerTimeEntry } from '@/types/prayer';
 import type { DisplayLocale } from '@/lib/display-locale';
 
 export interface ThemeProps {
-  mosqueName: string;
-  mosqueLogoUrl: string | null;
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerTimeEntry | null;
   config: Record<string, unknown>;
@@ -32,7 +30,6 @@ export interface ThemeDefinition {
   id: string;
   name: string;
   description: string;
-  preview: string;
   component: ComponentType<ThemeProps>;
   fields: ThemeFieldDefinition[];
   defaultConfig: Record<string, string | number | boolean>;
@@ -41,13 +38,11 @@ export interface ThemeDefinition {
 // --- Theme imports ---
 
 import { AndalusTheme, andalusDefinition } from './andalus';
-import { AtmosphericTheme, atmosphericDefinition } from './atmospheric';
 import { DefaultTheme, defaultDefinition } from './default';
 
-export { AndalusTheme, AtmosphericTheme, DefaultTheme };
+export { AndalusTheme, DefaultTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   default: defaultDefinition,
   andalus: andalusDefinition,
-  atmospheric: atmosphericDefinition,
 };

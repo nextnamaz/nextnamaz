@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { headers } from 'next/headers';
 import { ArrowRight, Smartphone, WifiOff, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { NetworkIllustration } from '@/components/landing/network-illustration';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
-import { detectLocale, getTranslations } from '@/lib/landing-i18n';
+import { LANDING_COPY } from '@/lib/landing-copy';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -27,20 +26,10 @@ export const metadata: Metadata = {
     title: 'NextNamaz | Your Mosque Deserves a Better Prayer Display',
     description: 'Turn any TV or tablet into a beautiful prayer times display. Free, no special hardware needed.',
   },
-  alternates: {
-    languages: {
-      en: '/',
-      bs: '/?lang=bs',
-      sv: '/?lang=sv',
-    },
-  },
 };
 
-export default async function HomePage() {
-  const hdrs = await headers();
-  const acceptLang = hdrs.get('accept-language');
-  const locale = detectLocale(acceptLang);
-  const t = getTranslations(locale);
+export default function HomePage() {
+  const t = LANDING_COPY;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">

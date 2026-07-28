@@ -1,4 +1,4 @@
--- NextNamaz schema — no accounts, no auth.
+-- NextNamaz schema — no accounts, no sign-in.
 --
 -- One table. Each screen is a standalone display unit whose uuid doubles as
 -- its secret: whoever has the settings URL (/s/<id>) can manage the screen.
@@ -8,18 +8,11 @@
 -- the public REST API, which would leak the secret URLs).
 --
 -- Realtime: live phone -> TV updates use broadcast channels (screen:<id>),
--- which need no table access, so no realtime publication is required.
+-- which need no table access, so no realtime publication is required. The
+-- server sends the broadcast after each save (see src/lib/actions.ts).
 
--- Reset: remove the pre-rebuild schema if present (no-ops on a fresh project).
-drop table if exists mosque_yearly_times, display_error_logs, mosque_settings,
-  mosque_members, screens, mosques cascade;
-drop type if exists member_role cascade;
-drop function if exists get_my_mosque_ids, has_mosque_role, mosque_has_no_members,
-  generate_short_code, create_mosque_settings, upsert_yearly_times cascade;
-
-create table screens (
+create table if not exists screens (
   id uuid primary key default gen_random_uuid(),
-  name text not null default '',
   prayer_times jsonb not null default '{
     "fajr": "05:00",
     "sunrise": "06:30",
@@ -42,8 +35,6 @@ create table screens (
   -- false until the first save from the phone; the TV shows the setup QR
   -- until this flips
   configured boolean not null default false,
-  -- reserved for an optional per-screen 4-digit PIN (not used yet)
-  pin text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

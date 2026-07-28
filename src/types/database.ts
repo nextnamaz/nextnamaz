@@ -21,7 +21,6 @@ export type Database = {
       screens: {
         Row: {
           id: string;
-          name: string;
           prayer_times: Json;
           locale: string;
           display_text: Json;
@@ -30,13 +29,11 @@ export type Database = {
           theme: string;
           theme_config: Json;
           configured: boolean;
-          pin: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          name?: string;
           prayer_times?: Json;
           locale?: string;
           display_text?: Json;
@@ -45,13 +42,11 @@ export type Database = {
           theme?: string;
           theme_config?: Json;
           configured?: boolean;
-          pin?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          name?: string;
           prayer_times?: Json;
           locale?: string;
           display_text?: Json;
@@ -60,7 +55,6 @@ export type Database = {
           theme?: string;
           theme_config?: Json;
           configured?: boolean;
-          pin?: string | null;
           created_at?: string;
           updated_at?: string;
         };

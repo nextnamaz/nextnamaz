@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Clock, Languages, Palette } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ import { THEME_REGISTRY } from '@/components/display/themes';
 import { LanguageTab } from './language-tab';
 import { SaveBar } from './save-bar';
 import { SourceWizard, sourceLabel } from './source-wizard';
-import { ThemeSettingsForm } from './theme-settings-form';
+import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,8 +51,6 @@ function formFromScreen(screen: Screen): FormState {
   };
 }
 
-const themeList = Object.values(THEME_REGISTRY);
-
 type TabId = 'prayers' | 'language' | 'theme';
 
 const TABS: { id: TabId; label: string; icon: typeof Clock }[] = [
@@ -72,7 +70,6 @@ export function SettingsForm({ screen }: SettingsFormProps) {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<TabId>('prayers');
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [discardNonce, setDiscardNonce] = useState(0);
 
   const dirty = [
     ...PRAYER_NAMES.map((p) => form.times[p] !== saved.times[p]),
@@ -93,9 +90,9 @@ export function SettingsForm({ screen }: SettingsFormProps) {
     }));
   };
 
-  const handleConfigChange = useCallback((config: ThemeConfigMap) => {
+  const handleConfigChange = (config: ThemeConfigMap) => {
     setForm((prev) => ({ ...prev, themeConfig: config }));
-  }, []);
+  };
 
   const handleSourceApply = (
     source: PrayerSourceInput,
@@ -132,10 +129,7 @@ export function SettingsForm({ screen }: SettingsFormProps) {
     setSaving(false);
   };
 
-  const handleDiscard = () => {
-    setForm(saved);
-    setDiscardNonce((n) => n + 1);
-  };
+  const handleDiscard = () => setForm(saved);
 
   const currentThemeDef = THEME_REGISTRY[form.theme];
   const manual = form.prayerSource === 'manual';
@@ -265,31 +259,17 @@ export function SettingsForm({ screen }: SettingsFormProps) {
                 <CardTitle>Theme</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {themeList.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleThemeChange(t.id)}
-                      className={cn(
-                        'flex flex-col rounded-xl border-2 text-left transition-all overflow-hidden',
-                        form.theme === t.id
-                          ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-muted hover:border-primary/50'
-                      )}
-                    >
-                      <div className={cn('w-full aspect-video bg-muted', t.preview)} />
-                      <div className="p-2 text-sm font-medium truncate">{t.name}</div>
-                    </button>
-                  ))}
-                </div>
+                <ThemePicker
+                  value={form.theme}
+                  config={form.themeConfig}
+                  onChange={handleThemeChange}
+                />
 
                 {currentThemeDef && currentThemeDef.fields.length > 0 && (
                   <div className="pt-4 border-t">
                     <ThemeSettingsForm
-                      key={`${form.theme}-${discardNonce}`}
-                      theme={currentThemeDef}
-                      savedConfig={saved.theme === form.theme ? saved.themeConfig : {}}
+                      fields={currentThemeDef.fields}
+                      config={form.themeConfig}
                       onChange={handleConfigChange}
                     />
                   </div>

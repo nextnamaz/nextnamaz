@@ -180,7 +180,6 @@ export const defaultDefinition: ThemeDefinition = {
   id: 'default',
   name: 'Default',
   description: 'Clean table layout with next prayer panel',
-  preview: 'bg-[#374151]',
   component: DefaultTheme,
   fields: [
     {

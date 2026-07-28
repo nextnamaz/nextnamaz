@@ -70,7 +70,7 @@ const screenSettingsSchema = z.object({
   display_text: z.record(z.string(), z.string().max(100)),
   prayer_source: prayerSourceSchema,
   prayer_source_config: z.record(z.string(), z.unknown()),
-  theme: z.enum(['default', 'andalus', 'atmospheric']),
+  theme: z.enum(['default', 'andalus']),
   theme_config: z.record(
     z.string(),
     z.union([z.string().max(500), z.number(), z.boolean()])
@@ -80,6 +80,23 @@ const screenSettingsSchema = z.object({
 export type ScreenSettingsInput = z.infer<typeof screenSettingsSchema>;
 
 type SaveResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Nudge the TV to reload. Sending on a channel the server never subscribed to
+ * goes out over Realtime's HTTP broadcast endpoint, so no websocket is held
+ * open. Best-effort: the TV also polls, so a lost broadcast only costs time.
+ */
+async function broadcastRefresh(id: string): Promise<void> {
+  const client = createAdminClient();
+  const channel = client.channel(`screen:${id}`);
+  try {
+    await channel.send({ type: 'broadcast', event: 'command', payload: {} });
+  } catch (error) {
+    console.error('broadcast failed:', error);
+  } finally {
+    await client.removeChannel(channel);
+  }
+}
 
 /** Save settings for a screen. Possession of the id is the authorization. */
 export async function saveScreen(
@@ -103,6 +120,8 @@ export async function saveScreen(
     })
     .eq('id', id);
   if (error) return { ok: false, error: 'Could not save' };
+
+  await broadcastRefresh(id);
   return { ok: true };
 }
 

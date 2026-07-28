@@ -1,19 +1,8 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from '@/components/ui/form';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -23,188 +12,207 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { THEME_REGISTRY } from '@/components/display/themes';
 import type { ThemeDefinition, ThemeFieldDefinition } from '@/components/display/themes';
+import { PREVIEW_PRAYERS, PREVIEW_LOCALE } from '@/lib/theme-preview';
+import { getNextPrayer } from '@/types/prayer';
+import { cn } from '@/lib/utils';
 
-type ThemeConfigValue = string | number | boolean;
-type ThemeConfigMap = Record<string, ThemeConfigValue>;
-type FormValues = Record<string, unknown>;
+export type ThemeConfigValue = string | number | boolean;
+export type ThemeConfigMap = Record<string, ThemeConfigValue>;
 
-/** Build a Zod schema from the theme's field definitions. */
-function buildSchema(fields: ThemeFieldDefinition[]) {
-  const shape: Record<string, z.ZodTypeAny> = {};
+// --- Theme picker with live thumbnails ---
 
-  for (const field of fields) {
-    switch (field.type) {
-      case 'text':
-      case 'textarea':
-        shape[field.key] = z.string();
-        break;
-      case 'number':
-        shape[field.key] = z.coerce.number();
-        break;
-      case 'switch':
-        shape[field.key] = z.boolean();
-        break;
-      case 'select':
-        shape[field.key] = z.string();
-        break;
-    }
-  }
+/**
+ * Themes lay out against a TV-sized viewport: they mix container-query units
+ * with fixed type scales, so they only look right at full size. Thumbnails
+ * therefore render a real theme at stage size and shrink it with a CSS
+ * transform, rather than squeezing it into a small box.
+ */
+const STAGE_WIDTH = 960;
+const STAGE_HEIGHT = 540;
 
-  return z.object(shape);
+/** Track an element's rendered width so the stage can be scaled to fit it. */
+function useMeasuredWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    // Fires once on observe, so the first measurement arrives here too —
+    // no setState in the effect body.
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, width };
 }
 
-/** Merge saved config with defaults so every field has a value. */
-function resolveValues(
-  fields: ThemeFieldDefinition[],
-  saved: Record<string, unknown>
-): ThemeConfigMap {
-  const result: ThemeConfigMap = {};
-  for (const field of fields) {
-    const saved_val = saved[field.key];
-    if (saved_val !== undefined && saved_val !== null) {
-      result[field.key] = saved_val as ThemeConfigValue;
-    } else {
-      result[field.key] = field.defaultValue;
-    }
-  }
-  return result;
+interface ThemeThumbnailProps {
+  theme: ThemeDefinition;
+  config: ThemeConfigMap;
 }
+
+function ThemeThumbnail({ theme, config }: ThemeThumbnailProps) {
+  const { ref, width } = useMeasuredWidth<HTMLDivElement>();
+  const nextPrayer = useMemo(() => getNextPrayer(PREVIEW_PRAYERS), []);
+  const Preview = theme.component;
+
+  return (
+    <div ref={ref} className="relative w-full aspect-video overflow-hidden bg-muted">
+      {/* Rendered only once measured, which also keeps the clock-driven
+          themes out of the server render and avoids hydration mismatches. */}
+      {width > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: STAGE_WIDTH,
+            height: STAGE_HEIGHT,
+            containerType: 'size',
+            transform: `scale(${width / STAGE_WIDTH})`,
+            transformOrigin: 'top left',
+            pointerEvents: 'none',
+          }}
+        >
+          <Preview
+            prayers={PREVIEW_PRAYERS}
+            nextPrayer={nextPrayer}
+            config={{ ...theme.defaultConfig, ...config }}
+            isPortrait={false}
+            locale={PREVIEW_LOCALE}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ThemePickerProps {
+  value: string;
+  /** Live config of the selected theme, so its thumbnail tracks edits. */
+  config: ThemeConfigMap;
+  onChange: (themeId: string) => void;
+}
+
+export function ThemePicker({ value, config, onChange }: ThemePickerProps) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {Object.values(THEME_REGISTRY).map((theme) => (
+        <button
+          key={theme.id}
+          type="button"
+          onClick={() => onChange(theme.id)}
+          aria-pressed={value === theme.id}
+          className={cn(
+            'flex flex-col rounded-xl border-2 text-left transition-colors overflow-hidden',
+            value === theme.id
+              ? 'border-primary ring-2 ring-primary/20'
+              : 'border-muted hover:border-primary/50'
+          )}
+        >
+          <ThemeThumbnail
+            theme={theme}
+            config={value === theme.id ? config : theme.defaultConfig}
+          />
+          <div className="px-2.5 py-2 min-w-0">
+            <div className="text-sm font-medium truncate">{theme.name}</div>
+            <div className="text-xs text-muted-foreground truncate">{theme.description}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// --- Per-theme option fields ---
 
 interface ThemeSettingsFormProps {
-  theme: ThemeDefinition;
-  savedConfig: Record<string, unknown>;
+  fields: ThemeFieldDefinition[];
+  config: ThemeConfigMap;
   onChange: (config: ThemeConfigMap) => void;
 }
 
-export function ThemeSettingsForm({ theme, savedConfig, onChange }: ThemeSettingsFormProps) {
-  const schema = useMemo(() => buildSchema(theme.fields), [theme.fields]);
-  const defaults = useMemo(
-    () => resolveValues(theme.fields, savedConfig),
-    [theme.fields, savedConfig]
-  );
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: defaults,
-  });
-
-  // Reset form when theme changes
-  useEffect(() => {
-    form.reset(defaults);
-  }, [theme.id, defaults, form]);
-
-  // Notify parent on every valid change
-  useEffect(() => {
-    const subscription = form.watch((values) => {
-      const resolved: ThemeConfigMap = {};
-      for (const field of theme.fields) {
-        const v = values[field.key];
-        resolved[field.key] = v !== undefined && v !== null
-          ? (v as ThemeConfigValue)
-          : field.defaultValue;
-      }
-      onChange(resolved);
-    });
-    return () => subscription.unsubscribe();
-  }, [form, theme.fields, onChange]);
-
-  if (theme.fields.length === 0) return null;
+/**
+ * Fully controlled: the parent owns the config, so switching theme or
+ * discarding changes needs no remount. Values are re-checked on the server
+ * in saveScreen, so there is no client-side validation layer here.
+ */
+export function ThemeSettingsForm({ fields, config, onChange }: ThemeSettingsFormProps) {
+  if (fields.length === 0) return null;
 
   return (
-    <Form {...form}>
-      <div className="space-y-4">
-        {theme.fields.map((fieldDef) => (
-          <FormField
-            key={fieldDef.key}
-            control={form.control}
-            name={fieldDef.key}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{fieldDef.label}</FormLabel>
-                <FormControl>
-                  {renderFieldInput(fieldDef, field)}
-                </FormControl>
-                {fieldDef.description && (
-                  <FormDescription>{fieldDef.description}</FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
+    <div className="space-y-4">
+      {fields.map((field) => {
+        const id = `theme-field-${field.key}`;
+        const value = config[field.key] ?? field.defaultValue;
+        const set = (next: ThemeConfigValue) => onChange({ ...config, [field.key]: next });
+
+        return (
+          <div key={field.key} className="space-y-2">
+            <Label htmlFor={id}>{field.label}</Label>
+            <ThemeField id={id} field={field} value={value} onChange={set} />
+            {field.description && (
+              <p className="text-xs text-muted-foreground">{field.description}</p>
             )}
-          />
-        ))}
-      </div>
-    </Form>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
-interface FieldRenderProps {
-  value: unknown;
-  onChange: (value: unknown) => void;
-  onBlur: () => void;
-  name: string;
+interface ThemeFieldProps {
+  id: string;
+  field: ThemeFieldDefinition;
+  value: ThemeConfigValue;
+  onChange: (value: ThemeConfigValue) => void;
 }
 
-function renderFieldInput(
-  fieldDef: ThemeFieldDefinition,
-  field: FieldRenderProps
-) {
-  switch (fieldDef.type) {
+function ThemeField({ id, field, value, onChange }: ThemeFieldProps) {
+  switch (field.type) {
     case 'text':
-      return (
-        <Input
-          name={field.name}
-          value={(field.value as string) ?? ''}
-          onChange={(e) => field.onChange(e.target.value)}
-          onBlur={field.onBlur}
-        />
-      );
+      return <Input id={id} value={String(value)} onChange={(e) => onChange(e.target.value)} />;
     case 'textarea':
       return (
         <Textarea
-          name={field.name}
-          value={(field.value as string) ?? ''}
-          onChange={(e) => field.onChange(e.target.value)}
-          onBlur={field.onBlur}
+          id={id}
           dir="auto"
+          value={String(value)}
+          onChange={(e) => onChange(e.target.value)}
         />
       );
     case 'number':
       return (
         <Input
-          name={field.name}
+          id={id}
           type="number"
-          value={(field.value as number) ?? 0}
-          onChange={(e) => field.onChange(Number(e.target.value))}
-          onBlur={field.onBlur}
+          value={Number(value)}
+          onChange={(e) => onChange(Number(e.target.value))}
         />
       );
     case 'switch':
-      return (
-        <Switch
-          checked={(field.value as boolean) ?? false}
-          onCheckedChange={field.onChange}
-        />
-      );
+      return <Switch id={id} checked={Boolean(value)} onCheckedChange={onChange} />;
     case 'select':
       return (
-        <Select
-          value={(field.value as string) ?? ''}
-          onValueChange={field.onChange}
-        >
-          <SelectTrigger className="w-full">
+        <Select value={String(value)} onValueChange={onChange}>
+          <SelectTrigger id={id} className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {fieldDef.options?.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+            {field.options?.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       );
-    default:
-      return null;
   }
 }

@@ -1,50 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { DefaultTheme } from '@/components/display/themes/default';
-import type { ThemeProps } from '@/components/display/themes';
-import type { PrayerTimeEntry } from '@/types/prayer';
-import type { DisplayLocale } from '@/lib/display-locale';
+import { PREVIEW_PRAYERS, PREVIEW_LOCALE } from '@/lib/theme-preview';
 import { getNextPrayer } from '@/types/prayer';
 
-const SAMPLE_PRAYERS: PrayerTimeEntry[] = [
-  { name: 'fajr', displayName: 'Fajr', time: '05:30', iqamahTime: '05:50' },
-  { name: 'sunrise', displayName: 'Sunrise', time: '07:00' },
-  { name: 'dhuhr', displayName: 'Dhuhr', time: '12:30', iqamahTime: '12:45' },
-  { name: 'asr', displayName: 'Asr', time: '15:45', iqamahTime: '16:00' },
-  { name: 'maghrib', displayName: 'Maghrib', time: '19:30', iqamahTime: '19:40' },
-  { name: 'isha', displayName: 'Isha', time: '21:00', iqamahTime: '21:15' },
-];
-
-const SAMPLE_LOCALE: DisplayLocale = {
-  prayerNames: {
-    fajr: 'Fajr',
-    sunrise: 'Sunrise',
-    dhuhr: 'Dhuhr',
-    asr: 'Asr',
-    maghrib: 'Maghrib',
-    isha: 'Isha',
-  },
-  labels: { prayer: 'Prayer', begins: 'Begins', iqamah: 'Iqamah', next: 'Next...', now: 'Now' },
-  use24Hour: true,
-  showSeconds: true,
-  dateFormat: 'DD/MM/YYYY',
-  timezone: 'auto',
-  locale: 'en',
-};
-
 export function ShowcaseDemo() {
-  const nextPrayer = useMemo(() => getNextPrayer(SAMPLE_PRAYERS), []);
-
-  const props: ThemeProps = {
-    mosqueName: 'Al-Noor Mosque',
-    mosqueLogoUrl: null,
-    prayers: SAMPLE_PRAYERS,
-    nextPrayer,
-    config: { mode: 'light', colorScheme: 'classic', displayText: 'بسم الله الرحمن الرحيم' },
-    isPortrait: false,
-    locale: SAMPLE_LOCALE,
-  };
+  const nextPrayer = useMemo(() => getNextPrayer(PREVIEW_PRAYERS), []);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -53,9 +16,15 @@ export function ShowcaseDemo() {
         {/* Screen bezel */}
         <div
           className="relative w-full rounded-lg overflow-hidden"
-          style={{ aspectRatio: '16/9', containerType: 'size' as React.CSSProperties['containerType'] }}
+          style={{ aspectRatio: '16/9', containerType: 'size' as CSSProperties['containerType'] }}
         >
-          <DefaultTheme {...props} />
+          <DefaultTheme
+            prayers={PREVIEW_PRAYERS}
+            nextPrayer={nextPrayer}
+            config={{ mode: 'light', colorScheme: 'classic', displayText: 'بسم الله الرحمن الرحيم' }}
+            isPortrait={false}
+            locale={PREVIEW_LOCALE}
+          />
         </div>
         {/* Stand indicator */}
         <div className="flex justify-center mt-3 gap-1.5">

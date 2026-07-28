@@ -52,9 +52,9 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
   const [overlayVisible, setOverlayVisible] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Live updates: a database trigger broadcasts on screen:<id> whenever the
-  // row changes. Refreshing on every SUBSCRIBED also catches up after a
-  // websocket drop, when broadcasts sent during the gap are lost.
+  // Live updates: saving on the phone broadcasts on screen:<id>. Refreshing
+  // on every SUBSCRIBED also catches up after a websocket drop, when
+  // broadcasts sent during the gap are lost.
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -158,8 +158,6 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
   const themeDef = THEME_REGISTRY[screen.theme] ?? THEME_REGISTRY['default'];
   const ThemeComponent = themeDef.component;
   const themeProps: ThemeProps = {
-    mosqueName: screen.name,
-    mosqueLogoUrl: null,
     prayers,
     nextPrayer,
     config: { ...themeDef.defaultConfig, ...asRecord(screen.theme_config) },
