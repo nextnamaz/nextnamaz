@@ -168,6 +168,43 @@ export function TileField({ base, star, accent, density = 6 }: TileFieldProps) {
   );
 }
 
+interface NicheProps {
+  /** Slightly lifted from the page ground — this reads tone-on-tone. */
+  fill: string;
+  edge: string;
+}
+
+/**
+ * Mihrab niche: the prayer-hall arch, sunk into the background rather than
+ * outlined. Two nested contours, each barely lighter than the ground.
+ */
+export function MihrabNiche({ fill, edge }: NicheProps) {
+  const id = useSvgId('niche');
+  // Drawn wide: the head of the board is far wider than tall, and a tall
+  // viewBox stretched to fit collapses the arch into a rounded rectangle.
+  // The paths are left open at the bottom and both fill and stroke fade out
+  // downwards, so the niche dissolves into the ground with no hard edge.
+  const shape = 'M6,140 L6,84 Q6,24 100,8 Q194,24 194,84 L194,140';
+  const innerShape = 'M24,140 L24,92 Q24,42 100,28 Q176,42 176,92 L176,140';
+  return (
+    <svg aria-hidden viewBox="0 0 200 140" preserveAspectRatio="none" style={FILL_LAYER}>
+      <defs>
+        <linearGradient id={`${id}-f`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fill} stopOpacity="1" />
+          <stop offset="100%" stopColor={fill} stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`${id}-s`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={edge} stopOpacity="1" />
+          <stop offset="85%" stopColor={edge} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${shape} Z`} fill={`url(#${id}-f)`} />
+      <path d={shape} fill="none" stroke={`url(#${id}-s)`} strokeWidth="0.9" />
+      <path d={innerShape} fill="none" stroke={`url(#${id}-s)`} strokeWidth="0.7" opacity="0.7" />
+    </svg>
+  );
+}
+
 interface ShamsaProps {
   color: string;
   size: string;
