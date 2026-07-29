@@ -37,12 +37,16 @@ export interface ThemeDefinition {
 
 // --- Theme imports ---
 
-import { AndalusTheme, andalusDefinition } from './andalus';
+import { BoardTheme, boardDefinition } from './board';
 import { DefaultTheme, defaultDefinition } from './default';
+import { FocusTheme, focusDefinition } from './focus';
+import { MasjidTheme, masjidDefinition } from './masjid';
 
-export { AndalusTheme, DefaultTheme };
+export { BoardTheme, DefaultTheme, FocusTheme, MasjidTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   default: defaultDefinition,
-  andalus: andalusDefinition,
+  focus: focusDefinition,
+  masjid: masjidDefinition,
+  board: boardDefinition,
 };

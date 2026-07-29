@@ -252,7 +252,11 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
   } as React.CSSProperties;
 
   return (
-    <div className={cn('default-theme', isPortrait ? 'dt-portrait' : 'dt-landscape')} style={rootStyle}>
+    <div
+      data-theme="default"
+      className={cn('default-theme', isPortrait ? 'dt-portrait' : 'dt-landscape')}
+      style={rootStyle}
+    >
       {/* Header */}
       <header className={cn('default-header shadow-md flex flex-col items-center justify-center', m.header)}>
         <p className={cn('default-clock font-extrabold leading-[90%] m-0', m.clockText)} suppressHydrationWarning>
@@ -268,7 +272,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
         <div className="default-table">
           {/* Table Header */}
           <section className={cn('flex items-center border-b border-t uppercase', m.thBg, m.border)}>
-            <h2 className={cn('default-th flex-1 flex items-center justify-start border-r-2 m-0 pl-[3cqmin] font-extrabold', m.thText, m.border)}>
+            <h2 className={cn('default-th default-name flex-1 flex items-center justify-start border-r-2 m-0 font-extrabold', m.thText, m.border)}>
               {headerPrayer}
             </h2>
             {hasIqamah ? (
@@ -336,7 +340,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                 {/* Prayer Name */}
                 <h2
                   className={cn(
-                    'default-cell flex-1 flex items-center border-b border-r h-full pl-[3cqmin] m-0 font-bold',
+                    'default-cell default-name flex-1 flex items-center border-b border-r h-full m-0 font-bold',
                     m.cellText,
                     m.border,
                     plain && isOdd && m.rowOdd,
@@ -501,6 +505,10 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
         }
         .dt-portrait .default-next-countdown p { font-size: 7cqmin; }
         .dt-portrait .default-footer { font-size: 3.5cqmin; padding: 1.9cqmin 0; }
+        /* Keep the prayer names off the screen edge. Must come after the
+           .default-th/.default-cell padding shorthands above, which reset the
+           horizontal padding; logical so it flips for RTL locales. */
+        .dt-portrait .default-name { padding-inline-start: 4cqmin; }
 
         /* ---- Landscape Grid ---- */
         .dt-landscape {
@@ -534,6 +542,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
         }
         .dt-landscape .default-next-countdown p { font-size: 7cqmin; }
         .dt-landscape .default-footer { font-size: 2.5cqmin; padding: 1.3cqmin 0; }
+        .dt-landscape .default-name { padding-inline-start: 4cqmin; }
 
         .default-header { grid-area: headers; }
         .default-body { grid-area: body; }
