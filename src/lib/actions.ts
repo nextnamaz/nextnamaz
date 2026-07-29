@@ -70,7 +70,7 @@ const screenSettingsSchema = z.object({
   display_text: z.record(z.string(), z.string().max(100)),
   prayer_source: prayerSourceSchema,
   prayer_source_config: z.record(z.string(), z.unknown()),
-  theme: z.enum(['default', 'focus', 'masjid', 'board']),
+  theme: z.enum(['default', 'andalusi', 'manuscript', 'zellij']),
   theme_config: z.record(
     z.string(),
     z.union([z.string().max(500), z.number(), z.boolean()])

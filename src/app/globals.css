@@ -1,6 +1,32 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Arabic calligraphic faces used by the display themes. Self-hosted via
+   @fontsource so the TV never depends on an external font CDN.
+   Amiri  — Naskh book hand, the workhorse for running text and numerals.
+   Aref Ruqaa — Ruqaa/Thuluth display hand, for headings and the bismillah.
+   Reem Kufi  — geometric Kufic, for the tilework theme. */
+@import "@fontsource/amiri/latin-400.css";
+@import "@fontsource/amiri/latin-700.css";
+@import "@fontsource/amiri/arabic-400.css";
+@import "@fontsource/amiri/arabic-700.css";
+@import "@fontsource/aref-ruqaa/latin-400.css";
+@import "@fontsource/aref-ruqaa/latin-700.css";
+@import "@fontsource/aref-ruqaa/arabic-400.css";
+@import "@fontsource/aref-ruqaa/arabic-700.css";
+@import "@fontsource/reem-kufi/latin-400.css";
+@import "@fontsource/reem-kufi/latin-600.css";
+@import "@fontsource/reem-kufi/latin-700.css";
+@import "@fontsource/reem-kufi/arabic-400.css";
+@import "@fontsource/reem-kufi/arabic-600.css";
+@import "@fontsource/reem-kufi/arabic-700.css";
+
+:root {
+  --font-naskh: "Amiri", "Scheherazade New", "Times New Roman", serif;
+  --font-ruqaa: "Aref Ruqaa", "Amiri", serif;
+  --font-kufi: "Reem Kufi", "Amiri", sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

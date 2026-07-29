@@ -37,16 +37,16 @@ export interface ThemeDefinition {
 
 // --- Theme imports ---
 
-import { BoardTheme, boardDefinition } from './board';
+import { AndalusiTheme, andalusiDefinition } from './andalusi';
 import { DefaultTheme, defaultDefinition } from './default';
-import { FocusTheme, focusDefinition } from './focus';
-import { MasjidTheme, masjidDefinition } from './masjid';
+import { ManuscriptTheme, manuscriptDefinition } from './manuscript';
+import { ZellijTheme, zellijDefinition } from './zellij';
 
-export { BoardTheme, DefaultTheme, FocusTheme, MasjidTheme };
+export { AndalusiTheme, DefaultTheme, ManuscriptTheme, ZellijTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
+  andalusi: andalusiDefinition,
+  manuscript: manuscriptDefinition,
+  zellij: zellijDefinition,
   default: defaultDefinition,
-  focus: focusDefinition,
-  masjid: masjidDefinition,
-  board: boardDefinition,
 };
