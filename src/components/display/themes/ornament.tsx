@@ -82,6 +82,112 @@ interface FieldProps {
 }
 
 /**
+ * Khatam — the eight-point star and cross tessellation.
+ *
+ * A true tiling rather than stars scattered on a grid: each star's outer
+ * radius is exactly half the cell, so its four axial points meet the points of
+ * its neighbours at the cell-edge midpoints, and the space left around every
+ * cell corner closes into the cross. That interlock is what separates a real
+ * Islamic pattern from a field of star shapes.
+ */
+export function KhatamField({ color, opacity = 0.16, density = 6, strokeWidth = 1.4 }: FieldProps) {
+  const id = useSvgId('khatam');
+  const tile = 1000 / density;
+  const h = tile / 2;
+  const r = h * 0.5412; // inner radius of a star cut from two squares
+
+  // The cross filling the corner: the four surrounding stars each contribute
+  // one concave vertex and two flanks, meeting at the cell-edge midpoints.
+  const d = r / Math.SQRT2;
+  const cross = [
+    `M${h},0`,
+    `L${h - d},${-d}`,
+    `L${d},${-d}`, // mirrored into the neighbouring cell
+    `L0,${-h}`,
+  ].join(' ');
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <defs>
+        <pattern id={id} width={tile} height={tile} patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round">
+            <path d={starPath(h, h, h)} />
+            {/* The cross is the negative space; tracing its arms at each corner
+                closes the tiling instead of leaving the stars floating. */}
+            <g transform={`translate(0,${tile})`}>
+              <path d={cross} />
+            </g>
+            <g transform={`translate(${tile},${tile}) rotate(90)`}>
+              <path d={cross} />
+            </g>
+            <g transform={`translate(${tile},0) rotate(180)`}>
+              <path d={cross} />
+            </g>
+            <g transform={`translate(0,0) rotate(270)`}>
+              <path d={cross} />
+            </g>
+          </g>
+        </pattern>
+      </defs>
+      <rect width="1000" height="1000" fill={`url(#${id})`} />
+    </svg>
+  );
+}
+
+/**
+ * Six-fold star tessellation on a triangular lattice — the other great family,
+ * and visibly different from the eight-fold work above.
+ */
+export function HexStarField({ color, opacity = 0.16, density = 6, strokeWidth = 1.4 }: FieldProps) {
+  const id = useSvgId('hexstar');
+  const w = 1000 / density;
+  const h = w * Math.sqrt(3); // a hexagonal lattice repeats over √3 vertically
+  const r = w / 2;
+
+  const hexagon = (cx: number, cy: number, radius: number) => {
+    const pts = Array.from({ length: 6 }, (_, i) => {
+      const a = (Math.PI / 3) * i - Math.PI / 2;
+      return `${(cx + radius * Math.cos(a)).toFixed(2)},${(cy + radius * Math.sin(a)).toFixed(2)}`;
+    });
+    return `M${pts.join('L')}Z`;
+  };
+
+  const cell = (cx: number, cy: number) => (
+    <>
+      <path d={starPath(cx, cy, r * 0.86, 6)} />
+      <path d={hexagon(cx, cy, r * 0.46)} />
+    </>
+  );
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <defs>
+        <pattern id={id} width={w} height={h} patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round">
+            {cell(0, 0)}
+            {cell(w, 0)}
+            {cell(0, h)}
+            {cell(w, h)}
+            {cell(w / 2, h / 2)}
+          </g>
+        </pattern>
+      </defs>
+      <rect width="1000" height="1000" fill={`url(#${id})`} />
+    </svg>
+  );
+}
+
+/**
  * Girih strapwork: octagons locked together by the diagonal straps that run
  * between them — the trellis under most Persian and Anatolian tilework.
  */

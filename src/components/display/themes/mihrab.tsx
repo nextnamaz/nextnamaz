@@ -16,6 +16,8 @@ import {
 } from './config';
 import {
   GirihField,
+  HexStarField,
+  KhatamField,
   MihrabNiche,
   MosqueSilhouette,
   MuqarnasVault,
@@ -167,6 +169,12 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
       )}
       {backdrop === 'stars' && (
         <StarField color={palette.accent} opacity={0.14} density={9} strokeWidth={1.3} />
+      )}
+      {backdrop === 'khatam' && (
+        <KhatamField color={palette.accent} opacity={0.16} density={7} strokeWidth={1.3} />
+      )}
+      {backdrop === 'hex' && (
+        <HexStarField color={palette.accent} opacity={0.15} density={7} strokeWidth={1.3} />
       )}
       {backdrop === 'girih' && (
         <GirihField color={palette.accent} opacity={0.15} density={7} strokeWidth={1.3} />
@@ -392,6 +400,8 @@ export const mihrabDefinition: ThemeDefinition = {
       options: [
         { value: 'niche', label: 'Mihrab niche' },
         { value: 'mosque', label: 'Mosque silhouette' },
+        { value: 'khatam', label: 'Khatam (star and cross)' },
+        { value: 'hex', label: 'Six-fold stars' },
         { value: 'stars', label: 'Star lattice' },
         { value: 'girih', label: 'Girih strapwork' },
         { value: 'quatrefoil', label: 'Quatrefoil lattice' },
