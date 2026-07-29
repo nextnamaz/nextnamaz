@@ -27,6 +27,12 @@ export function parseDisplayText(
       begins:  raw.begins  ?? preset.labels.begins,
       next:    raw.next    ?? preset.labels.next,
       now:     raw.now     ?? preset.labels.now,
+      until:     raw.until     ?? preset.labels.until,
+      remaining: raw.remaining ?? preset.labels.remaining,
+      elapsed:   raw.elapsed   ?? preset.labels.elapsed,
+      today:     raw.today     ?? preset.labels.today,
+      jumuah:    raw.jumuah    ?? preset.labels.jumuah,
+      adhan:     raw.adhan     ?? preset.labels.adhan,
     },
   };
 }

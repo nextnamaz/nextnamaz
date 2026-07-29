@@ -1,5 +1,6 @@
 import type { PrayerTimeEntry } from '@/types/prayer';
 import type { DisplayLocale } from '@/lib/display-locale';
+import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 
 /**
  * Fixed sample data for theme previews — the settings thumbnails and the
@@ -24,7 +25,7 @@ export const PREVIEW_LOCALE: DisplayLocale = {
     maghrib: 'Maghrib',
     isha: 'Isha',
   },
-  labels: { prayer: 'Prayer', begins: 'Begins', iqamah: 'Iqamah', next: 'Next', now: 'Now' },
+  labels: DEFAULT_TRANSLATIONS.en.labels,
   use24Hour: true,
   showSeconds: true,
   dateFormat: 'DD/MM/YYYY',

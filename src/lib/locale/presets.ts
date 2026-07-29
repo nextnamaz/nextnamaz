@@ -20,39 +20,39 @@ export const LANGUAGES: LanguageOption[] = [
 export const DEFAULT_TRANSLATIONS: Record<SupportedLocale, DisplayTextConfig> = {
   en: {
     prayers: { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Prayer', iqamah: 'Iqamah', begins: 'Begins', next: 'Next', now: 'Now' },
+    labels:  { prayer: 'Prayer', iqamah: 'Iqamah', begins: 'Begins', next: 'Next', now: 'Now', until: 'in', remaining: 'remaining', elapsed: 'passed', today: 'Today', jumuah: "Jumu'ah", adhan: 'Adhan' },
   },
   ar: {
     prayers: { fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' },
-    labels:  { prayer: 'الصلاة', iqamah: 'الإقامة', begins: 'يبدأ', next: 'التالي', now: 'الآن' },
+    labels:  { prayer: 'الصلاة', iqamah: 'الإقامة', begins: 'يبدأ', next: 'التالي', now: 'الآن', until: 'بعد', remaining: 'متبقٍ', elapsed: 'انقضى', today: 'اليوم', jumuah: 'الجمعة', adhan: 'الأذان' },
   },
   bs: {
     prayers: { fajr: 'Zora', sunrise: 'Izlazak sunca', dhuhr: 'Podne', asr: 'Ikindija', maghrib: 'Akšam', isha: 'Jacija' },
-    labels:  { prayer: 'Namaz', iqamah: 'Ikamet', begins: 'Počinje', next: 'Sljedeći', now: 'Sada' },
+    labels:  { prayer: 'Namaz', iqamah: 'Ikamet', begins: 'Počinje', next: 'Sljedeći', now: 'Sada', until: 'za', remaining: 'preostalo', elapsed: 'prošlo', today: 'Danas', jumuah: 'Džuma', adhan: 'Ezan' },
   },
   sv: {
     prayers: { fajr: 'Fajr', sunrise: 'Soluppgång', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Bön', iqamah: 'Iqamah', begins: 'Börjar', next: 'Nästa', now: 'Nu' },
+    labels:  { prayer: 'Bön', iqamah: 'Iqamah', begins: 'Börjar', next: 'Nästa', now: 'Nu', until: 'om', remaining: 'kvar', elapsed: 'passerat', today: 'Idag', jumuah: 'Fredagsbön', adhan: 'Adhan' },
   },
   tr: {
     prayers: { fajr: 'İmsak', sunrise: 'Güneş', dhuhr: 'Öğle', asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı' },
-    labels:  { prayer: 'Namaz', iqamah: 'Kamet', begins: 'Başlar', next: 'Sonraki', now: 'Şimdi' },
+    labels:  { prayer: 'Namaz', iqamah: 'Kamet', begins: 'Başlar', next: 'Sonraki', now: 'Şimdi', until: 'sonra', remaining: 'kaldı', elapsed: 'geçti', today: 'Bugün', jumuah: 'Cuma', adhan: 'Ezan' },
   },
   ur: {
     prayers: { fajr: 'فجر', sunrise: 'طلوع آفتاب', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء' },
-    labels:  { prayer: 'نماز', iqamah: 'اقامت', begins: 'شروع', next: 'اگلی', now: 'ابھی' },
+    labels:  { prayer: 'نماز', iqamah: 'اقامت', begins: 'شروع', next: 'اگلی', now: 'ابھی', until: 'میں', remaining: 'باقی', elapsed: 'گزر گیا', today: 'آج', jumuah: 'جمعہ', adhan: 'اذان' },
   },
   de: {
     prayers: { fajr: 'Fajr', sunrise: 'Sonnenaufgang', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Gebet', iqamah: 'Iqama', begins: 'Beginnt', next: 'Nächstes', now: 'Jetzt' },
+    labels:  { prayer: 'Gebet', iqamah: 'Iqama', begins: 'Beginnt', next: 'Nächstes', now: 'Jetzt', until: 'in', remaining: 'verbleibend', elapsed: 'vergangen', today: 'Heute', jumuah: 'Freitagsgebet', adhan: 'Adhan' },
   },
   fr: {
     prayers: { fajr: 'Fajr', sunrise: 'Lever du soleil', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Prière', iqamah: 'Iqama', begins: 'Commence', next: 'Suivante', now: 'Maintenant' },
+    labels:  { prayer: 'Prière', iqamah: 'Iqama', begins: 'Commence', next: 'Suivante', now: 'Maintenant', until: 'dans', remaining: 'restant', elapsed: 'écoulé', today: "Aujourd'hui", jumuah: 'Joumouʿa', adhan: 'Adhan' },
   },
   es: {
     prayers: { fajr: 'Fajr', sunrise: 'Amanecer', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' },
-    labels:  { prayer: 'Oración', iqamah: 'Iqama', begins: 'Comienza', next: 'Siguiente', now: 'Ahora' },
+    labels:  { prayer: 'Oración', iqamah: 'Iqama', begins: 'Comienza', next: 'Siguiente', now: 'Ahora', until: 'en', remaining: 'restante', elapsed: 'transcurrido', today: 'Hoy', jumuah: "Yumu'a", adhan: 'Adhan' },
   },
 };
 

@@ -17,6 +17,12 @@ const LABEL_KEYS: { key: keyof DisplayTextConfig['labels']; label: string }[] = 
   { key: 'begins', label: 'Begins' },
   { key: 'next', label: 'Next' },
   { key: 'now', label: 'Now' },
+  { key: 'until', label: 'In / until' },
+  { key: 'remaining', label: 'Remaining' },
+  { key: 'elapsed', label: 'Passed' },
+  { key: 'today', label: 'Today' },
+  { key: 'jumuah', label: "Jumu'ah" },
+  { key: 'adhan', label: 'Adhan' },
 ];
 
 interface LanguageTabProps {

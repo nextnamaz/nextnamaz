@@ -205,6 +205,114 @@ export function MihrabNiche({ fill, edge }: NicheProps) {
   );
 }
 
+interface SilhouetteProps {
+  color: string;
+  opacity?: number;
+}
+
+/**
+ * Mosque skyline: onion dome flanked by half-domes and two minarets, sitting
+ * on an arcaded wall. Drawn rather than photographed, so it costs nothing to
+ * load and stays crisp at any size.
+ */
+export function MosqueSilhouette({ color, opacity = 0.16 }: SilhouetteProps) {
+  const id = useSvgId('mosque');
+
+  /** Onion dome centred on cx, springing at y, half-width w, height h. */
+  const dome = (cx: number, y: number, w: number, h: number) =>
+    `M${cx - w},${y} C${cx - w},${y - h * 0.55} ${cx - w * 0.72},${y - h * 0.82} ${cx},${y - h}` +
+    ` C${cx + w * 0.72},${y - h * 0.82} ${cx + w},${y - h * 0.55} ${cx + w},${y} Z`;
+
+  /** Minaret: shaft, balcony, cap and finial. */
+  const minaret = (cx: number, top: number, w: number) =>
+    `M${cx - w},200 L${cx - w},${top + 10} L${cx - w * 1.5},${top + 10} L${cx - w * 1.5},${top + 4}` +
+    ` L${cx - w * 0.55},${top + 4} C${cx - w * 0.55},${top - 8} ${cx + w * 0.55},${top - 8} ${cx + w * 0.55},${top + 4}` +
+    ` L${cx + w * 1.5},${top + 4} L${cx + w * 1.5},${top + 10} L${cx + w},${top + 10} L${cx + w},200 Z`;
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 400 200"
+      preserveAspectRatio="xMidYMax meet"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.85" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.25" />
+        </linearGradient>
+      </defs>
+      <g fill={`url(#${id})`}>
+        {/* Wall */}
+        <rect x="46" y="150" width="308" height="50" />
+        {/* Half domes */}
+        <path d={dome(110, 152, 30, 34)} />
+        <path d={dome(290, 152, 30, 34)} />
+        {/* Main dome and drum */}
+        <rect x="168" y="128" width="64" height="26" />
+        <path d={dome(200, 130, 42, 56)} />
+        {/* Finial */}
+        <rect x="198.4" y="60" width="3.2" height="16" />
+        <circle cx="200" cy="57" r="5" />
+        {/* Minarets */}
+        <path d={minaret(66, 84, 7)} />
+        <path d={minaret(334, 84, 7)} />
+        <path d={dome(66, 84, 9, 14)} />
+        <path d={dome(334, 84, 9, 14)} />
+      </g>
+      {/* Arcade cut into the wall */}
+      <g fill="#000" opacity="0.55">
+        {[96, 148, 200, 252, 304].map((x) => (
+          <path
+            key={x}
+            d={`M${x - 11},200 L${x - 11},178 C${x - 11},166 ${x + 11},166 ${x + 11},178 L${x + 11},200 Z`}
+          />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+interface WatermarkProps {
+  text: string;
+  color: string;
+  opacity?: number;
+  font?: string;
+}
+
+/** Oversized calligraphy sitting behind the board as a watermark. */
+export function CalligraphyWatermark({
+  text,
+  color,
+  opacity = 0.06,
+  font = 'var(--font-ruqaa)',
+}: WatermarkProps) {
+  if (!text) return null;
+  return (
+    <div
+      aria-hidden
+      dir="auto"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        fontFamily: font,
+        fontSize: '30cqmin',
+        lineHeight: 1,
+        whiteSpace: 'nowrap',
+        color,
+        opacity,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
 interface ShamsaProps {
   color: string;
   size: string;

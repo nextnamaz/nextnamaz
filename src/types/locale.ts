@@ -25,6 +25,13 @@ export interface UILabelTranslations {
   begins: string;
   next: string;
   now: string;
+  /** Joins a prayer to a countdown: "Fajr <until> 03:12:00". */
+  until: string;
+  remaining: string;
+  elapsed: string;
+  today: string;
+  jumuah: string;
+  adhan: string;
 }
 
 export interface DisplayTextConfig {

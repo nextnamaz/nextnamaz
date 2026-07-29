@@ -1,5 +1,5 @@
 import type { PrayerName } from '@/types/prayer';
-import type { DateFormatOption, SupportedLocale } from '@/types/locale';
+import type { DateFormatOption, SupportedLocale, UILabelTranslations } from '@/types/locale';
 import { DATE_FORMAT_OPTIONS, DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { parseDisplayText } from '@/lib/locale/helpers';
 import { format } from 'date-fns';
@@ -22,13 +22,8 @@ const DATE_FNS_LOCALES: Record<string, Locale> = {
 
 export interface DisplayLocale {
   prayerNames: Record<PrayerName, string>;
-  labels: {
-    prayer: string;
-    begins: string;
-    iqamah: string;
-    next: string;
-    now: string;
-  };
+  /** The full label vocabulary, so themes can vary their phrasing. */
+  labels: UILabelTranslations;
   use24Hour: boolean;
   showSeconds: boolean;
   dateFormat: DateFormatOption;
