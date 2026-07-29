@@ -74,6 +74,159 @@ export function StarField({ color, opacity = 0.16, density = 7, strokeWidth = 1.
   );
 }
 
+interface FieldProps {
+  color: string;
+  opacity?: number;
+  density?: number;
+  strokeWidth?: number;
+}
+
+/**
+ * Girih strapwork: octagons locked together by the diagonal straps that run
+ * between them — the trellis under most Persian and Anatolian tilework.
+ */
+export function GirihField({ color, opacity = 0.16, density = 6, strokeWidth = 1.4 }: FieldProps) {
+  const id = useSvgId('girih');
+  const tile = 1000 / density;
+  const h = tile / 2;
+  const r = tile * 0.30;
+  // Regular octagon around the tile centre.
+  const oct = Array.from({ length: 8 }, (_, i) => {
+    const a = (Math.PI / 4) * i + Math.PI / 8;
+    return `${(h + r * Math.cos(a)).toFixed(2)},${(h + r * Math.sin(a)).toFixed(2)}`;
+  });
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <defs>
+        <pattern id={id} width={tile} height={tile} patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={color} strokeWidth={strokeWidth}>
+            <path d={`M${oct.join('L')}Z`} />
+            {/* Straps carrying the octagon out to its neighbours */}
+            <path d={`M0,0 L${oct[5]}`} />
+            <path d={`M${tile},0 L${oct[6]}`} />
+            <path d={`M${tile},${tile} L${oct[1]}`} />
+            <path d={`M0,${tile} L${oct[2]}`} />
+            {/* Small squares where four straps meet */}
+            <path d={starPath(0, 0, tile * 0.1, 4)} />
+            <path d={starPath(tile, 0, tile * 0.1, 4)} />
+            <path d={starPath(0, tile, tile * 0.1, 4)} />
+            <path d={starPath(tile, tile, tile * 0.1, 4)} />
+          </g>
+        </pattern>
+      </defs>
+      <rect width="1000" height="1000" fill={`url(#${id})`} />
+    </svg>
+  );
+}
+
+/** Quatrefoil lattice — interlocking four-lobed medallions. */
+export function QuatrefoilField({ color, opacity = 0.16, density = 7, strokeWidth = 1.4 }: FieldProps) {
+  const id = useSvgId('quatrefoil');
+  const tile = 1000 / density;
+  const h = tile / 2;
+  const lobe = tile * 0.26;
+
+  const flower = (cx: number, cy: number) =>
+    [
+      `M${cx},${cy - lobe * 2}`,
+      `A${lobe},${lobe} 0 0 1 ${cx + lobe * 2},${cy}`,
+      `A${lobe},${lobe} 0 0 1 ${cx},${cy + lobe * 2}`,
+      `A${lobe},${lobe} 0 0 1 ${cx - lobe * 2},${cy}`,
+      `A${lobe},${lobe} 0 0 1 ${cx},${cy - lobe * 2}`,
+      'Z',
+    ].join(' ');
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <defs>
+        <pattern id={id} width={tile} height={tile} patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={color} strokeWidth={strokeWidth}>
+            <path d={flower(h, h)} />
+            <path d={flower(0, 0)} />
+            <path d={flower(tile, 0)} />
+            <path d={flower(0, tile)} />
+            <path d={flower(tile, tile)} />
+          </g>
+        </pattern>
+      </defs>
+      <rect width="1000" height="1000" fill={`url(#${id})`} />
+    </svg>
+  );
+}
+
+/**
+ * Muqarnas: the stalactite vaulting over a mihrab, as tiers of nested cells
+ * stepping outward, anchored to the top of the screen.
+ */
+export function MuqarnasVault({ color, opacity = 0.16, strokeWidth = 1.4 }: FieldProps) {
+  const tiers = [
+    { y: 0, count: 5, h: 46 },
+    { y: 46, count: 6, h: 44 },
+    { y: 90, count: 8, h: 42 },
+    { y: 132, count: 10, h: 40 },
+  ];
+
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 400 172"
+      preserveAspectRatio="none"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <g fill="none" stroke={color} strokeWidth={strokeWidth}>
+        {tiers.map((tier) =>
+          Array.from({ length: tier.count }, (_, i) => {
+            const w = 400 / tier.count;
+            const cx = w * (i + 0.5);
+            const half = w * 0.46;
+            return (
+              <path
+                key={`${tier.y}-${i}`}
+                d={`M${cx - half},${tier.y + tier.h} L${cx - half},${tier.y + tier.h * 0.42}` +
+                  ` Q${cx - half},${tier.y} ${cx},${tier.y}` +
+                  ` Q${cx + half},${tier.y} ${cx + half},${tier.y + tier.h * 0.42}` +
+                  ` L${cx + half},${tier.y + tier.h}`}
+              />
+            );
+          })
+        )}
+      </g>
+    </svg>
+  );
+}
+
+/** A single large shamsa medallion, centred behind the board. */
+export function RosetteMedallion({ color, opacity = 0.14, strokeWidth = 1.2 }: FieldProps) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 400 400"
+      preserveAspectRatio="xMidYMid meet"
+      style={{ ...FILL_LAYER, opacity }}
+    >
+      <g fill="none" stroke={color} strokeWidth={strokeWidth}>
+        <path d={starPath(200, 200, 190, 16)} />
+        <path d={starPath(200, 200, 155, 16)} />
+        <path d={starPath(200, 200, 120, 8)} />
+        <path d={starPath(200, 200, 86, 8)} />
+        <circle cx="200" cy="200" r="52" />
+        <circle cx="200" cy="200" r="26" />
+      </g>
+    </svg>
+  );
+}
+
 interface ArchProps {
   stroke: string;
   fill?: string;

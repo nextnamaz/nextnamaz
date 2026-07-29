@@ -14,7 +14,15 @@ import {
   readString,
   readText,
 } from './config';
-import { MihrabNiche, MosqueSilhouette, StarField } from './ornament';
+import {
+  GirihField,
+  MihrabNiche,
+  MosqueSilhouette,
+  MuqarnasVault,
+  QuatrefoilField,
+  RosetteMedallion,
+  StarField,
+} from './ornament';
 import { FlipClock, Verse, PrayerLabel, formatCountdown, countdownPhrase } from '../parts';
 
 // A dark prayer-hall board: the mihrab sunk into the ground tone-on-tone, a
@@ -157,8 +165,22 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
           <MosqueSilhouette color={palette.accent} opacity={0.13} />
         </div>
       )}
-      {backdrop === 'pattern' && (
+      {backdrop === 'stars' && (
         <StarField color={palette.accent} opacity={0.14} density={9} strokeWidth={1.3} />
+      )}
+      {backdrop === 'girih' && (
+        <GirihField color={palette.accent} opacity={0.15} density={7} strokeWidth={1.3} />
+      )}
+      {backdrop === 'quatrefoil' && (
+        <QuatrefoilField color={palette.accent} opacity={0.14} density={8} strokeWidth={1.3} />
+      )}
+      {backdrop === 'muqarnas' && (
+        <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '46%' }}>
+          <MuqarnasVault color={palette.accent} opacity={0.18} strokeWidth={1.3} />
+        </div>
+      )}
+      {backdrop === 'rosette' && (
+        <RosetteMedallion color={palette.accent} opacity={0.12} strokeWidth={1.1} />
       )}
 
       <div style={column}>
@@ -370,7 +392,11 @@ export const mihrabDefinition: ThemeDefinition = {
       options: [
         { value: 'niche', label: 'Mihrab niche' },
         { value: 'mosque', label: 'Mosque silhouette' },
-        { value: 'pattern', label: 'Geometric pattern' },
+        { value: 'stars', label: 'Star lattice' },
+        { value: 'girih', label: 'Girih strapwork' },
+        { value: 'quatrefoil', label: 'Quatrefoil lattice' },
+        { value: 'muqarnas', label: 'Muqarnas vault' },
+        { value: 'rosette', label: 'Rosette medallion' },
         { value: 'none', label: 'Plain' },
       ],
     },
