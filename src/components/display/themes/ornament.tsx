@@ -273,46 +273,6 @@ export function MosqueSilhouette({ color, opacity = 0.16 }: SilhouetteProps) {
   );
 }
 
-interface WatermarkProps {
-  text: string;
-  color: string;
-  opacity?: number;
-  font?: string;
-}
-
-/** Oversized calligraphy sitting behind the board as a watermark. */
-export function CalligraphyWatermark({
-  text,
-  color,
-  opacity = 0.06,
-  font = 'var(--font-ruqaa)',
-}: WatermarkProps) {
-  if (!text) return null;
-  return (
-    <div
-      aria-hidden
-      dir="auto"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'none',
-        overflow: 'hidden',
-        fontFamily: font,
-        fontSize: '30cqmin',
-        lineHeight: 1,
-        whiteSpace: 'nowrap',
-        color,
-        opacity,
-      }}
-    >
-      {text}
-    </div>
-  );
-}
-
 interface ShamsaProps {
   color: string;
   size: string;

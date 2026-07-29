@@ -14,7 +14,7 @@ import {
   readString,
   readText,
 } from './config';
-import { CalligraphyWatermark, MihrabNiche, MosqueSilhouette } from './ornament';
+import { MihrabNiche, MosqueSilhouette, StarField } from './ornament';
 import { FlipClock, Verse, PrayerLabel, formatCountdown, countdownPhrase } from '../parts';
 
 // A dark prayer-hall board: the mihrab sunk into the ground tone-on-tone, a
@@ -157,8 +157,8 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
           <MosqueSilhouette color={palette.accent} opacity={0.13} />
         </div>
       )}
-      {backdrop === 'calligraphy' && (
-        <CalligraphyWatermark text={ayahTop} color={palette.text} opacity={0.05} />
+      {backdrop === 'pattern' && (
+        <StarField color={palette.accent} opacity={0.14} density={9} strokeWidth={1.3} />
       )}
 
       <div style={column}>
@@ -370,7 +370,7 @@ export const mihrabDefinition: ThemeDefinition = {
       options: [
         { value: 'niche', label: 'Mihrab niche' },
         { value: 'mosque', label: 'Mosque silhouette' },
-        { value: 'calligraphy', label: 'Calligraphy' },
+        { value: 'pattern', label: 'Geometric pattern' },
         { value: 'none', label: 'Plain' },
       ],
     },
