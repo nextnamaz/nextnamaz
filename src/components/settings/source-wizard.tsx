@@ -407,8 +407,8 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                   <div
                     key={source}
                     className={cn(
-                      'rounded-xl border-2 transition-all',
-                      active ? 'border-primary' : 'border-muted hover:border-primary/40'
+                      'rounded-md border transition-colors',
+                      active ? 'border-foreground' : 'border-rule hover:border-foreground/40'
                     )}
                   >
                     <button
@@ -416,10 +416,10 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                       onClick={() => setSelected(source)}
                       className="w-full p-3 text-left"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <span className="font-medium">{meta.title}</span>
                         {i === 0 && (
-                          <span className="text-[10px] font-semibold uppercase tracking-wide rounded-full bg-primary/10 text-primary px-2 py-0.5">
+                          <span className="eyebrow rounded-sm border border-rule px-1.5 py-0.5 text-muted-foreground">
                             Recommended
                           </span>
                         )}

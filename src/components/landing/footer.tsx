@@ -6,29 +6,44 @@ interface FooterProps {
   getStartedLabel?: string;
 }
 
+const links = [
+  { href: 'https://github.com/nextnamaz', label: 'GitHub', Icon: Github },
+  { href: 'https://se.linkedin.com/in/ismail-sacic', label: 'LinkedIn', Icon: Linkedin },
+  { href: 'https://ismail.sacic.dev/', label: 'Website', Icon: Globe },
+];
+
 export function Footer({ getStartedLabel = 'Get Started' }: FooterProps) {
   return (
-    <footer className="border-t border-border py-10 px-6">
-      <div className="max-w-5xl mx-auto flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Logo variant="round" size="sm" />
-            <span className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} NextNamaz</span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/s" className="hover:text-foreground transition-colors">{getStartedLabel}</Link>
-          </div>
+    <footer className="px-6 py-12">
+      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-8">
+        <div className="flex items-center gap-3">
+          <Logo variant="round" size="sm" />
+          <span className="eyebrow text-muted-foreground">
+            &copy; {new Date().getFullYear()} NextNamaz
+          </span>
         </div>
-        <div className="flex items-center justify-center gap-5">
-          <a href="https://github.com/nextnamaz" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-            <Github className="w-5 h-5" />
-          </a>
-          <a href="https://se.linkedin.com/in/ismail-sacic" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-            <Linkedin className="w-5 h-5" />
-          </a>
-          <a href="https://ismail.sacic.dev/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-            <Globe className="w-5 h-5" />
-          </a>
+
+        <div className="flex items-center gap-7">
+          <Link
+            href="/s"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {getStartedLabel}
+          </Link>
+          <div className="flex items-center gap-4">
+            {links.map(({ href, label, Icon }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

@@ -141,13 +141,16 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-8 p-8 text-center">
         <Logo size="lg" />
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3">Scan to set up this screen</h1>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto">
+        <div className="max-w-xl">
+          <p className="eyebrow text-muted-foreground border-b border-rule pb-2.5 mb-6">
+            Step 2 of 2 &middot; On your phone
+          </p>
+          <h1 className="text-4xl sm:text-5xl tracking-[-0.015em] mb-4">Scan to set up this screen</h1>
+          <p className="text-lg text-muted-foreground leading-relaxed">
             Open your phone camera and scan the code. Prayer times appear here the moment you save.
           </p>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg">
+        <div className="bg-white p-6 rounded-md border border-rule">
           <QRCodeSVG value={settingsUrl} size={280} level="M" />
         </div>
         <p className="text-sm text-muted-foreground font-mono">{settingsUrl}</p>
@@ -185,9 +188,9 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
 
       {overlayVisible && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8" dir="ltr">
-          <div className="bg-background rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-5 max-w-sm text-center">
-            <h2 className="text-xl font-semibold">Screen settings</h2>
-            <div className="bg-white p-4 rounded-xl">
+          <div className="bg-background rounded-lg border border-rule shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] p-8 flex flex-col items-center gap-5 max-w-sm text-center">
+            <h2 className="text-2xl">Screen settings</h2>
+            <div className="bg-white p-4 rounded-md border border-rule">
               <QRCodeSVG value={settingsUrl} size={180} level="M" />
             </div>
             <p className="text-sm text-muted-foreground">

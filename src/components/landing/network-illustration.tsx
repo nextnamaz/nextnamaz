@@ -38,18 +38,18 @@ const connections: [number, number][] = [
   [1, 3], // Göteborg - Malmö
 ];
 
-const dotSize = { lg: 8, md: 6, sm: 4 };
+const dotSize = { lg: 4.5, md: 3.5, sm: 2.75 };
 
+/* Rendered on the inverted ink panel. Cartographic, not decorative:
+   a landmass, hairline routes, and precise markers — no glow stacks. */
 const c = {
-  fill: '#FDF4DC',
-  stroke: '#E8A81730',
-  line: '#E8A81740',
-  glow1: '#E8A81714',
-  glow3: '#E8A81733',
+  fill: '#332D1E',
+  stroke: '#E8A81766',
+  line: '#E8A81759',
+  ring: '#E8A81773',
   dot: '#E8A817',
-  pulse: '#E8A81750',
-  text: '#1A1A1A',
-  textMuted: '#78716C',
+  text: '#FBFAF7',
+  textMuted: '#FBFAF799',
 };
 
 const emptySubscribe = () => () => {};
@@ -105,8 +105,8 @@ export function NetworkIllustration() {
             from={cities[from].coords}
             to={cities[to].coords}
             stroke={c.line}
-            strokeWidth={1.5}
-            strokeDasharray="5 4"
+            strokeWidth={1}
+            strokeDasharray="3 5"
             strokeLinecap="round"
           />
         ))}
@@ -116,22 +116,16 @@ export function NetworkIllustration() {
           const r = dotSize[city.size];
           return (
             <Marker key={`city-${i}`} coordinates={city.coords}>
-              <circle r={r * 2.5} fill={c.glow1} />
-              <circle r={r} fill={c.glow3} />
-              <circle r={r * 0.5} fill={c.dot} />
-              {city.size === 'lg' && (
-                <circle r={r} fill="none" stroke={c.pulse} strokeWidth={0.8}>
-                  <animate attributeName="r" from={String(r)} to={String(r * 3)} dur="2.5s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" from="0.5" to="0" dur="2.5s" repeatCount="indefinite" />
-                </circle>
-              )}
+              <circle r={r * 2.2} fill="none" stroke={c.ring} strokeWidth={0.75} />
+              <circle r={r} fill={c.dot} />
               <text
                 textAnchor="middle"
-                y={r + 14}
+                y={r + 15}
                 style={{
-                  fontSize: city.size === 'lg' ? 13 : city.size === 'md' ? 11 : 10,
+                  fontSize: city.size === 'lg' ? 12 : city.size === 'md' ? 10.5 : 9.5,
                   fontFamily: 'var(--font-inter), system-ui, sans-serif',
-                  fontWeight: city.size === 'lg' ? 600 : 500,
+                  fontWeight: 500,
+                  letterSpacing: city.size === 'lg' ? 0.2 : 0.1,
                   fill: city.size === 'sm' ? c.textMuted : c.text,
                 }}
               >

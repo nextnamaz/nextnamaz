@@ -472,6 +472,15 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* This theme uses <h2> for table cells. Opt them out of the
+           site's editorial heading styles — a prayer table is signage,
+           not an article. */
+        .default-theme :is(h1, h2, h3, h4, h5, h6) {
+          font-family: inherit;
+          letter-spacing: normal;
+          text-wrap: initial;
+        }
+
         /* ---- Portrait Grid ---- */
         .dt-portrait {
           display: grid;

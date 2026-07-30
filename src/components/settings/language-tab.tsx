@@ -71,24 +71,24 @@ export function LanguageTab({
   };
 
   return (
-    <Card>
+    <Card className="border border-rule">
       <CardHeader>
-        <CardTitle>Language</CardTitle>
+        <CardTitle className="text-lg">Language</CardTitle>
         <CardDescription>Choose a language and customize every text on the screen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Choose a language</Label>
+          <Label className="eyebrow text-muted-foreground">Choose a language</Label>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
                 type="button"
                 onClick={() => handleLanguageSelect(lang.code)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+                className={`inline-flex items-center gap-2 rounded-md border px-3.5 py-2 text-sm transition-colors ${
                   locale === lang.code
-                    ? 'border-primary bg-primary/10 text-primary font-medium'
-                    : 'border-border hover:border-primary/50 hover:bg-muted'
+                    ? 'border-foreground bg-foreground text-background font-medium'
+                    : 'border-rule hover:border-foreground/40 hover:bg-muted'
                 }`}
               >
                 <span>{lang.flag}</span>
@@ -103,7 +103,7 @@ export function LanguageTab({
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Customize texts</Label>
+            <Label className="eyebrow text-muted-foreground">Customize texts</Label>
             <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs">
               <RotateCcw className="size-3 mr-1" />
               Reset to defaults
