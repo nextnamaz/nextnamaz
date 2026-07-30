@@ -13,7 +13,7 @@ export function Navbar({ getStartedLabel = 'Get Started' }: NavbarProps) {
         <Link href="/">
           <Logo size="sm" />
         </Link>
-        <Button asChild size="sm" className="rounded-full">
+        <Button asChild size="sm">
           <Link href="/s">
             {getStartedLabel}
           </Link>

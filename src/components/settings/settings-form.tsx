@@ -202,7 +202,7 @@ export function SettingsForm({ screen }: SettingsFormProps) {
                           <Input
                             id={`time-${prayer}`}
                             type="time"
-                            className="w-32 text-base"
+                            className="w-40 text-base"
                             value={form.times[prayer]}
                             onChange={(e) =>
                               setForm((prev) => ({

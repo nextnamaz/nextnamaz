@@ -58,7 +58,7 @@ function SetupInner() {
           You&apos;ll finish the setup from your phone — no account needed.
         </p>
       </div>
-      <Button size="lg" className="rounded-full px-10 h-14 text-lg" onClick={start} disabled={creating} autoFocus>
+      <Button size="lg" className="px-9 h-13 text-base" onClick={start} disabled={creating} autoFocus>
         <MonitorUp className="w-5 h-5 mr-2" />
         {creating ? 'Preparing…' : 'Start'}
       </Button>
