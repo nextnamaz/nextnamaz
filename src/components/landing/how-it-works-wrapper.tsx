@@ -8,10 +8,10 @@ import dynamic from 'next/dynamic';
 const HowItWorks = dynamic(() => import('./how-it-works').then((m) => m.HowItWorks), {
   ssr: false,
   loading: () => (
-    <div className="grid gap-x-10 gap-y-12 sm:grid-cols-3">
+    <div className="grid gap-x-16 gap-y-20 sm:grid-cols-3 lg:gap-x-20">
       {[0, 1, 2].map((i) => (
         <div key={i} className="flex flex-col">
-          <div className="mb-6 h-[190px] rounded-xl border border-border bg-secondary/40 sm:h-[170px]" />
+          <div className="mb-7 h-[230px] rounded-2xl border border-border bg-secondary/40" />
           <div className="h-5" />
         </div>
       ))}

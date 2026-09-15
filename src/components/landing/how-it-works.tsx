@@ -41,25 +41,45 @@ function PairingScreen() {
  */
 function PhoneSettings() {
   return (
-    <div className="relative h-full aspect-9/16 rounded-[1.4rem] bg-[#1a1a1a] p-1 shadow-lg">
-      <div className="h-full w-full overflow-hidden rounded-[1.1rem] bg-background">
+    <div className="relative h-full aspect-[10/19] rounded-[1.7rem] bg-[#0B0B0D] p-[3px] shadow-[0_14px_30px_-12px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
+      {/* Side buttons, so the silhouette reads as a handset and not a card. */}
+      <span
+        aria-hidden
+        className="absolute -left-[1.5px] top-[22%] h-[7%] w-[2px] rounded-l bg-[#1C1C21]"
+      />
+      <span
+        aria-hidden
+        className="absolute -left-[1.5px] top-[33%] h-[11%] w-[2px] rounded-l bg-[#1C1C21]"
+      />
+      <span
+        aria-hidden
+        className="absolute -right-[1.5px] top-[27%] h-[13%] w-[2px] rounded-r bg-[#1C1C21]"
+      />
+
+      <div className="relative h-full w-full overflow-hidden rounded-[1.5rem] bg-background">
+        {/* Dynamic island */}
+        <div
+          aria-hidden
+          className="absolute left-1/2 top-[3px] z-10 h-[7px] w-[26%] -translate-x-1/2 rounded-full bg-[#0B0B0D]"
+        />
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-2.5 py-2">
-          <span className="text-[7px] font-bold tracking-tight">Screen settings</span>
-          <span className="rounded-full bg-primary px-1.5 py-0.5 text-[6px] font-semibold text-primary-foreground">
+        <div className="flex items-center justify-between border-b border-border px-2 pb-1.5 pt-[13px]">
+          <span className="text-[6.5px] font-bold tracking-tight">Screen settings</span>
+          <span className="rounded-full bg-primary px-1.5 py-[1px] text-[5.5px] font-semibold text-primary-foreground">
             Save
           </span>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-2.5 py-2">
+        <div className="flex gap-1 px-2 py-1.5">
           {['Times', 'Language', 'Theme'].map((tab, i) => (
             <span
               key={tab}
               className={
                 i === 0
-                  ? 'rounded-full bg-primary px-1.5 py-0.5 text-[6px] font-semibold text-primary-foreground'
-                  : 'rounded-full bg-muted px-1.5 py-0.5 text-[6px] font-medium text-muted-foreground'
+                  ? 'rounded-full bg-primary px-1.5 py-[1px] text-[5.5px] font-semibold text-primary-foreground'
+                  : 'rounded-full bg-muted px-1.5 py-[1px] text-[5.5px] font-medium text-muted-foreground'
               }
             >
               {tab}
@@ -68,17 +88,23 @@ function PhoneSettings() {
         </div>
 
         {/* Time rows */}
-        <div className="space-y-1 px-2.5">
+        <div className="space-y-[3px] px-2">
           {PREVIEW_PRAYERS.filter((p) => p.name !== 'sunrise').map((p) => (
             <div
               key={p.name}
-              className="flex items-center justify-between rounded border border-border px-1.5 py-1"
+              className="flex items-center justify-between rounded-sm border border-border px-1.5 py-[2.5px]"
             >
-              <span className="text-[6.5px] text-muted-foreground">{p.displayName}</span>
-              <span className="text-[6.5px] font-semibold tabular-nums">{p.time}</span>
+              <span className="text-[6px] text-muted-foreground">{p.displayName}</span>
+              <span className="text-[6px] font-semibold tabular-nums">{p.time}</span>
             </div>
           ))}
         </div>
+
+        {/* Home indicator */}
+        <div
+          aria-hidden
+          className="absolute bottom-[4px] left-1/2 h-[2px] w-[28%] -translate-x-1/2 rounded-full bg-foreground/25"
+        />
       </div>
     </div>
   );
@@ -120,11 +146,11 @@ export function HowItWorks() {
   const t = LANDING_COPY.howItWorks;
 
   return (
-    <div className="grid gap-x-10 gap-y-12 sm:grid-cols-3">
+    <div className="grid gap-x-16 gap-y-20 sm:grid-cols-3 lg:gap-x-20">
       {t.steps.map((step, i) => (
         <div key={step.title} className="flex flex-col">
           {/* Stage: one height for all three, so the row reads as a sequence. */}
-          <div className="mb-6 flex h-[190px] items-center justify-center rounded-xl border border-border bg-secondary/40 p-4 sm:h-[170px]">
+          <div className="mb-7 flex h-[230px] items-center justify-center rounded-2xl border border-border bg-secondary/40 px-6 py-7">
             {VISUALS[i]}
           </div>
 
@@ -135,7 +161,7 @@ export function HowItWorks() {
               <Check className="ml-auto size-4 text-primary" strokeWidth={2.5} aria-hidden />
             )}
           </div>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
             {step.description}
           </p>
         </div>
