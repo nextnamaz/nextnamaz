@@ -82,13 +82,14 @@ export function ShowcaseDemo() {
         </TvFrame>
       </div>
 
-      {/* Sits beside the set, not over it: the live demo stays fully visible. */}
-      <PhoneFrame className="mb-5 w-[19%] min-w-[74px] max-w-[124px] shrink-0 -rotate-3">
+      {/* Sits beside the set, not over it: the live demo stays fully visible.
+          The screen is a photograph of the real setup on a phone, mid-flow. */}
+      <PhoneFrame className="mb-5 w-[21%] min-w-[78px] max-w-[150px] shrink-0 -rotate-3">
         <Image
-          src="/landing/settings-phone.png"
-          alt="The settings page on a phone, showing the prayer times tab"
+          src="/landing/phone-wizard.png"
+          alt="The setup on a phone, checking the day's prayer times before continuing"
           fill
-          sizes="124px"
+          sizes="150px"
           priority
           className="object-cover object-top"
         />

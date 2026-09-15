@@ -27,10 +27,10 @@ export const LANDING_COPY = {
     subtitle: 'If you can scan a QR code, you can do this.',
     steps: [
       {
-        /** The address itself, not "the link": that is the whole instruction. */
-        title: 'Open nextnamaz.com/s on the TV',
+        /** The address lives in the body; as a headline it read like a glitch. */
+        title: 'Open NextNamaz on the TV',
         description:
-          'Any TV browser, Fire Stick, Chromecast, tablet or old laptop. Press Start and a QR code appears.',
+          "In the TV's browser, go to nextnamaz.com/s. Any smart TV, Fire Stick, Chromecast or old laptop will do. Press Start and a QR code appears.",
       },
       {
         title: 'Scan the code with your phone',

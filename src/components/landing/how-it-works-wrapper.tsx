@@ -14,7 +14,7 @@ const HowItWorks = dynamic(() => import('./how-it-works').then((m) => m.HowItWor
           <span className="mb-4 flex size-9 items-center justify-center rounded-full bg-primary text-[15px] font-bold tabular-nums text-primary-foreground">
             {n}
           </span>
-          <div className="mb-5 h-[240px] rounded-2xl border border-border bg-secondary/40" />
+          <div className="mb-5 h-[320px] rounded-2xl border border-border bg-secondary/40" />
           <div className="h-5" />
         </div>
       ))}

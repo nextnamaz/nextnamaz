@@ -19,7 +19,7 @@ export function Footer({
 }: FooterProps) {
   return (
     <footer className="px-6 py-12">
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-8">
         <div className="flex items-center gap-3">
           <Logo variant="round" size="sm" />
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

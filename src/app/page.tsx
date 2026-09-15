@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { HowItWorksWrapper } from '@/components/landing/how-it-works-wrapper';
+import { HeroLattice } from '@/components/landing/hero-lattice';
 import { Reveal } from '@/components/landing/reveal';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
@@ -45,48 +46,48 @@ export default function HomePage() {
       />
       <Navbar getStartedLabel={t.nav.getStarted} />
 
-      {/* Hero: asymmetric split. The pitch on the left, the product itself on
-          the right. pt-24 clears the 64px fixed nav with room to spare; any
-          more and the hero floats halfway down the viewport. */}
-      <main className="px-6 pt-24 pb-16 sm:pb-20">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="lg:col-span-5">
-            {/* Two lines, no more. The text column is about 400px at lg and
-                up, and this six-word headline needs roughly 40px to break
-                after "on" rather than into three. Sized to the column, not
-                the viewport. */}
-            <h1 className="hero-in mb-6 font-heading text-balance text-[2.6rem] leading-[1.06] tracking-[-0.01em] sm:text-[3.4rem] sm:leading-[1.04] lg:text-[2.5rem] lg:leading-[1.08]">
-              {t.hero.title} {t.hero.titleBreak}
-            </h1>
+      {/* Hero: fills the first screen below the 64px nav. The pitch on the
+          left, the product on the right, the lattice behind both. */}
+      <main className="relative overflow-hidden px-6">
+        <HeroLattice />
+        <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-7xl items-center pt-24 pb-14 sm:pb-16">
+          <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-5">
+              {/* Two lines, no more. Sized to the column, not the viewport:
+                  about 400px at lg, 500px from xl. */}
+              <h1 className="hero-in mb-6 font-heading text-balance text-[2.6rem] leading-[1.06] tracking-[-0.01em] sm:text-[3.4rem] sm:leading-[1.04] lg:text-[2.5rem] lg:leading-[1.08] xl:text-[3rem]">
+                {t.hero.title} {t.hero.titleBreak}
+              </h1>
 
-            <p
-              className="hero-in mb-8 max-w-[44ch] text-lg leading-relaxed text-muted-foreground"
-              style={enterAt(90)}
-            >
-              {t.hero.subtitle}
-            </p>
+              <p
+                className="hero-in mb-8 max-w-[44ch] text-lg leading-relaxed text-muted-foreground"
+                style={enterAt(90)}
+              >
+                {t.hero.subtitle}
+              </p>
 
-            <div className="hero-in flex flex-col gap-3 sm:flex-row" style={enterAt(180)}>
-              <Button asChild size="lg" className="h-13 px-8 text-base">
-                <Link href="/s">
-                  {t.hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="h-13 px-7 text-base">
-                <Link href="#how">{t.hero.examples}</Link>
-              </Button>
+              <div className="hero-in flex flex-col gap-3 sm:flex-row" style={enterAt(180)}>
+                <Button asChild size="lg" className="h-13 px-8 text-base">
+                  <Link href="/s">
+                    {t.hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-13 px-7 text-base">
+                  <Link href="#how">{t.hero.examples}</Link>
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="hero-in lg:col-span-7" style={enterAt(260)}>
-            <ShowcaseWrapper />
+            <div className="hero-in lg:col-span-7" style={enterAt(260)}>
+              <ShowcaseWrapper />
+            </div>
           </div>
         </div>
       </main>
 
       {/* How it works: each step drawn with the real thing it describes. */}
       <section id="how" className="scroll-mt-24 border-t border-border px-6 py-20">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <Reveal>
             <h2 className="mb-2 font-heading text-3xl leading-tight sm:text-[2.5rem]">
               {t.howItWorks.title}
@@ -102,7 +103,7 @@ export default function HomePage() {
           columns: the steps above already use that family, and the same
           layout twice in a row is the templated rhythm this page avoids. */}
       <section className="border-t border-border bg-secondary/30 px-6 py-20">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-14">
           <Reveal className="lg:col-span-5">
             {/* Süleymaniye Mosque, Istanbul. Unsplash, Esra Afşar (QXSSrsI_2nQ) */}
             <Image
@@ -110,7 +111,7 @@ export default function HomePage() {
               alt="Domes and minarets of a mosque against an evening sky"
               width={1200}
               height={1500}
-              sizes="(max-width: 1024px) 100vw, 400px"
+              sizes="(max-width: 1024px) 100vw, 440px"
               className="aspect-4/5 w-full rounded-2xl object-cover"
             />
           </Reveal>

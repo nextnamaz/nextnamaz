@@ -63,10 +63,10 @@ const VISUALS = [
   </div>,
   <PhoneFrame key="phone" className="h-full">
     <Image
-      src="/landing/settings-phone.png"
-      alt="The settings page on a phone, showing the prayer times tab"
+      src="/landing/phone-wizard.png"
+      alt="The setup on a phone, checking the day's prayer times before continuing"
       fill
-      sizes="120px"
+      sizes="160px"
       className="object-cover object-top"
     />
   </PhoneFrame>,
@@ -91,7 +91,7 @@ export function HowItWorks() {
             {i + 1}
           </span>
 
-          <div className="mb-5 flex h-[240px] items-center justify-center rounded-2xl border border-border bg-secondary/40 px-6 py-5">
+          <div className="mb-5 flex h-[320px] items-center justify-center rounded-2xl border border-border bg-secondary/40 px-5 py-6">
             {VISUALS[i]}
           </div>
 

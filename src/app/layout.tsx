@@ -29,15 +29,9 @@ export const metadata: Metadata = {
   // No canonical here: a root-layout canonical is inherited by every page, so
   // "/" would have every screen page nominating the homepage as its canonical.
   // Each indexable page declares its own.
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-  },
+  // Icons come from the file conventions in this directory (favicon.ico,
+  // icon.svg, apple-icon.png), which Next links automatically. Listing them
+  // here as well produced duplicate <link>s with contradictory sizes.
   manifest: "/manifest.json",
   openGraph: {
     title: "NextNamaz | Prayer Times Display for Mosques",
