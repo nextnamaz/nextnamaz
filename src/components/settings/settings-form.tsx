@@ -20,6 +20,7 @@ import type { Screen, PrayerTimesMap } from '@/types/database';
 import { PRAYER_NAMES } from '@/types/prayer';
 import { flattenDisplayText } from '@/lib/locale/helpers';
 import { formatTodayDate } from '@/lib/display-locale';
+import { CONTROL_QR_DELAY_MINUTES, CONTROL_QR_DURATION_MINUTES } from '@/lib/display-schedule';
 import { THEME_REGISTRY } from '@/components/display/themes';
 import { LanguageTab } from './language-tab';
 import { SaveBar } from './save-bar';
@@ -376,6 +377,31 @@ export function SettingsForm({ screen }: SettingsFormProps) {
                     />
                   </div>
                 )}
+
+                <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+                  <div>
+                    <Label htmlFor="control-qr">Show settings code after prayers</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      A small code appears in the corner for {CONTROL_QR_DURATION_MINUTES}{' '}
+                      minutes, starting {CONTROL_QR_DELAY_MINUTES} minutes after each
+                      prayer. On a TV with no remote it is the only way back into
+                      these settings.
+                    </p>
+                  </div>
+                  <Switch
+                    id="control-qr"
+                    checked={form.displayConfig.controlQr.enabled}
+                    onCheckedChange={(enabled) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        displayConfig: {
+                          ...prev.displayConfig,
+                          controlQr: { ...prev.displayConfig.controlQr, enabled },
+                        },
+                      }))
+                    }
+                  />
+                </div>
               </CardContent>
             </Card>
           )}

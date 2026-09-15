@@ -141,6 +141,13 @@ export interface DisplayConfig {
     /** How long the screen stays dark from each prayer time, in minutes. */
     minutes: number;
   };
+  /**
+   * Small settings QR shown in the corner for a while after each prayer, so a
+   * kiosk with no input device is still reachable by whoever is in the room.
+   */
+  controlQr: {
+    enabled: boolean;
+  };
   /** Uploaded media the TV cycles to between prayer views. */
   announcements: {
     enabled: boolean;
@@ -164,6 +171,7 @@ function clamped(value: unknown, min: number, max: number, fallback: number): nu
 export function asDisplayConfig(json: Json): DisplayConfig {
   const raw = asRecord(json);
   const blackout = asRecord((raw.blackout ?? {}) as Json);
+  const controlQr = asRecord((raw.controlQr ?? {}) as Json);
   const ann = asRecord((raw.announcements ?? {}) as Json);
   const items = (Array.isArray(ann.items) ? ann.items : [])
     .filter(
@@ -185,6 +193,9 @@ export function asDisplayConfig(json: Json): DisplayConfig {
       enabled: blackout.enabled === true,
       minutes: clamped(blackout.minutes, 1, 60, 15),
     },
+    // On unless explicitly switched off, so screens saved before this existed
+    // gain the way back into their own settings without being re-saved.
+    controlQr: { enabled: controlQr.enabled !== false },
     announcements: {
       enabled: ann.enabled === true,
       layout: ann.layout === 'split' ? 'split' : 'full',

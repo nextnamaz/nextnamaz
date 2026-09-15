@@ -17,7 +17,7 @@ import type { PrayerTimeEntry } from '@/types/prayer';
 import { SCREEN_STORAGE_KEY } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
-import { useBlackout, useSlideshow } from './use-schedule';
+import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
 
 const OVERLAY_HIDE_MS = 10_000;
 
@@ -141,6 +141,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
   const nextPrayer = useNextPrayer(prayers);
   const fitConfig = useMemo(() => asDisplayConfig(screen.display_config), [screen.display_config]);
   const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
+  const controlQrVisible = useControlQr(prayers, fitConfig.controlQr.enabled);
   const { slide, onMediaEnd } = useSlideshow(
     fitConfig.announcements.items,
     fitConfig.announcements.enabled,
@@ -288,6 +289,25 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
               className="absolute inset-0 z-45 bg-black transition-opacity duration-1000"
               style={{ opacity: blackout ? 1 : 0, pointerEvents: 'none' }}
             />
+
+            {/* Control QR, for a while after each prayer. Sits above the
+                blackout on purpose: a kiosk has nothing to wiggle, so this is
+                the only way into the settings, and waiting for the screen to
+                lift would hide it from the people standing in the room. */}
+            <div
+              dir="ltr"
+              data-control-qr={controlQrVisible ? 'visible' : 'hidden'}
+              className="absolute bottom-[3%] right-[3%] z-46 flex flex-col items-center gap-1.5 rounded-lg bg-white p-2.5 shadow-lg transition-opacity duration-700"
+              style={{
+                opacity: controlQrVisible ? 1 : 0,
+                pointerEvents: controlQrVisible ? undefined : 'none',
+              }}
+            >
+              <QRCodeSVG value={settingsUrl} size={104} level="M" />
+              <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                Manage screen
+              </span>
+            </div>
 
             {overlayVisible && (
               <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8" dir="ltr">

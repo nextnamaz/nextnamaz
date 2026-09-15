@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { isBlackoutNow } from '@/lib/display-schedule';
+import { isBlackoutNow, isControlQrNow } from '@/lib/display-schedule';
 import type { SlideItem } from '@/types/database';
 import type { PrayerTimeEntry } from '@/types/prayer';
 
@@ -28,6 +28,27 @@ export function useBlackout(
       clearInterval(id);
     };
   }, [prayers, enabled, minutes]);
+
+  return enabled && active;
+}
+
+/**
+ * Re-evaluates the post-prayer control-QR window on the same cadence as the
+ * blackout. Deliberately not tied to it: the code shows over a dark screen.
+ */
+export function useControlQr(prayers: PrayerTimeEntry[], enabled: boolean): boolean {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const update = () => setActive(isControlQrNow(prayers, new Date()));
+    const first = setTimeout(update, 0);
+    const id = setInterval(update, BLACKOUT_TICK_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+  }, [prayers, enabled]);
 
   return enabled && active;
 }

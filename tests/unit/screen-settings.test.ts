@@ -34,6 +34,7 @@ const VALID: ScreenSettingsInput = {
     rotation: 0,
     zoom: 1,
     blackout: { enabled: true, minutes: 15 },
+    controlQr: { enabled: true },
     announcements: {
       enabled: true,
       layout: 'split',
@@ -96,7 +97,7 @@ describe('screenSettingsSchema', () => {
 
   it('requires every display_config section', () => {
     const keys = Object.keys(VALID.display_config);
-    expect(keys).toHaveLength(4);
+    expect(keys).toHaveLength(5);
     for (const key of keys) {
       expect(displayWithout(key), `display_config without ${key} was accepted`).toBe(false);
     }

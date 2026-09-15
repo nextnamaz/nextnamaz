@@ -23,6 +23,7 @@ const DEFAULT_CONFIG: DisplayConfig = {
   rotation: 0,
   zoom: 1,
   blackout: { enabled: false, minutes: 15 },
+  controlQr: { enabled: true },
   announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, items: [] },
 };
 
@@ -156,6 +157,7 @@ describe('asDisplayConfig', () => {
       rotation: 90,
       zoom: 0.92,
       blackout: { enabled: true, minutes: 20 },
+      controlQr: { enabled: true },
       announcements: {
         enabled: true,
         layout: 'split',
@@ -175,8 +177,22 @@ describe('asDisplayConfig', () => {
       'rotation',
       'zoom',
       'blackout',
+      'controlQr',
       'announcements',
     ]);
+  });
+
+  it('defaults the control QR on, unlike blackout, and only false switches it off', () => {
+    // Screens saved before this field existed must still gain the QR: it is
+    // the only route back into the settings of a kiosk with no input device.
+    expect(asDisplayConfig({}).controlQr.enabled).toBe(true);
+    expect(asDisplayConfig({ controlQr: {} }).controlQr.enabled).toBe(true);
+    expect(asDisplayConfig({ controlQr: { enabled: false } }).controlQr.enabled).toBe(false);
+    // A malformed value must not read as "off" and strand the screen.
+    expect(asDisplayConfig({ controlQr: { enabled: 'no' } }).controlQr.enabled).toBe(true);
+    expect(asDisplayConfig({ controlQr: null }).controlQr.enabled).toBe(true);
+    // Blackout keeps the opposite default.
+    expect(asDisplayConfig({}).blackout.enabled).toBe(false);
   });
 
   it('keeps the four quarter-turn rotations', () => {

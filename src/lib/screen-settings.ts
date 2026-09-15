@@ -66,6 +66,9 @@ export const screenSettingsSchema = z.object({
       enabled: z.boolean(),
       minutes: z.number().min(1).max(60),
     }),
+    controlQr: z.object({
+      enabled: z.boolean(),
+    }),
     announcements: z.object({
       enabled: z.boolean(),
       layout: z.enum(['full', 'split']),

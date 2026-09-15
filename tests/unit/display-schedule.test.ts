@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isBlackoutNow, minutesOf } from '@/lib/display-schedule';
+import {
+  CONTROL_QR_DELAY_MINUTES,
+  CONTROL_QR_DURATION_MINUTES,
+  isBlackoutNow,
+  isControlQrNow,
+  minutesOf,
+} from '@/lib/display-schedule';
 import type { PrayerTimeEntry } from '@/types/prayer';
 
 function entry(name: PrayerTimeEntry['name'], time: string): PrayerTimeEntry {
@@ -68,5 +74,43 @@ describe('isBlackoutNow', () => {
     const broken = [entry('dhuhr', ''), entry('asr', 'null')];
     expect(() => isBlackoutNow(broken, 15, at(13, 24))).not.toThrow();
     expect(isBlackoutNow(broken, 15, at(13, 24))).toBe(false);
+  });
+});
+
+describe('isControlQrNow', () => {
+  it('stays hidden through the prayer, then shows for the full window', () => {
+    // Dhuhr 13:24, so the window is 13:34 -> 13:54 with the default 10/20.
+    expect(isControlQrNow(DAY, at(13, 24))).toBe(false);
+    expect(isControlQrNow(DAY, at(13, 33))).toBe(false);
+    expect(isControlQrNow(DAY, at(13, 34))).toBe(true);
+    expect(isControlQrNow(DAY, at(13, 53))).toBe(true);
+    expect(isControlQrNow(DAY, at(13, 54))).toBe(false);
+  });
+
+  it('honours the exported delay and duration rather than hardcoded numbers', () => {
+    const start = 13 * 60 + 24 + CONTROL_QR_DELAY_MINUTES;
+    const end = start + CONTROL_QR_DURATION_MINUTES;
+    expect(isControlQrNow(DAY, at(Math.floor(start / 60), start % 60))).toBe(true);
+    expect(isControlQrNow(DAY, at(Math.floor((end - 1) / 60), (end - 1) % 60))).toBe(true);
+    expect(isControlQrNow(DAY, at(Math.floor(end / 60), end % 60))).toBe(false);
+  });
+
+  it('carries an Isha window across midnight', () => {
+    // Isha 23:50 -> window 00:00 to 00:20 the next morning.
+    expect(isControlQrNow(DAY, at(23, 59))).toBe(false);
+    expect(isControlQrNow(DAY, at(0, 0))).toBe(true);
+    expect(isControlQrNow(DAY, at(0, 19))).toBe(true);
+    expect(isControlQrNow(DAY, at(0, 20))).toBe(false);
+  });
+
+  it('never opens a window for sunrise, which is not a congregational prayer', () => {
+    // Sunrise 04:55 would otherwise show 05:05 -> 05:25.
+    expect(isControlQrNow(DAY, at(5, 10))).toBe(false);
+  });
+
+  it('skips prayers with unparseable times instead of throwing', () => {
+    const broken = [entry('dhuhr', ''), entry('asr', 'null')];
+    expect(() => isControlQrNow(broken, at(13, 40))).not.toThrow();
+    expect(isControlQrNow(broken, at(13, 40))).toBe(false);
   });
 });
