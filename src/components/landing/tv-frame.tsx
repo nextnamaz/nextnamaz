@@ -26,8 +26,8 @@ export function TvFrame({ children, compact = false, sized = true }: TvFrameProp
       <div
         className={
           compact
-            ? 'relative w-full rounded-[5px] bg-[#0B0B0D] p-[2px] shadow-[0_6px_18px_-6px_rgba(0,0,0,0.45)] ring-1 ring-white/8'
-            : 'relative w-full rounded-[10px] bg-[#0B0B0D] p-[4px] pb-[10px] shadow-[0_28px_60px_-24px_rgba(0,0,0,0.55)] ring-1 ring-white/8'
+            ? 'relative w-full rounded-[5px] bg-[#0B0B0D] p-[2px] shadow-[0_6px_18px_-6px_rgba(26,18,5,0.35)] ring-1 ring-white/8'
+            : 'relative w-full rounded-[10px] bg-[#0B0B0D] p-[4px] pb-[10px] shadow-[0_28px_60px_-24px_rgba(26,18,5,0.4)] ring-1 ring-white/8'
         }
       >
         <div
@@ -45,7 +45,9 @@ export function TvFrame({ children, compact = false, sized = true }: TvFrameProp
       {!compact && (
         <>
           <div className="h-3.5 w-16 bg-gradient-to-b from-[#16161A] to-[#0B0B0D]" />
-          <div className="h-[5px] w-44 rounded-b-md rounded-t-sm bg-[#141418] shadow-[0_6px_10px_-6px_rgba(0,0,0,0.5)]" />
+          {/* Shadows are tinted to the page's warm ink, never plain black:
+              a neutral-black shadow on a warm off-white ground reads grey. */}
+          <div className="h-[5px] w-44 rounded-b-md rounded-t-sm bg-[#141418] shadow-[0_6px_10px_-6px_rgba(26,18,5,0.35)]" />
         </>
       )}
     </div>

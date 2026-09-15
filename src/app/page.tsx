@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { CSSProperties } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { HowItWorksWrapper } from '@/components/landing/how-it-works-wrapper';
+import { Reveal } from '@/components/landing/reveal';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
 import { LANDING_COPY } from '@/lib/landing-copy';
@@ -29,91 +31,130 @@ const JSON_LD = {
   inLanguage: ['en', 'sv', 'bs', 'ar', 'tr'],
 };
 
+/** Entrance stagger for the hero, in ms. Read by .hero-in in globals.css. */
+const enterAt = (ms: number) => ({ '--in-delay': `${ms}ms` }) as CSSProperties;
+
 export default function HomePage() {
   const t = LANDING_COPY;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
+    <div className="min-h-dvh bg-background font-sans text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
       <Navbar getStartedLabel={t.nav.getStarted} />
 
-      {/* Hero */}
-      <main className="pt-32 pb-16 px-6 sm:pt-40 sm:pb-20">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="font-heading max-w-3xl text-[2.7rem] leading-[1.06] sm:text-[4.4rem] sm:leading-[1.03] tracking-[-0.01em] mb-7">
-            {t.hero.title}<br className="hidden sm:block" /> {t.hero.titleBreak}
-          </h1>
+      {/* Hero: asymmetric split. The pitch on the left, the product itself on
+          the right. pt-24 clears the 64px fixed nav with room to spare; any
+          more and the hero floats halfway down the viewport. */}
+      <main className="px-6 pt-24 pb-16 sm:pb-20">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-5">
+            {/* Two lines, no more. The text column is about 400px at lg and
+                up, and this six-word headline needs roughly 40px to break
+                after "on" rather than into three. Sized to the column, not
+                the viewport. */}
+            <h1 className="hero-in mb-6 font-heading text-balance text-[2.6rem] leading-[1.06] tracking-[-0.01em] sm:text-[3.4rem] sm:leading-[1.04] lg:text-[2.5rem] lg:leading-[1.08]">
+              {t.hero.title} {t.hero.titleBreak}
+            </h1>
 
-          <p className="max-w-xl text-lg text-muted-foreground mb-10 leading-relaxed">
-            {t.hero.subtitle}
-          </p>
+            <p
+              className="hero-in mb-8 max-w-[44ch] text-lg leading-relaxed text-muted-foreground"
+              style={enterAt(90)}
+            >
+              {t.hero.subtitle}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-16">
-            <Button asChild size="lg" className="px-8 h-13 text-base">
-              <Link href="/s">
-                {t.hero.cta} <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="px-7 h-13 text-base">
-              <Link href="#demo">{t.hero.examples}</Link>
-            </Button>
+            <div className="hero-in flex flex-col gap-3 sm:flex-row" style={enterAt(180)}>
+              <Button asChild size="lg" className="h-13 px-8 text-base">
+                <Link href="/s">
+                  {t.hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-13 px-7 text-base">
+                <Link href="#how">{t.hero.examples}</Link>
+              </Button>
+            </div>
           </div>
 
-          <div id="demo" className="scroll-mt-24">
+          <div className="hero-in lg:col-span-7" style={enterAt(260)}>
             <ShowcaseWrapper />
           </div>
         </div>
       </main>
 
-      {/* How it works — each step drawn with the real thing it describes */}
-      <section className="py-20 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-2">
-            {t.howItWorks.title}
-          </h2>
-          <p className="text-muted-foreground mb-12">{t.howItWorks.subtitle}</p>
+      {/* How it works: each step drawn with the real thing it describes. */}
+      <section id="how" className="scroll-mt-24 border-t border-border px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <Reveal>
+            <h2 className="mb-2 font-heading text-3xl leading-tight sm:text-[2.5rem]">
+              {t.howItWorks.title}
+            </h2>
+            <p className="mb-12 text-muted-foreground">{t.howItWorks.subtitle}</p>
+          </Reveal>
 
           <HowItWorksWrapper />
         </div>
       </section>
 
-      {/* Features — plain text columns, no icons */}
-      <section className="py-20 px-6 border-t border-border bg-secondary/30">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-12">
-            {t.features.title}
-          </h2>
+      {/* Features. Rows beside a photograph, not a second row of three
+          columns: the steps above already use that family, and the same
+          layout twice in a row is the templated rhythm this page avoids. */}
+      <section className="border-t border-border bg-secondary/30 px-6 py-20">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-14">
+          <Reveal className="lg:col-span-5">
+            {/* Süleymaniye Mosque, Istanbul. Unsplash, Esra Afşar (QXSSrsI_2nQ) */}
+            <Image
+              src="/landing/network-mosques.jpg"
+              alt="Domes and minarets of a mosque against an evening sky"
+              width={1200}
+              height={1500}
+              sizes="(max-width: 1024px) 100vw, 400px"
+              className="aspect-4/5 w-full rounded-2xl object-cover"
+            />
+          </Reveal>
 
-          <div className="grid sm:grid-cols-3 gap-x-10 gap-y-9">
-            {t.features.items.map(({ title, description }) => (
-              <div key={title}>
-                <h3 className="font-semibold mb-1.5">{title}</h3>
-                <p className="text-[15px] text-muted-foreground leading-relaxed">{description}</p>
-              </div>
-            ))}
+          <div className="lg:col-span-7">
+            <Reveal>
+              <h2 className="mb-8 font-heading text-3xl leading-tight sm:text-[2.5rem]">
+                {t.features.title}
+              </h2>
+            </Reveal>
+            <dl className="divide-y divide-border">
+              {t.features.items.map(({ title, description }, i) => (
+                <Reveal
+                  key={title}
+                  delay={i * 80}
+                  className="grid gap-y-1.5 py-6 sm:grid-cols-12 sm:gap-x-6"
+                >
+                  <dt className="font-semibold sm:col-span-4">{title}</dt>
+                  <dd className="text-[15px] leading-relaxed text-muted-foreground sm:col-span-8">
+                    {description}
+                  </dd>
+                </Reveal>
+              ))}
+            </dl>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative py-28 px-6 border-t border-border overflow-hidden">
-        {/* Sheikh Zayed Grand Mosque — Unsplash (vlxgphzJomk) */}
+      <section className="relative overflow-hidden border-t border-border px-6 py-28">
+        {/* Sheikh Zayed Grand Mosque. Unsplash (vlxgphzJomk) */}
         <Image src="/landing/cta-light.jpg" alt="" fill aria-hidden className="object-cover" />
         <div className="absolute inset-0 bg-[#1A1205]/70" aria-hidden />
-        <div className="relative max-w-2xl mx-auto text-center text-white">
-          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-4">
+        <Reveal className="relative mx-auto max-w-2xl text-center text-white">
+          <h2 className="mb-4 font-heading text-3xl leading-tight sm:text-[2.5rem]">
             {t.cta.title}
           </h2>
-          <p className="text-white/75 mb-8 leading-relaxed">{t.cta.subtitle}</p>
-          <Button asChild size="lg" className="px-7 h-12">
+          <p className="mb-8 leading-relaxed text-white/75">{t.cta.subtitle}</p>
+          <Button asChild size="lg" className="h-12 px-7">
             <Link href="/s">
-              {t.cta.button} <ArrowRight className="w-4 h-4 ml-2" />
+              {t.cta.button} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </div>
+        </Reveal>
       </section>
 
       <Footer getStartedLabel={t.footer.getStarted} openSourceLabel={t.footer.openSource} />

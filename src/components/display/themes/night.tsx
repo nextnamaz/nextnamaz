@@ -172,16 +172,20 @@ export function NightTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
                 </span>
 
                 {showIqamah && (
+                  // Empty, not a hidden dash: the column keeps its width via
+                  // minWidth, and a screen reader is not told "em dash" for
+                  // every sunrise row.
                   <span
                     style={{
                       fontSize: timeSize,
                       fontWeight: isNext ? 700 : 500,
-                      color: hasIqamahTime(prayer) ? undefined : 'transparent',
                       minWidth: '4ch',
                       textAlign: rtl ? 'left' : 'right',
                     }}
                   >
-                    {prayer.iqamahTime ? formatPrayerTime(prayer.iqamahTime, locale) : '—'}
+                    {prayer.iqamahTime && hasIqamahTime(prayer)
+                      ? formatPrayerTime(prayer.iqamahTime, locale)
+                      : ''}
                   </span>
                 )}
               </div>

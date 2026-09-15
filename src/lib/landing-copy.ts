@@ -1,6 +1,10 @@
 /**
- * Landing page copy. English only — the multi-language translations that live
+ * Landing page copy. English only, the multi-language translations that live
  * in src/lib/locale are for what a screen displays, not for this page.
+ *
+ * House rule for this file: no em-dashes or en-dashes in any string. Use a
+ * comma, a colon, or a full stop. It is the single most recognisable tell of
+ * machine-written copy.
  */
 export const LANDING_COPY = {
   nav: {
@@ -9,29 +13,34 @@ export const LANDING_COPY = {
   hero: {
     title: 'Put prayer times',
     titleBreak: 'on your mosque TV.',
+    /**
+     * Twenty words, and the first three answer the question people actually
+     * have: is this an app, a box, a subscription? It is a web page.
+     */
     subtitle:
-      'Open one link on the TV. Scan the code it shows with your phone. The times are live — no app, no account, no special hardware.',
+      "It's a web page. Open it on the TV, scan the code with your phone, done. No app, no account.",
     cta: 'Set up a screen',
-    examples: 'See a live demo',
+    examples: 'How it works',
   },
   howItWorks: {
     title: 'Three steps.',
     subtitle: 'If you can scan a QR code, you can do this.',
     steps: [
       {
-        title: 'Open the link on a screen',
+        /** The address itself, not "the link": that is the whole instruction. */
+        title: 'Open nextnamaz.com/s on the TV',
         description:
-          'Any TV browser, Fire Stick, Chromecast, tablet, or old laptop. Press Start and a QR code appears.',
+          'Any TV browser, Fire Stick, Chromecast, tablet or old laptop. Press Start and a QR code appears.',
       },
       {
-        title: 'Scan it with your phone',
+        title: 'Scan the code with your phone',
         description:
-          'The code opens that screen\'s settings. Pick where times come from, the language, and a theme.',
+          "It opens that screen's settings. Choose where the times come from, the language and a theme.",
       },
       {
         title: 'Save',
         description:
-          'The TV switches over straight away. Keep the link to change anything later, from anywhere.',
+          'The TV switches over instantly. Keep the link to change anything later, from anywhere.',
       },
     ],
   },
@@ -41,7 +50,7 @@ export const LANDING_COPY = {
       {
         title: 'Update from your phone',
         description:
-          'Change times from wherever you are. The screen updates instantly — no walking over to the TV.',
+          'Change times from wherever you are. The screen updates instantly, so nobody has to walk over to the TV.',
       },
       {
         title: 'Keeps running offline',
@@ -51,7 +60,7 @@ export const LANDING_COPY = {
       {
         title: 'One link per screen',
         description:
-          'Main hall, women\'s section, basement — set up each separately. Every screen gets its own link.',
+          "Main hall, women's section, basement: set up each one separately. Every screen gets its own link.",
       },
     ],
   },

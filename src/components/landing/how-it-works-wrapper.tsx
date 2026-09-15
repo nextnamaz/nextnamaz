@@ -8,17 +8,12 @@ import dynamic from 'next/dynamic';
 const HowItWorks = dynamic(() => import('./how-it-works').then((m) => m.HowItWorks), {
   ssr: false,
   loading: () => (
-    <div className="grid gap-x-16 gap-y-20 sm:grid-cols-3 lg:gap-x-20">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex flex-col">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold tabular-nums text-primary-foreground">
-              {i + 1}
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Step {i + 1} of 3
-            </span>
-          </div>
+    <div className="grid gap-x-16 gap-y-16 sm:grid-cols-3 lg:gap-x-20">
+      {[1, 2, 3].map((n) => (
+        <div key={n} className="flex flex-col">
+          <span className="mb-4 flex size-9 items-center justify-center rounded-full bg-primary text-[15px] font-bold tabular-nums text-primary-foreground">
+            {n}
+          </span>
           <div className="mb-5 h-[240px] rounded-2xl border border-border bg-secondary/40" />
           <div className="h-5" />
         </div>
