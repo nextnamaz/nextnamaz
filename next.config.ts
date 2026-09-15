@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
-import { PRIVATE_PATHS } from "./src/lib/site";
 
-/** The two routes whose URL is the screen's only secret. */
-const SECRET_ROUTES = ["/s/:id", "/tv/:id"];
-
+/**
+ * Kept free of imports from src/: this file is loaded outside the app's module
+ * graph and before its path aliases exist, so a dependency here is a build
+ * risk for no benefit. The paths below are mirrored by PRIVATE_PATHS in
+ * src/lib/site.ts, which drives robots.txt; tests/e2e/seo.spec.ts asserts the
+ * document, the headers and robots.txt all agree, so a drift is caught there.
+ */
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
@@ -17,34 +20,24 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          // A screen id in a Referer header is a leaked password. Same-origin
-          // keeps internal navigation working (settings -> its own display)
-          // while sending nothing at all to another site — including the
-          // Supabase storage host that serves uploaded announcement media.
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
         ],
       },
       {
-        source: "/(s|tv)/:id",
+        // A screen's id is its only password. Keep it out of indexes and out
+        // of any Referer header sent to another origin.
+        source: "/:section(s|tv)/:id",
         headers: [
-          // Belt and braces with the page metadata: this reaches a crawler
-          // that fetched the URL anyway, and robots.txt is only advisory.
           {
             key: "X-Robots-Tag",
             value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
-          // Nothing leaves with the secret URL attached.
           { key: "Referrer-Policy", value: "no-referrer" },
         ],
       },
     ];
   },
 };
-
-// Keeps the header rules and robots.txt describing the same set of paths.
-if (!SECRET_ROUTES.every((route) => PRIVATE_PATHS.some((p) => route.startsWith(p)))) {
-  throw new Error("SECRET_ROUTES and PRIVATE_PATHS have drifted apart");
-}
 
 export default nextConfig;

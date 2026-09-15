@@ -8,11 +8,13 @@ import { configuredScreen } from './helpers';
  * each is cheap to break by accident, so each is asserted here.
  */
 test.describe('search engines and secret URLs', () => {
+  const PUBLIC_PAGES: { path: string; canonical: RegExp }[] = [
+    { path: '/', canonical: /nextnamaz\.com\/?$/ },
+    { path: '/s', canonical: /\/s$/ },
+  ];
+
   test('the public pages are indexable and name their own canonical', async ({ page }) => {
-    for (const [path, canonical] of [
-      ['/', '/'],
-      ['/s', '/s'],
-    ]) {
+    for (const { path, canonical } of PUBLIC_PAGES) {
       const res = await page.goto(path);
       expect(res?.status(), `${path} did not load`).toBe(200);
 
@@ -22,9 +24,7 @@ test.describe('search engines and secret URLs', () => {
       ).toHaveAttribute('content', /^index, follow/);
 
       const href = await page.locator('link[rel="canonical"]').getAttribute('href');
-      expect(href, `${path} canonical`).toMatch(
-        canonical === '/' ? /nextnamaz\.com\/?$/ : new RegExp(`${canonical}$`)
-      );
+      expect(href, `${path} canonical`).toMatch(canonical);
 
       // Every page carries the favicon, not just the landing page.
       expect(await page.locator('link[rel~="icon"]').count(), `${path} favicon`).toBeGreaterThan(0);
