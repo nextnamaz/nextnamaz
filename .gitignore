@@ -47,3 +47,6 @@ next-env.d.ts
 
 # mcp config (contains project references)
 .mcp.json
+
+# database dumps from scripts/backup-db.sh
+/backups/

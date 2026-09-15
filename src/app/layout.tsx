@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,18 +15,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DESCRIPTION =
+  "Turn any TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone — no app, no account, no special hardware.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "NextNamaz | Digital Prayer Times Display",
+    default: "NextNamaz | Prayer Times Display for Mosques",
     template: "%s | NextNamaz",
   },
-  description:
-    "Turn any TV or tablet into a beautiful prayer times display for your mosque. Free, no special hardware, updated from your phone.",
-  keywords: [
-    "prayer times", "mosque display", "namaz", "salah", "digital signage",
-    "islamic", "mosque tv", "prayer times screen", "bönetider",
-    "namaz vakti", "namaska vremena", "mosque management",
-  ],
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32" },
@@ -33,28 +34,31 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "NextNamaz | Your Mosque Deserves a Better Prayer Display",
-    description:
-      "Turn any TV or tablet into a beautiful prayer times display. Free, no special hardware needed.",
-    siteName: "NextNamaz",
+    title: "NextNamaz | Prayer Times Display for Mosques",
+    description: DESCRIPTION,
+    siteName: SITE_NAME,
+    url: SITE_URL,
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NextNamaz | Your Mosque Deserves a Better Prayer Display",
-    description:
-      "Turn any TV or tablet into a beautiful prayer times display. Free, no special hardware needed.",
+    title: "NextNamaz | Prayer Times Display for Mosques",
+    description: DESCRIPTION,
   },
-  metadataBase: new URL("https://nextnamaz.com"),
   robots: {
     index: true,
     follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#E8A817",
 };
 
 export default function RootLayout({

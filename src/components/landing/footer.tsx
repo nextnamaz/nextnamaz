@@ -4,6 +4,7 @@ import { Logo } from '@/components/ui/logo';
 
 interface FooterProps {
   getStartedLabel?: string;
+  openSourceLabel?: string;
 }
 
 const links = [
@@ -12,7 +13,10 @@ const links = [
   { href: 'https://ismail.sacic.dev/', label: 'Website', Icon: Globe },
 ];
 
-export function Footer({ getStartedLabel = 'Get Started' }: FooterProps) {
+export function Footer({
+  getStartedLabel = 'Get Started',
+  openSourceLabel = 'Open source',
+}: FooterProps) {
   return (
     <footer className="px-6 py-12">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-8">
@@ -30,6 +34,14 @@ export function Footer({ getStartedLabel = 'Get Started' }: FooterProps) {
           >
             {getStartedLabel}
           </Link>
+          <a
+            href="https://github.com/nextnamaz/nextnamaz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {openSourceLabel}
+          </a>
           <div className="flex items-center gap-4">
             {links.map(({ href, label, Icon }) => (
               <a

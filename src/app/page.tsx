@@ -1,55 +1,52 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Smartphone, WifiOff, Monitor } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
 import { LANDING_COPY } from '@/lib/landing-copy';
+import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'NextNamaz | Digital Prayer Times Display for Mosques',
-  description: 'Turn any TV or tablet into a beautiful prayer times display for your mosque. Free, no special hardware, updated from your phone.',
-  keywords: [
-    'prayer times', 'mosque display', 'namaz', 'salah', 'digital signage',
-    'islamic', 'mosque tv', 'prayer times screen', 'bönetider', 'namaz vakti',
-    'namaska vremena', 'mosque management',
-  ],
-  openGraph: {
-    title: 'NextNamaz | Your Mosque Deserves a Better Prayer Display',
-    description: 'Turn any TV or tablet into a beautiful prayer times display. Free, no special hardware needed.',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'NextNamaz | Your Mosque Deserves a Better Prayer Display',
-    description: 'Turn any TV or tablet into a beautiful prayer times display. Free, no special hardware needed.',
-  },
+  title: 'Prayer Times Display for Mosques',
+  alternates: { canonical: '/' },
 };
 
-/** One icon per feature, in the order the copy lists them. */
-const FEATURE_ICONS = [Smartphone, WifiOff, Monitor];
+/** Schema.org entry so search results can show what this actually is. */
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'NextNamaz',
+  url: SITE_URL,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any web browser',
+  description:
+    'Turn any TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone.',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  inLanguage: ['en', 'sv', 'bs', 'ar', 'tr'],
+};
 
 export default function HomePage() {
   const t = LANDING_COPY;
-  const features = t.features.items.map((item, i) => ({
-    ...item,
-    Icon: FEATURE_ICONS[i] ?? Monitor,
-  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <Navbar getStartedLabel={t.nav.getStarted} />
 
       {/* Hero */}
-      <main className="relative pt-32 pb-16 px-6 sm:pt-40 sm:pb-20 overflow-hidden">
-        <div className="relative max-w-5xl mx-auto">
-          <h1 className="max-w-3xl text-[2.6rem] leading-[1.05] sm:text-[4.2rem] sm:leading-[1.02] font-bold tracking-[-0.02em] mb-7">
+      <main className="pt-32 pb-16 px-6 sm:pt-40 sm:pb-20">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="font-heading max-w-3xl text-[2.7rem] leading-[1.06] sm:text-[4.4rem] sm:leading-[1.03] tracking-[-0.01em] mb-7">
             {t.hero.title}<br className="hidden sm:block" /> {t.hero.titleBreak}
           </h1>
 
-          <p className="max-w-2xl text-lg text-muted-foreground mb-10 leading-relaxed">
+          <p className="max-w-xl text-lg text-muted-foreground mb-10 leading-relaxed">
             {t.hero.subtitle}
           </p>
 
@@ -60,67 +57,51 @@ export default function HomePage() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="px-7 h-12">
-              <Link href="#showcase">
-                {t.hero.examples}
-              </Link>
+              <Link href="#demo">{t.hero.examples}</Link>
             </Button>
           </div>
 
-          {/* Demo */}
-          <div id="showcase" className="scroll-mt-24">
+          <div id="demo" className="scroll-mt-24">
             <ShowcaseWrapper />
           </div>
         </div>
       </main>
 
-      {/* Story */}
+      {/* How it works — numbered rows, not cards */}
       <section className="py-20 px-6 border-t border-border">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-8">{t.story.title}</h2>
-          <div className="space-y-5 text-muted-foreground leading-relaxed text-[17px]">
-            {t.story.paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+        <div className="max-w-5xl mx-auto">
+          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-2">
+            {t.howItWorks.title}
+          </h2>
+          <p className="text-muted-foreground mb-12">{t.howItWorks.subtitle}</p>
+
+          <ol className="divide-y divide-border max-w-3xl">
+            {t.howItWorks.steps.map((step, i) => (
+              <li key={step.title} className="flex gap-6 py-7 first:pt-0 last:pb-0">
+                <span className="font-heading text-2xl text-primary tabular-nums shrink-0 w-8">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="font-semibold mb-1.5">{step.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* How it works */}
+      {/* Features — plain text columns, no icons */}
       <section className="py-20 px-6 border-t border-border bg-secondary/30">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-4">{t.howItWorks.title}</h2>
-          <p className="text-muted-foreground mb-12 max-w-xl">
-            {t.howItWorks.subtitle}
-          </p>
+          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-12">
+            {t.features.title}
+          </h2>
 
-          <div className="grid sm:grid-cols-3 gap-10">
-            {t.howItWorks.steps.map((step, i) => (
-              <div key={i} className="border-t border-foreground/15 pt-5">
-                <span className="block font-heading text-3xl text-primary mb-3 tabular-nums">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Showcase / Themes section removed, demo is now in hero */}
-
-      {/* Features */}
-      <section className="py-20 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-12">{t.features.title}</h2>
-
-          <div className="grid sm:grid-cols-3 gap-10">
-            {features.map(({ Icon, title, description }) => (
-              <div key={title} className="border-t border-foreground/15 pt-5">
-                <div className="flex items-center gap-2.5 mb-2">
-                  <Icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
-                  <h3 className="font-semibold">{title}</h3>
-                </div>
+          <div className="grid sm:grid-cols-3 gap-x-10 gap-y-9">
+            {t.features.items.map(({ title, description }) => (
+              <div key={title}>
+                <h3 className="font-semibold mb-1.5">{title}</h3>
                 <p className="text-[15px] text-muted-foreground leading-relaxed">{description}</p>
               </div>
             ))}
@@ -128,54 +109,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Network / Connected */}
-      <section className="py-20 px-6 border-t border-border bg-secondary/30 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-4">{t.network.title}</h2>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                {t.network.subtitle}
-              </p>
-              <div className="space-y-5">
-                {t.network.points.map((point, i) => (
-                  <div key={i}>
-                    <h3 className="font-semibold mb-1">{point.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{point.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Süleymaniye Mosque, Istanbul — Unsplash, Esra Afşar (QXSSrsI_2nQ) */}
-            <Image
-              src="/landing/network-mosques.jpg"
-              alt="Silhouette of a city skyline crowded with mosque domes and minarets at sunset"
-              width={1200}
-              height={1500}
-              className="w-full rounded-2xl object-cover aspect-4/5 border border-border"
-            />
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="relative py-28 px-6 border-t border-border overflow-hidden">
         {/* Sheikh Zayed Grand Mosque — Unsplash (vlxgphzJomk) */}
-        <Image
-          src="/landing/cta-light.jpg"
-          alt=""
-          fill
-          aria-hidden
-          className="object-cover"
-        />
+        <Image src="/landing/cta-light.jpg" alt="" fill aria-hidden className="object-cover" />
         <div className="absolute inset-0 bg-[#1A1205]/70" aria-hidden />
-        <div className="relative max-w-5xl mx-auto text-center text-white">
-          <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-4">
+        <div className="relative max-w-2xl mx-auto text-center text-white">
+          <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-4">
             {t.cta.title}
           </h2>
-          <p className="text-white/75 mb-8 max-w-lg mx-auto leading-relaxed">
-            {t.cta.subtitle}
-          </p>
+          <p className="text-white/75 mb-8 leading-relaxed">{t.cta.subtitle}</p>
           <Button asChild size="lg" className="px-7 h-12">
             <Link href="/s">
               {t.cta.button} <ArrowRight className="w-4 h-4 ml-2" />
@@ -184,7 +127,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer getStartedLabel={t.footer.getStarted} />
+      <Footer getStartedLabel={t.footer.getStarted} openSourceLabel={t.footer.openSource} />
     </div>
   );
 }

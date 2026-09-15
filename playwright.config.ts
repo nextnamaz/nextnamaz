@@ -25,9 +25,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chrome',
-      // Uses the Chrome already installed on the machine, so no browser
-      // download is needed to run the suite.
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      // Playwright's bundled Chromium by default, so the suite runs on a
+      // machine with no Google Chrome installed. Set E2E_CHANNEL=chrome to
+      // use a locally installed Chrome instead.
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(process.env.E2E_CHANNEL ? { channel: process.env.E2E_CHANNEL } : {}),
+      },
     },
   ],
   webServer: {
