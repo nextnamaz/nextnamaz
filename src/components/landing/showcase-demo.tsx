@@ -59,8 +59,11 @@ export function ShowcaseDemo() {
   };
 
   return (
-    <div className="flex items-end gap-3 sm:gap-4">
-      <div className="min-w-0 flex-1">
+    // Phones stack the two devices, TV first, so the handset is wide enough
+    // to read. From sm up the phone stands beside the TV, top-aligned and
+    // taller than it, so it hangs below rather than covering the screen.
+    <div className="flex flex-col items-end gap-5 sm:flex-row sm:items-start sm:gap-5">
+      <div className="w-full min-w-0 sm:flex-1">
         <TvFrame>
           <div
             className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
@@ -82,14 +85,14 @@ export function ShowcaseDemo() {
         </TvFrame>
       </div>
 
-      {/* Sits beside the set, not over it: the live demo stays fully visible.
+      {/* Beside the set, never over it: the live demo stays fully visible.
           The screen is a photograph of the real setup on a phone, mid-flow. */}
-      <PhoneFrame className="mb-5 w-[21%] min-w-[78px] max-w-[150px] shrink-0 -rotate-3">
+      <PhoneFrame className="-mt-3 mr-[4%] w-[52%] max-w-[220px] shrink-0 -rotate-3 sm:mt-0 sm:mr-0 sm:w-[29%]">
         <Image
           src="/landing/phone-wizard.png"
           alt="The setup on a phone, checking the day's prayer times before continuing"
           fill
-          sizes="150px"
+          sizes="(max-width: 640px) 52vw, 220px"
           priority
           className="object-cover object-top"
         />
