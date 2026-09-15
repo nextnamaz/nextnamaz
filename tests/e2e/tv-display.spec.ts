@@ -33,9 +33,17 @@ test.describe('TV display', () => {
   test('the overlay link opens the settings for this screen', async ({ page }) => {
     const id = await configuredScreen(page);
     await page.goto(`/tv/${id}`);
-    await page.mouse.move(400, 400);
 
-    await page.getByRole('link', { name: new RegExp(`/s/${id.slice(0, 8)}`) }).click();
+    // The overlay opens on pointermove, and that listener is attached on
+    // hydration. One move fired before then is simply lost, so keep nudging
+    // until it lands — which is what a person waving a remote does anyway.
+    const link = page.getByRole('link', { name: new RegExp(`/s/${id.slice(0, 8)}`) });
+    await expect(async () => {
+      await page.mouse.move(400 + Math.random() * 40, 400 + Math.random() * 40);
+      await expect(link).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 20_000 });
+
+    await link.click();
     await page.waitForURL(`**/s/${id}`);
     await expect(page.getByRole('heading', { name: 'Screen settings' })).toBeVisible();
   });

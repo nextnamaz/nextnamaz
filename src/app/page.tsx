@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { HowItWorksWrapper } from '@/components/landing/how-it-works-wrapper';
+import { StartHere } from '@/components/landing/start-here';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
 import { LANDING_COPY } from '@/lib/landing-copy';
@@ -51,15 +52,19 @@ export default function HomePage() {
             {t.hero.subtitle}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-16">
-            <Button asChild size="lg" className="px-7 h-12">
+          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <Button asChild size="lg" className="px-8 h-13 text-base">
               <Link href="/s">
                 {t.hero.cta} <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="px-7 h-12">
+            <Button asChild variant="outline" size="lg" className="px-7 h-13 text-base">
               <Link href="#demo">{t.hero.examples}</Link>
             </Button>
+          </div>
+
+          <div className="mb-16">
+            <StartHere />
           </div>
 
           <div id="demo" className="scroll-mt-24">

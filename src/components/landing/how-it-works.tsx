@@ -41,70 +41,45 @@ function PairingScreen() {
  */
 function PhoneSettings() {
   return (
-    <div className="relative h-full aspect-[10/19] rounded-[1.7rem] bg-[#0B0B0D] p-[3px] shadow-[0_14px_30px_-12px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
+    <div className="relative h-full aspect-[9/19] rounded-[14px] bg-[#0B0B0D] p-[2px] shadow-[0_14px_30px_-12px_rgba(0,0,0,0.5)]">
       {/* Side buttons, so the silhouette reads as a handset and not a card. */}
-      <span
-        aria-hidden
-        className="absolute -left-[1.5px] top-[22%] h-[7%] w-[2px] rounded-l bg-[#1C1C21]"
-      />
-      <span
-        aria-hidden
-        className="absolute -left-[1.5px] top-[33%] h-[11%] w-[2px] rounded-l bg-[#1C1C21]"
-      />
-      <span
-        aria-hidden
-        className="absolute -right-[1.5px] top-[27%] h-[13%] w-[2px] rounded-r bg-[#1C1C21]"
-      />
+      <span aria-hidden className="absolute -left-[1px] top-[24%] h-[6%] w-[1.5px] rounded-l bg-[#26262C]" />
+      <span aria-hidden className="absolute -left-[1px] top-[34%] h-[10%] w-[1.5px] rounded-l bg-[#26262C]" />
+      <span aria-hidden className="absolute -right-[1px] top-[28%] h-[12%] w-[1.5px] rounded-r bg-[#26262C]" />
 
-      <div className="relative h-full w-full overflow-hidden rounded-[1.5rem] bg-background">
-        {/* Dynamic island */}
-        <div
-          aria-hidden
-          className="absolute left-1/2 top-[3px] z-10 h-[7px] w-[26%] -translate-x-1/2 rounded-full bg-[#0B0B0D]"
-        />
+      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[12px] bg-background">
+        {/* Status bar with the pill cut out of it */}
+        <div className="relative flex h-[13px] shrink-0 items-center justify-center">
+          <span aria-hidden className="h-[5px] w-[30%] rounded-full bg-[#0B0B0D]" />
+        </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-2 pb-1.5 pt-[13px]">
-          <span className="text-[6.5px] font-bold tracking-tight">Screen settings</span>
-          <span className="rounded-full bg-primary px-1.5 py-[1px] text-[5.5px] font-semibold text-primary-foreground">
+        {/* Title + save. Few elements, set large enough to actually read. */}
+        <div className="flex items-center justify-between border-b border-border px-2 pb-1.5">
+          <span className="text-[7.5px] font-bold tracking-tight">Times</span>
+          <span className="rounded-full bg-primary px-[5px] py-[1px] text-[6.5px] font-semibold text-primary-foreground">
             Save
           </span>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 px-2 py-1.5">
-          {['Times', 'Language', 'Theme'].map((tab, i) => (
-            <span
-              key={tab}
-              className={
-                i === 0
-                  ? 'rounded-full bg-primary px-1.5 py-[1px] text-[5.5px] font-semibold text-primary-foreground'
-                  : 'rounded-full bg-muted px-1.5 py-[1px] text-[5.5px] font-medium text-muted-foreground'
-              }
-            >
-              {tab}
-            </span>
-          ))}
-        </div>
-
-        {/* Time rows */}
-        <div className="space-y-[3px] px-2">
-          {PREVIEW_PRAYERS.filter((p) => p.name !== 'sunrise').map((p) => (
-            <div
-              key={p.name}
-              className="flex items-center justify-between rounded-sm border border-border px-1.5 py-[2.5px]"
-            >
-              <span className="text-[6px] text-muted-foreground">{p.displayName}</span>
-              <span className="text-[6px] font-semibold tabular-nums">{p.time}</span>
-            </div>
-          ))}
+        {/* Four rows is enough to read as a list; six turns to mush at this size. */}
+        <div className="flex-1 space-y-[5px] px-2 pt-2">
+          {PREVIEW_PRAYERS.filter((p) => p.name !== 'sunrise')
+            .slice(0, 4)
+            .map((p) => (
+              <div
+                key={p.name}
+                className="flex items-center justify-between rounded border border-border px-[5px] py-[3px]"
+              >
+                <span className="text-[7px] text-muted-foreground">{p.displayName}</span>
+                <span className="text-[7px] font-semibold tabular-nums">{p.time}</span>
+              </div>
+            ))}
         </div>
 
         {/* Home indicator */}
-        <div
-          aria-hidden
-          className="absolute bottom-[4px] left-1/2 h-[2px] w-[28%] -translate-x-1/2 rounded-full bg-foreground/25"
-        />
+        <div className="flex h-[9px] shrink-0 items-center justify-center">
+          <span aria-hidden className="h-[2px] w-[30%] rounded-full bg-foreground/25" />
+        </div>
       </div>
     </div>
   );
@@ -147,25 +122,34 @@ export function HowItWorks() {
 
   return (
     <div className="grid gap-x-16 gap-y-20 sm:grid-cols-3 lg:gap-x-20">
-      {t.steps.map((step, i) => (
-        <div key={step.title} className="flex flex-col">
-          {/* Stage: one height for all three, so the row reads as a sequence. */}
-          <div className="mb-7 flex h-[230px] items-center justify-center rounded-2xl border border-border bg-secondary/40 px-6 py-7">
-            {VISUALS[i]}
-          </div>
+      {t.steps.map((step, i) => {
+        const last = i === t.steps.length - 1;
+        return (
+          <div key={step.title} className="flex flex-col">
+            {/* Step marker: a filled badge reads as a step at a glance, where a
+                bare numeral just reads as decoration. */}
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold tabular-nums text-primary-foreground">
+                {i + 1}
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Step {i + 1} of {t.steps.length}
+              </span>
+              {last && <Check className="ml-auto size-4 text-primary" strokeWidth={2.5} aria-hidden />}
+            </div>
 
-          <div className="flex items-center gap-2.5">
-            <span className="font-heading text-xl text-primary tabular-nums">{i + 1}</span>
-            <h3 className="font-semibold">{step.title}</h3>
-            {i === t.steps.length - 1 && (
-              <Check className="ml-auto size-4 text-primary" strokeWidth={2.5} aria-hidden />
-            )}
+            {/* Stage: one height for all three, so the row reads as a sequence. */}
+            <div className="mb-5 flex h-[240px] items-center justify-center rounded-2xl border border-border bg-secondary/40 px-6 py-5">
+              {VISUALS[i]}
+            </div>
+
+            <h3 className="text-[17px] font-semibold">{step.title}</h3>
+            <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">
+              {step.description}
+            </p>
           </div>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-            {step.description}
-          </p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
