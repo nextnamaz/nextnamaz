@@ -16,7 +16,7 @@ const ShowcaseDemo = dynamic(() => import('./showcase-demo').then((m) => m.Showc
         <div className="mx-auto h-3.5 w-16 bg-[#0B0B0D]" />
         <div className="mx-auto h-[5px] w-44 rounded-b-md bg-[#141418]" />
       </div>
-      <div className="-mt-3 mr-[4%] aspect-[390/844] w-[52%] max-w-[220px] shrink-0 -rotate-3 rounded-[16px] bg-[#0B0B0D] sm:mt-0 sm:mr-0 sm:w-[29%]" />
+      <div className="-mt-3 mr-[4%] aspect-[1080/2274] w-[52%] max-w-[220px] shrink-0 -rotate-3 rounded-[16px] bg-[#0B0B0D] sm:mt-0 sm:mr-0 sm:w-[29%]" />
     </div>
   ),
 });

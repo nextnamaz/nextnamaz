@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 import { HowItWorksWrapper } from '@/components/landing/how-it-works-wrapper';
-import { HeroMotif } from '@/components/landing/hero-motif';
+import { HeroBackdrop } from '@/components/landing/hero-backdrop';
 import { Reveal } from '@/components/landing/reveal';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
@@ -47,9 +47,9 @@ export default function HomePage() {
       <Navbar getStartedLabel={t.nav.getStarted} />
 
       {/* Hero: fills the first screen below the 64px nav. The pitch on the
-          left, the product on the right, one faint star behind both. */}
+          left, the product on the right, a faint photograph behind both. */}
       <main className="relative overflow-hidden px-6">
-        <HeroMotif />
+        <HeroBackdrop />
         <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-7xl items-center pt-24 pb-14 sm:pb-16">
           <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-5">
