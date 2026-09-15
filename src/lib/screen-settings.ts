@@ -51,7 +51,10 @@ export const screenSettingsSchema = z.object({
   display_text: z.record(z.string(), z.string().max(100)),
   prayer_source: prayerSourceSchema,
   prayer_source_config: z.record(z.string(), z.unknown()),
-  theme: z.enum(['default', 'mihrab']),
+  // 'mihrab' is retired but still accepted: screens saved before it was
+  // replaced must remain editable. It resolves to 'night' at render time
+  // (see THEME_ALIASES in components/display/themes).
+  theme: z.enum(['default', 'night', 'mihrab']),
   theme_config: z.record(
     z.string(),
     z.union([z.string().max(500), z.number(), z.boolean()])

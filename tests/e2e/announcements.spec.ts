@@ -6,7 +6,7 @@ import { configuredScreen, saveSettings } from './helpers';
  * the wiring an admin actually touches — upload, persist, remove.
  */
 test.describe('announcements', () => {
-  const IMAGE = 'public/themes/textures/mihrab-carve.jpg';
+  const IMAGE = 'public/landing/cta-light.jpg';
 
   test('an uploaded image persists and is served from storage', async ({ page }) => {
     const id = await configuredScreen(page);

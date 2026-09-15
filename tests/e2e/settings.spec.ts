@@ -7,12 +7,12 @@ test.describe('settings dashboard', () => {
     await page.goto(`/s/${id}`);
 
     await page.getByRole('button', { name: 'Theme' }).click();
-    await page.getByRole('button', { name: /^Mihrab/ }).click();
+    await page.getByRole('button', { name: /^Night/ }).click();
     await saveSettings(page);
 
     await page.reload();
     await page.getByRole('button', { name: 'Theme' }).click();
-    await expect(page.getByRole('button', { name: /^Mihrab/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Night/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('screen fit and during-prayer settings live on the theme tab and persist', async ({ page }) => {

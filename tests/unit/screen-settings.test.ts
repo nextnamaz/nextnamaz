@@ -163,11 +163,13 @@ describe('screenSettingsSchema', () => {
     expect(ok({ locale: 5 })).toBe(false);
   });
 
-  it('accepts only the two registered themes', () => {
+  it('accepts the registered themes, plus retired ids that screens may still hold', () => {
     expect(ok({ theme: 'default' })).toBe(true);
+    expect(ok({ theme: 'night' })).toBe(true);
+    // Retired: still stored on screens saved before Night replaced it.
     expect(ok({ theme: 'mihrab' })).toBe(true);
     expect(ok({ theme: 'minimal' })).toBe(false);
-    expect(ok({ theme: 'Mihrab' })).toBe(false);
+    expect(ok({ theme: 'Night' })).toBe(false);
     expect(ok({ theme: null })).toBe(false);
   });
 

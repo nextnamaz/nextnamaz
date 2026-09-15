@@ -38,11 +38,25 @@ export interface ThemeDefinition {
 // --- Theme imports ---
 
 import { DefaultTheme, defaultDefinition } from './default';
-import { MihrabTheme, mihrabDefinition } from './mihrab';
+import { NightTheme, nightDefinition } from './night';
 
-export { DefaultTheme, MihrabTheme };
+export { DefaultTheme, NightTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
-  mihrab: mihrabDefinition,
+  night: nightDefinition,
   default: defaultDefinition,
 };
+
+/**
+ * Retired theme ids, pointed at what replaced them. Screens saved before a
+ * theme was removed keep working and pick up the replacement instead of
+ * silently dropping back to Default.
+ */
+const THEME_ALIASES: Record<string, string> = {
+  mihrab: 'night',
+};
+
+/** Resolve a saved theme id, following aliases. Returns undefined if unknown. */
+export function resolveTheme(id: string): ThemeDefinition | undefined {
+  return THEME_REGISTRY[id] ?? THEME_REGISTRY[THEME_ALIASES[id] ?? ''];
+}

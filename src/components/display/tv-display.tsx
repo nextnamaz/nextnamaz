@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/lib/supabase/client';
-import { THEME_REGISTRY } from '@/components/display/themes';
+import { resolveTheme } from '@/components/display/themes';
 import { defaultDefinition } from '@/components/display/themes/default';
 import type { ThemeProps } from '@/components/display/themes';
 import { resolveDisplayLocale, isRtlLocale } from '@/lib/display-locale';
@@ -170,7 +170,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
   }
 
   // An unknown saved theme must never blank the TV: fall back to the default.
-  const themeDef = THEME_REGISTRY[screen.theme] ?? defaultDefinition;
+  const themeDef = resolveTheme(screen.theme) ?? defaultDefinition;
   const ThemeComponent = themeDef.component;
   // Short form of the settings address for the overlay link — the QR carries
   // the full secret, the text only needs to be recognisable.
