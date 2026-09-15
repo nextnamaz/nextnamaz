@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
+import { HowItWorksWrapper } from '@/components/landing/how-it-works-wrapper';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
 import { LANDING_COPY } from '@/lib/landing-copy';
@@ -67,7 +68,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* How it works — numbered rows, not cards */}
+      {/* How it works — each step drawn with the real thing it describes */}
       <section className="py-20 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <h2 className="font-heading text-3xl sm:text-[2.5rem] leading-tight mb-2">
@@ -75,19 +76,7 @@ export default function HomePage() {
           </h2>
           <p className="text-muted-foreground mb-12">{t.howItWorks.subtitle}</p>
 
-          <ol className="divide-y divide-border max-w-3xl">
-            {t.howItWorks.steps.map((step, i) => (
-              <li key={step.title} className="flex gap-6 py-7 first:pt-0 last:pb-0">
-                <span className="font-heading text-2xl text-primary tabular-nums shrink-0 w-8">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 className="font-semibold mb-1.5">{step.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <HowItWorksWrapper />
         </div>
       </section>
 
