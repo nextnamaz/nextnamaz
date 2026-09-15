@@ -39,7 +39,25 @@ create table if not exists screens (
   -- until this flips
   configured boolean not null default false,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+
+  -- Retired, still present on the live table. Nothing reads or writes either
+  -- one: they are not in the generated Row type in src/types/database.ts and
+  -- no query mentions them. Left in place deliberately — dropping a column
+  -- cannot be undone and buys nothing, and this file existing out of step
+  -- with production is how the July data loss started. Do not resurrect them
+  -- for new features; add a new column instead.
+  name text not null default '',
+  pin text
 );
 
 alter table screens enable row level security;
+
+-- Also still present from the pre-rebuild app, and likewise left alone:
+--   public.profiles                     (16 rows, one per auth.users row)
+--   auth.users                          (16 rows)
+--   functions handle_new_user, ensure_unique_mosque_slug,
+--             ensure_unique_screen_slug, invalidate_yearly_times_cache
+-- The functions reference tables that no longer exist, so calling them
+-- errors. They remain reachable at /rest/v1/rpc/<name> by the anon role.
+-- See CLAUDE.md before removing any of it.
