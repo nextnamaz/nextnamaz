@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
       // body cap would reject them.
       bodySizeLimit: "45mb",
     },
+    // Off on purpose. Next 16.3 turned Turbopack's on-disk build cache on by
+    // default, and Vercel restores it between deploys. On 2026-09-15 that
+    // shipped a build whose Tailwind utilities were fresh but whose
+    // globals.css body was stale: no new custom rules, an old token value,
+    // and "Deployment succeeded". A slower build is cheaper than a silent
+    // one. Re-enable only with a check that the served CSS matches source.
+    turbopackFileSystemCacheForBuild: false,
   },
   async headers() {
     return [
