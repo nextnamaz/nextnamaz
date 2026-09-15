@@ -284,22 +284,22 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
         <div className="default-table">
           {/* Table Header */}
           <section className={cn('flex items-center border-b border-t uppercase', m.thBg, m.border)}>
-            <h2 className={cn('default-th default-name flex-1 flex items-center justify-start border-r-2 m-0 font-extrabold', m.thText, m.border)}>
+            <div className={cn('default-th default-name flex-1 flex items-center justify-start border-r-2 m-0 font-extrabold', m.thText, m.border)}>
               {headerPrayer}
-            </h2>
+            </div>
             {hasIqamah ? (
               <>
-                <h2 className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+                <div className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
                   {headerBegins}
-                </h2>
-                <h2 className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+                </div>
+                <div className={cn('default-th flex-1 flex items-center justify-center m-0 font-extrabold', m.thText)}>
                   {headerIqamah}
-                </h2>
+                </div>
               </>
             ) : (
-              <h2 className={cn('default-th flex-2 flex items-center justify-center m-0 font-extrabold', m.thText)}>
+              <div className={cn('default-th flex-2 flex items-center justify-center m-0 font-extrabold', m.thText)}>
                 {headerBegins}
-              </h2>
+              </div>
             )}
           </section>
 
@@ -350,7 +350,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                 )}
 
                 {/* Prayer Name */}
-                <h2
+                <div
                   className={cn(
                     'default-cell default-name flex-1 flex items-center border-b border-r h-full m-0 font-bold',
                     m.cellText,
@@ -381,12 +381,12 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                       {nextLabel}
                     </span>
                   )}
-                </h2>
+                </div>
 
                 {/* Times */}
                 {hasIqamah && formattedIqamah ? (
                   <>
-                    <h2
+                    <div
                       className={cn(
                         'default-cell flex-1 flex items-center justify-center border-b h-full m-0 font-bold',
                         m.cellText,
@@ -395,8 +395,8 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                       )}
                     >
                       {formattedTime}
-                    </h2>
-                    <h2
+                    </div>
+                    <div
                       className={cn(
                         'default-cell flex-1 flex items-center justify-center border-b border-l h-full m-0 font-bold',
                         m.cellText,
@@ -405,10 +405,10 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                       )}
                     >
                       {formattedIqamah}
-                    </h2>
+                    </div>
                   </>
                 ) : (
-                  <h2
+                  <div
                     className={cn(
                       'default-cell flex-2 flex items-center justify-center border-b h-full m-0 font-bold',
                       m.cellText,
@@ -417,7 +417,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                     )}
                   >
                     {formattedTime}
-                  </h2>
+                  </div>
                 )}
               </section>
             );
