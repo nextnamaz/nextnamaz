@@ -18,9 +18,13 @@ test.describe('TV display', () => {
     const id = await configuredScreen(page);
     await page.goto(`/tv/${id}`);
 
-    await page.mouse.move(400, 400);
+    // The pointermove listener is attached on hydration, so a single move
+    // fired before then is lost. Keep nudging until it lands.
     const overlay = page.getByRole('heading', { name: 'Screen settings' });
-    await expect(overlay).toBeVisible();
+    await expect(async () => {
+      await page.mouse.move(400 + Math.random() * 40, 400 + Math.random() * 40);
+      await expect(overlay).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 20_000 });
 
     // The shortened address is a real link a TV remote can activate.
     const link = page.getByRole('link', { name: new RegExp(`/s/${id.slice(0, 8)}`) });

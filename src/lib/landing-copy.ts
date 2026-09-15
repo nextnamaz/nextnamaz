@@ -7,17 +7,12 @@ export const LANDING_COPY = {
     getStarted: 'Set up a screen',
   },
   hero: {
-    title: 'Prayer times,',
-    titleBreak: 'on any screen.',
+    title: 'Put prayer times',
+    titleBreak: 'on your mosque TV.',
     subtitle:
-      'Open a link on a TV, scan the QR code with your phone, and your prayer times are live. No app, no account, no special hardware.',
+      'Open one link on the TV. Scan the code it shows with your phone. The times are live — no app, no account, no special hardware.',
     cta: 'Set up a screen',
     examples: 'See a live demo',
-    /** The one thing people get wrong: setup starts on the TV, not the phone. */
-    startOnTv: 'Start on the TV itself — open',
-    startOnTvPath: '/s',
-    phoneHint:
-      "You're on a phone. Open that address on the TV you want to use — then you'll finish from here.",
   },
   howItWorks: {
     title: 'Three steps.',

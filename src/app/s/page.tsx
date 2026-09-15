@@ -11,6 +11,24 @@ import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
 
 const noSubscription = () => () => {};
 
+/**
+ * A phone, as opposed to the screen being set up.
+ *
+ * This page claims whatever device it is opened on, so arriving here from a
+ * phone is almost always a wrong turn: people tap "Set up a screen" on the
+ * device in their hand rather than on the television. A tablet propped in a
+ * hallway is a legitimate display though, and tablets match a coarse pointer
+ * too, so this only changes what is offered first — it never blocks the way
+ * through.
+ */
+const PHONE_QUERY = '(max-width: 640px) and (pointer: coarse)';
+
+function subscribePhone(onChange: () => void): () => void {
+  const mq = window.matchMedia(PHONE_QUERY);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+
 function SetupInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,6 +46,13 @@ function SetupInner() {
   );
   const [creating, setCreating] = useState(false);
   const [failed, setFailed] = useState(false);
+  const isPhone = useSyncExternalStore(
+    subscribePhone,
+    () => window.matchMedia(PHONE_QUERY).matches,
+    () => false
+  );
+  /** Set when someone on a phone says they really do mean this device. */
+  const [useThisDevice, setUseThisDevice] = useState(false);
 
   // A stale id means the screen no longer exists — forget it.
   useEffect(() => {
@@ -53,6 +78,53 @@ function SetupInner() {
   };
 
   if (storedId) return null;
+
+  // Arrived on a phone: say where to go instead of claiming this device.
+  if (isPhone && !useThisDevice) {
+    return (
+      <div className="min-h-screen bg-background flex items-center px-6 py-12">
+        <div className="w-full max-w-md mx-auto flex flex-col items-center text-center gap-7">
+          <Logo size="md" />
+
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+              You&apos;re on your phone
+            </p>
+            <h1 className="text-3xl font-bold tracking-[-0.015em] mb-3">
+              Open this on the TV
+            </h1>
+            <p className="text-muted-foreground leading-relaxed">
+              This page sets up whichever screen it&apos;s opened on. Go to the
+              TV, open its browser, and type:
+            </p>
+          </div>
+
+          {host && (
+            <div className="w-full rounded-xl border border-border bg-secondary/40 px-4 py-5">
+              <p className="font-mono text-lg font-semibold break-all">{host}</p>
+            </div>
+          )}
+
+          <div className="w-full rounded-xl border border-border p-5 text-left">
+            <p className="text-sm font-medium mb-3">Then, back on your phone:</p>
+            <ol className="space-y-2 text-sm text-muted-foreground list-decimal pl-4">
+              <li>The TV shows a QR code.</li>
+              <li>Scan it with your camera.</li>
+              <li>Pick your times, language and theme, and save.</li>
+            </ol>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setUseThisDevice(true)}
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors rounded-sm px-1 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Use this device as the display instead
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center px-6 py-12">

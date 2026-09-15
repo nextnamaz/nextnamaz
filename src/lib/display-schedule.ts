@@ -47,7 +47,7 @@ export function isBlackoutNow(
  * enough to outlast the sunnah that follows.
  */
 export const CONTROL_QR_DELAY_MINUTES = 10;
-export const CONTROL_QR_DURATION_MINUTES = 20;
+export const CONTROL_QR_DURATION_MINUTES = 15;
 
 /**
  * True while any congregational prayer began between DELAY and

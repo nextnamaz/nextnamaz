@@ -79,12 +79,12 @@ describe('isBlackoutNow', () => {
 
 describe('isControlQrNow', () => {
   it('stays hidden through the prayer, then shows for the full window', () => {
-    // Dhuhr 13:24, so the window is 13:34 -> 13:54 with the default 10/20.
+    // Dhuhr 13:24, so the window is 13:34 -> 13:49 with the default 10/15.
     expect(isControlQrNow(DAY, at(13, 24))).toBe(false);
     expect(isControlQrNow(DAY, at(13, 33))).toBe(false);
     expect(isControlQrNow(DAY, at(13, 34))).toBe(true);
-    expect(isControlQrNow(DAY, at(13, 53))).toBe(true);
-    expect(isControlQrNow(DAY, at(13, 54))).toBe(false);
+    expect(isControlQrNow(DAY, at(13, 48))).toBe(true);
+    expect(isControlQrNow(DAY, at(13, 49))).toBe(false);
   });
 
   it('honours the exported delay and duration rather than hardcoded numbers', () => {
@@ -96,11 +96,11 @@ describe('isControlQrNow', () => {
   });
 
   it('carries an Isha window across midnight', () => {
-    // Isha 23:50 -> window 00:00 to 00:20 the next morning.
+    // Isha 23:50 -> window 00:00 to 00:15 the next morning.
     expect(isControlQrNow(DAY, at(23, 59))).toBe(false);
     expect(isControlQrNow(DAY, at(0, 0))).toBe(true);
-    expect(isControlQrNow(DAY, at(0, 19))).toBe(true);
-    expect(isControlQrNow(DAY, at(0, 20))).toBe(false);
+    expect(isControlQrNow(DAY, at(0, 14))).toBe(true);
+    expect(isControlQrNow(DAY, at(0, 15))).toBe(false);
   });
 
   it('never opens a window for sunrise, which is not a congregational prayer', () => {

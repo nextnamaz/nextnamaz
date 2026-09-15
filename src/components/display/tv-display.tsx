@@ -21,6 +21,9 @@ import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
 
 const OVERLAY_HIDE_MS = 10_000;
 
+/** Sits under the corner QR after each prayer. Short: it renders very small. */
+const CONTROL_QR_CAPTION = 'Scan to manage';
+
 function useViewportPortrait(): boolean {
   const [portrait, setPortrait] = useState(false);
   useEffect(() => {
@@ -297,15 +300,30 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
             <div
               dir="ltr"
               data-control-qr={controlQrVisible ? 'visible' : 'hidden'}
-              className="absolute bottom-[3%] right-[3%] z-46 flex flex-col items-center gap-1.5 rounded-lg bg-white p-2.5 shadow-lg transition-opacity duration-700"
+              className="absolute bottom-[3%] right-[3%] z-46 flex flex-col items-center rounded-[0.6vmin] bg-white shadow-lg transition-opacity duration-700"
               style={{
+                // Sized against the viewport, not in pixels: a fixed 104px is
+                // a postage stamp on a 4K wall panel and a blot on a small
+                // one. vmin keeps it the same fraction of the screen either
+                // way, and the clamp stops it vanishing or dominating at the
+                // extremes.
+                padding: 'clamp(4px, 0.7vmin, 12px)',
+                gap: 'clamp(2px, 0.35vmin, 6px)',
                 opacity: controlQrVisible ? 1 : 0,
                 pointerEvents: controlQrVisible ? undefined : 'none',
               }}
             >
-              <QRCodeSVG value={settingsUrl} size={104} level="M" />
-              <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
-                Manage screen
+              <QRCodeSVG
+                value={settingsUrl}
+                size={256}
+                level="M"
+                style={{ width: 'clamp(56px, 8vmin, 150px)', height: 'auto' }}
+              />
+              <span
+                className="font-medium tracking-wide text-neutral-500"
+                style={{ fontSize: 'clamp(6px, 0.85vmin, 13px)' }}
+              >
+                {CONTROL_QR_CAPTION}
               </span>
             </div>
 
