@@ -9,6 +9,8 @@ import { resolveTheme } from '@/components/display/themes';
 import { defaultDefinition } from '@/components/display/themes/default';
 import type { ThemeProps } from '@/components/display/themes';
 import { resolveDisplayLocale, isRtlLocale } from '@/lib/display-locale';
+import type { DisplayLocale } from '@/lib/display-locale';
+import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import Image from 'next/image';
 import { asDisplayConfig, asRecord, asStringRecord } from '@/types/database';
 import type { Screen, PrayerTimesMap } from '@/types/database';
@@ -23,6 +25,26 @@ const OVERLAY_HIDE_MS = 10_000;
 
 /** Sits under the corner QR after each prayer. Short: it renders very small. */
 const CONTROL_QR_CAPTION = 'Scan to manage';
+
+/**
+ * The only thing on screen while the congregation prays: the time, in white,
+ * on black. Its own component so the once-a-second tick re-renders this leaf
+ * and nothing else. Sized in vmin so it reads the same on a 32" set and a
+ * 75" one, and it follows the screen's own clock settings (12/24h, seconds).
+ */
+function BlackoutClock({ locale }: { locale: DisplayLocale }) {
+  const { timeStr } = useDisplayClock(locale);
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <span
+        className="font-light tabular-nums text-white"
+        style={{ fontSize: 'clamp(48px, 18vmin, 280px)', letterSpacing: '-0.02em', lineHeight: 1 }}
+      >
+        {timeStr}
+      </span>
+    </div>
+  );
+}
 
 function useViewportPortrait(): boolean {
   const [portrait, setPortrait] = useState(false);
@@ -286,12 +308,16 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
               <div className="absolute inset-0 z-40 bg-black">{slideMedia}</div>
             )}
 
-            {/* Dark screen while the congregation prays. */}
+            {/* Dark screen while the congregation prays: black, the time in
+                white, and nothing else. The clock stays mounted so it is
+                still there while the layer fades out. */}
             <div
               aria-hidden
               className="absolute inset-0 z-45 bg-black transition-opacity duration-1000"
               style={{ opacity: blackout ? 1 : 0, pointerEvents: 'none' }}
-            />
+            >
+              <BlackoutClock locale={displayLocale} />
+            </div>
 
             {/* Control QR, for a while after each prayer. Sits above the
                 blackout on purpose: a kiosk has nothing to wiggle, so this is
