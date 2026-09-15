@@ -14,7 +14,7 @@ export function SaveBar({ visible, saving, onSave, onDiscard }: SaveBarProps) {
   if (!visible) return null;
   return (
     <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <div className="flex items-center gap-2 rounded-lg border border-rule bg-background/95 backdrop-blur-md p-1.5 shadow-[0_10px_28px_-12px_rgba(23,21,15,0.5)]">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-background/95 backdrop-blur-md p-1.5 shadow-[0_10px_28px_-12px_rgba(23,21,15,0.5)]">
         <Button variant="ghost" size="sm" className="px-4" onClick={onDiscard} disabled={saving}>
           Discard
         </Button>

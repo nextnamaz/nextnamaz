@@ -1,8 +1,21 @@
-import { asPrayerTimes, asRecord } from '@/types/database';
+import { asPrayerTimes } from '@/types/database';
 import type { Screen, PrayerTimesMap } from '@/types/database';
-import type { PrayerSourceType, PrayerSourceConfig } from '@/types/prayer-config';
+import type { PrayerSourceType } from '@/types/prayer-config';
 import { fetchPrayerTimes } from '@/lib/prayer-sources';
+import { parseSourceConfig } from '@/lib/screen-settings';
 import { createAdminClient } from '@/lib/supabase/admin';
+
+const PRAYER_SOURCES: readonly PrayerSourceType[] = [
+  'manual',
+  'adhan',
+  'vaktija_ba',
+  'vaktija_eu',
+  'islamiska_forbundet',
+];
+
+function isPrayerSource(value: string): value is PrayerSourceType {
+  return (PRAYER_SOURCES as readonly string[]).includes(value);
+}
 
 /**
  * Today's times for a screen. Manual → stored times. Live sources → fetch
@@ -11,12 +24,15 @@ import { createAdminClient } from '@/lib/supabase/admin';
  * stays fresh.
  */
 export async function resolveTodayTimes(screen: Screen): Promise<PrayerTimesMap> {
-  const source = (screen.prayer_source || 'manual') as PrayerSourceType;
+  const source = isPrayerSource(screen.prayer_source) ? screen.prayer_source : 'manual';
   const stored = asPrayerTimes(screen.prayer_times);
   if (source === 'manual') return stored;
 
   try {
-    const config = asRecord(screen.prayer_source_config) as unknown as PrayerSourceConfig;
+    // Re-validate the stored config: a row written by an older schema (or by
+    // hand) must not reach a provider as a half-built request.
+    const config = parseSourceConfig(source, screen.prayer_source_config);
+    if (config === null) return stored;
     const times = await fetchPrayerTimes(source, config);
     if (JSON.stringify(times) !== JSON.stringify(stored)) {
       await createAdminClient()

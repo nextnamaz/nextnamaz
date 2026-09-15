@@ -37,7 +37,8 @@ export function resolveDisplayLocale(
   locale: string,
   displayText: Record<string, string> = {}
 ): DisplayLocale {
-  const safeLocale = (locale in DEFAULT_TRANSLATIONS ? locale : 'en') as SupportedLocale;
+  // Own-key only: `in` would accept Object.prototype members like 'constructor'.
+  const safeLocale = (Object.hasOwn(DEFAULT_TRANSLATIONS, locale) ? locale : 'en') as SupportedLocale;
   const parsed = parseDisplayText(displayText, safeLocale);
 
   return {
@@ -56,7 +57,9 @@ export function resolveDisplayLocale(
 /** Format a HH:MM prayer time for display (24h or 12h) */
 export function formatPrayerTime(time24: string, locale: DisplayLocale): string {
   if (locale.use24Hour) return time24;
-  const [h, m] = time24.split(':').map(Number);
+  const [h = NaN, m = NaN] = time24.split(':').map(Number);
+  // A malformed time must never take the display down: show it as stored.
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return time24;
   const period = h >= 12 ? 'PM' : 'AM';
   const h12 = h % 12 || 12;
   return `${h12}:${m.toString().padStart(2, '0')} ${period}`;

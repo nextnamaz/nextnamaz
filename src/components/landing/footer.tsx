@@ -18,7 +18,7 @@ export function Footer({ getStartedLabel = 'Get Started' }: FooterProps) {
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-8">
         <div className="flex items-center gap-3">
           <Logo variant="round" size="sm" />
-          <span className="eyebrow text-muted-foreground">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             &copy; {new Date().getFullYear()} NextNamaz
           </span>
         </div>

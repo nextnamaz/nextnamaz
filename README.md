@@ -43,6 +43,27 @@ npm run dev
 
 Create a Supabase project and run `supabase/schema.sql` in the SQL editor.
 
+## Tests
+
+```bash
+npm test          # unit + hook tests (vitest, jsdom)
+npm run test:e2e  # end-to-end tests (playwright)
+```
+
+Unit tests live in `tests/unit/` and cover the logic a wrong answer would ruin
+a prayer display with: the blackout schedule, the announcement slideshow's
+timing, the JSONB coercion that stands between raw database rows and the TV,
+the save-payload validation, city matching, locale text and every prayer-time
+source. They use fake timers and stubbed fetches, so they are fast and
+deterministic — no network, no wall-clock dependency.
+
+End-to-end tests in `tests/e2e/` drive the real app in Chrome against the real
+database: pairing a TV, the three-step wizard, saving settings, uploading an
+announcement, and the rotated display. They run serially on their own port
+(`E2E_PORT`, default 3100), and a teardown deletes exactly the screens and
+uploads the run created. The browser-side geocoder is stubbed and the wizard
+picks the local astronomical source, so no third-party API is called.
+
 ## Author
 
 **Ismail Sacic** — [LinkedIn](https://www.linkedin.com/in/ismailsacic)

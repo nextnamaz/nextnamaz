@@ -7,7 +7,6 @@ export const LANDING_COPY = {
     getStarted: 'Get Started',
   },
   hero: {
-    badge: 'Open for all mosques',
     title: 'Your mosque deserves',
     titleBreak: 'a better prayer display.',
     subtitle:
@@ -65,7 +64,7 @@ export const LANDING_COPY = {
       {
         title: 'As many screens as you like',
         description:
-          'Got a main hall, a women\'s section, and a basement? Set up each one separately — every screen gets its own link.',
+          'Got a main hall, a women\'s section, and a basement? Set up each one separately. Every screen gets its own link.',
       },
     ],
   },

@@ -21,15 +21,17 @@ interface PaletteConfig {
   pulseRgb: string;
 }
 
+const CLASSIC_PALETTE: PaletteConfig = {
+  current: '#4caf50',
+  currentBg: 'rgba(76,175,80,0.15)',
+  next: '#ff8c00',
+  nextBg: 'rgba(255,165,0,0.15)',
+  panel: '#64748b',
+  pulseRgb: '76,175,80',
+};
+
 const PALETTES: Record<string, PaletteConfig> = {
-  classic: {
-    current: '#4caf50',
-    currentBg: 'rgba(76,175,80,0.15)',
-    next: '#ff8c00',
-    nextBg: 'rgba(255,165,0,0.15)',
-    panel: '#64748b',
-    pulseRgb: '76,175,80',
-  },
+  classic: CLASSIC_PALETTE,
   ocean: {
     current: '#0891b2',
     currentBg: 'rgba(8,145,178,0.15)',
@@ -88,20 +90,22 @@ interface ModeClasses {
   footer: string;
 }
 
+const LIGHT_MODE: ModeClasses = {
+  header: 'bg-linear-to-b from-slate-300 to-slate-100',
+  clockText: 'text-slate-800',
+  dateText: 'text-slate-800/80',
+  bodyBg: 'bg-slate-50',
+  thBg: 'bg-slate-200',
+  thText: 'text-slate-800',
+  border: 'border-slate-300',
+  rowOdd: 'bg-linear-to-r from-slate-200/60 to-slate-50',
+  rowEven: 'bg-slate-50',
+  cellText: 'text-slate-800',
+  footer: 'bg-white text-slate-700',
+};
+
 const MODES: Record<string, ModeClasses> = {
-  light: {
-    header: 'bg-linear-to-b from-slate-300 to-slate-100',
-    clockText: 'text-slate-800',
-    dateText: 'text-slate-800/80',
-    bodyBg: 'bg-slate-50',
-    thBg: 'bg-slate-200',
-    thText: 'text-slate-800',
-    border: 'border-slate-300',
-    rowOdd: 'bg-linear-to-r from-slate-200/60 to-slate-50',
-    rowEven: 'bg-slate-50',
-    cellText: 'text-slate-800',
-    footer: 'bg-white text-slate-700',
-  },
+  light: LIGHT_MODE,
   dark: {
     header: 'bg-linear-to-b from-gray-800 to-gray-900',
     clockText: 'text-gray-100',
@@ -116,6 +120,14 @@ const MODES: Record<string, ModeClasses> = {
     footer: 'bg-gray-950 text-gray-400',
   },
 };
+
+// --- Config lookup ---
+
+// Config values arrive as unknown from the DB, so an unset or unrecognised
+// key falls back to the theme's default entry.
+function fromConfig<T>(map: Record<string, T>, key: unknown, fallback: T): T {
+  return (typeof key === 'string' ? map[key] : undefined) ?? fallback;
+}
 
 // --- Hooks ---
 
@@ -149,7 +161,9 @@ function useCountdown(targetTime: string) {
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      const [h, m] = targetTime.split(':').map(Number);
+      // A malformed time counts down to midnight, matching the '00:00'
+      // fallback the caller passes when there is no next prayer.
+      const [h = 0, m = 0] = targetTime.split(':').map(Number);
       const target = new Date(now);
       target.setHours(h, m, 0, 0);
       if (target <= now) target.setDate(target.getDate() + 1);
@@ -231,10 +245,8 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
   const hasIqamah = prayers.some((p) => p.iqamahTime);
   const countdown = useCountdown(nextPrayer?.time ?? '00:00');
 
-  const palette =
-    PALETTES[(config?.colorScheme as string) ?? 'classic'] ?? PALETTES.classic;
-  const m =
-    MODES[(config?.mode as string) ?? 'light'] ?? MODES.light;
+  const palette = fromConfig(PALETTES, config?.colorScheme, CLASSIC_PALETTE);
+  const m = fromConfig(MODES, config?.mode, LIGHT_MODE);
 
   const displayText =
     typeof config?.displayText === 'string'
@@ -470,15 +482,6 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
           height: 100%;
           overflow: hidden;
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* This theme uses <h2> for table cells. Opt them out of the
-           site's editorial heading styles — a prayer table is signage,
-           not an article. */
-        .default-theme :is(h1, h2, h3, h4, h5, h6) {
-          font-family: inherit;
-          letter-spacing: normal;
-          text-wrap: initial;
         }
 
         /* ---- Portrait Grid ---- */

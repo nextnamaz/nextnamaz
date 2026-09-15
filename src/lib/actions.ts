@@ -1,13 +1,14 @@
 'use server';
 
-import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { UUID_RE } from '@/lib/screens';
-import { prayerTimesSchema } from '@/lib/validations';
-import { LANGUAGES } from '@/lib/locale/presets';
 import { fetchPrayerTimes } from '@/lib/prayer-sources';
-import type { PrayerSourceConfig } from '@/types/prayer-config';
+import { parseSourceConfig, screenSettingsSchema } from '@/lib/screen-settings';
+import type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settings';
+import { asDisplayConfig } from '@/types/database';
 import type { PrayerTimesMap, Json } from '@/types/database';
+
+export type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settings';
 
 /** Create a blank screen and return its secret id. */
 export async function createScreen(): Promise<string> {
@@ -22,62 +23,6 @@ export async function createScreen(): Promise<string> {
   }
   return data.id;
 }
-
-// --- Prayer source validation (schema picked by source type) ---
-
-const adhanConfigSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  method: z.enum([
-    'MuslimWorldLeague', 'Egyptian', 'Karachi', 'UmmAlQura', 'Dubai', 'Qatar',
-    'Kuwait', 'MoonsightingCommittee', 'Singapore', 'Turkey', 'Tehran', 'NorthAmerica',
-  ]),
-  madhab: z.enum(['shafi', 'hanafi']),
-  timezone: z.string().max(64),
-  locationName: z.string().max(100),
-});
-
-const sourceConfigSchemas = {
-  manual: z.object({}),
-  adhan: adhanConfigSchema,
-  vaktija_ba: z.object({
-    locationId: z.number().int().min(0).max(1000),
-    locationName: z.string().max(100),
-  }),
-  vaktija_eu: z.object({
-    countryCode: z.string().max(2),
-    locationSlug: z.string().regex(/^[a-z0-9-]+$/).max(100),
-    locationName: z.string().max(100),
-  }),
-  islamiska_forbundet: z.object({
-    city: z.string().regex(/^[A-Za-zÀ-ž .'-]+$/).max(60),
-  }),
-} as const;
-
-const prayerSourceSchema = z.enum(['manual', 'adhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet']);
-export type PrayerSourceInput = z.infer<typeof prayerSourceSchema>;
-
-function parseSourceConfig(source: PrayerSourceInput, config: unknown): PrayerSourceConfig | null {
-  const parsed = sourceConfigSchemas[source].safeParse(config);
-  return parsed.success ? (parsed.data as PrayerSourceConfig) : null;
-}
-
-// Theme ids duplicated from THEME_REGISTRY so the server action bundle
-// doesn't pull in the display components.
-const screenSettingsSchema = z.object({
-  prayer_times: prayerTimesSchema,
-  locale: z.string().refine((l) => LANGUAGES.some((x) => x.code === l)),
-  display_text: z.record(z.string(), z.string().max(100)),
-  prayer_source: prayerSourceSchema,
-  prayer_source_config: z.record(z.string(), z.unknown()),
-  theme: z.enum(['default', 'mihrab', 'andalusi', 'manuscript', 'zellij']),
-  theme_config: z.record(
-    z.string(),
-    z.union([z.string().max(500), z.number(), z.boolean()])
-  ),
-});
-
-export type ScreenSettingsInput = z.infer<typeof screenSettingsSchema>;
 
 type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -110,11 +55,39 @@ export async function saveScreen(
   const sourceConfig = parseSourceConfig(parsed.data.prayer_source, parsed.data.prayer_source_config);
   if (sourceConfig === null) return { ok: false, error: 'Invalid source settings' };
 
-  const { error } = await createAdminClient()
+  // Media must live in this screen's own storage folder.
+  const ownPath = (p: string) => p.startsWith(`${id}/`) && !p.includes('..');
+  if (!parsed.data.display_config.announcements.items.every((i) => ownPath(i.path))) {
+    return { ok: false, error: 'Invalid announcement media' };
+  }
+
+  // Slides removed from the list are deleted from storage on save, so the
+  // bucket doesn't accumulate every image ever uploaded.
+  const client = createAdminClient();
+  const { data: existing } = await client
+    .from('screens')
+    .select('display_config')
+    .eq('id', id)
+    .single();
+  if (existing) {
+    const keep = new Set(parsed.data.display_config.announcements.items.map((i) => i.path));
+    const stale = asDisplayConfig(existing.display_config)
+      .announcements.items.map((i) => i.path)
+      // Only ever delete inside this screen's own folder, so a crafted path
+      // stored earlier can't reach another screen's media.
+      .filter((p) => p.startsWith(`${id}/`) && !p.includes('..') && !keep.has(p));
+    if (stale.length > 0) {
+      await client.storage.from('slides').remove(stale);
+    }
+  }
+
+  const { error } = await client
     .from('screens')
     .update({
       ...parsed.data,
-      prayer_source_config: sourceConfig as unknown as Json,
+      // Zod-validated plain object; the assertion only bridges the gap between
+      // a keyed interface and Json's index signature.
+      prayer_source_config: sourceConfig as Json,
       configured: true,
       updated_at: new Date().toISOString(),
     })
@@ -123,6 +96,62 @@ export async function saveScreen(
 
   await broadcastRefresh(id);
   return { ok: true };
+}
+
+const SLIDE_TYPES: Record<string, { ext: string; kind: 'image' | 'video'; maxBytes: number }> = {
+  'image/jpeg': { ext: 'jpg', kind: 'image', maxBytes: 4 * 1024 * 1024 },
+  'image/png': { ext: 'png', kind: 'image', maxBytes: 4 * 1024 * 1024 },
+  'image/webp': { ext: 'webp', kind: 'image', maxBytes: 4 * 1024 * 1024 },
+  'video/mp4': { ext: 'mp4', kind: 'video', maxBytes: 40 * 1024 * 1024 },
+  'video/webm': { ext: 'webm', kind: 'video', maxBytes: 40 * 1024 * 1024 },
+};
+
+type UploadSlideResult =
+  | { ok: true; item: { path: string; url: string; kind: 'image' | 'video' } }
+  | { ok: false; error: string };
+
+/**
+ * Store an announcement image or video for a screen. The file lands in
+ * storage immediately; it only shows on the TV once the settings are saved
+ * with the returned item in the list. Possession of the screen id authorizes.
+ */
+export async function uploadSlideImage(
+  screenId: string,
+  formData: FormData
+): Promise<UploadSlideResult> {
+  if (!UUID_RE.test(screenId)) return { ok: false, error: 'Unknown screen' };
+
+  const file = formData.get('file');
+  if (!(file instanceof File)) return { ok: false, error: 'No file received' };
+  const spec = SLIDE_TYPES[file.type];
+  if (!spec) return { ok: false, error: 'Use a JPG, PNG, WebP image or an MP4/WebM video' };
+  if (file.size > spec.maxBytes) {
+    return {
+      ok: false,
+      error: spec.kind === 'video' ? 'Video is over 40 MB' : 'Image is over 4 MB',
+    };
+  }
+  const { ext, kind } = spec;
+
+  const client = createAdminClient();
+  const { data: screen } = await client
+    .from('screens')
+    .select('id')
+    .eq('id', screenId)
+    .single();
+  if (!screen) return { ok: false, error: 'Unknown screen' };
+
+  const path = `${screenId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await client.storage
+    .from('slides')
+    .upload(path, file, { contentType: file.type });
+  if (error) {
+    console.error('slide upload failed:', error.message);
+    return { ok: false, error: 'Upload failed. Try again.' };
+  }
+
+  const { data } = client.storage.from('slides').getPublicUrl(path);
+  return { ok: true, item: { path, url: data.publicUrl, kind } };
 }
 
 type FetchTimesResult = { ok: true; times: PrayerTimesMap } | { ok: false; error: string };

@@ -9,7 +9,8 @@ export function parseDisplayText(
   raw: Record<string, string>,
   locale: string
 ): DisplayTextConfig {
-  const safeLocale = (locale in DEFAULT_TRANSLATIONS ? locale : 'en') as SupportedLocale;
+  // Own-key only: `in` would accept Object.prototype members like 'constructor'.
+  const safeLocale = (Object.hasOwn(DEFAULT_TRANSLATIONS, locale) ? locale : 'en') as SupportedLocale;
   const preset = DEFAULT_TRANSLATIONS[safeLocale];
 
   return {

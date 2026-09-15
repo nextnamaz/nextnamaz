@@ -32,6 +32,9 @@ create table if not exists screens (
   prayer_source_config jsonb not null default '{}'::jsonb,
   theme text not null default 'default',
   theme_config jsonb not null default '{}'::jsonb,
+  -- physical screen fit: {rotation: 0|90|180|270, zoom: 0.8..1}. Rotation is
+  -- for wall-mounted TVs whose OS can't rotate; zoom compensates overscan.
+  display_config jsonb not null default '{}'::jsonb,
   -- false until the first save from the phone; the TV shows the setup QR
   -- until this flips
   configured boolean not null default false,

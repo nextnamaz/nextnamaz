@@ -29,9 +29,13 @@ export async function fetchVaktijaBa(locationId: number): Promise<PrayerTimesMap
 
   const times = {} as PrayerTimesMap;
   for (const [key, idx] of VAKAT_MAP) {
-    const raw = data.vakat[idx];
     // API returns "HH:MM" format — normalize to ensure 2-digit
-    const [h, m] = raw.split(':');
+    const [h, m] = (data.vakat[idx] ?? '').split(':');
+    if (h === undefined || m === undefined) {
+      // A vakat array shorter than six, or a value with no colon, means the API
+      // changed shape — reject it rather than pad a half-value into a time.
+      throw new Error(`Vaktija.ba returned no usable ${key} time`);
+    }
     times[key] = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
   }
 

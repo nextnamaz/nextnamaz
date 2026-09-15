@@ -34,6 +34,7 @@ import { FlipClock, Verse, PrayerLabel, formatCountdown, countdownPhrase } from 
 // composition as the portrait board it is modelled on.
 
 interface Palette {
+  /** 6-digit hex — the texture overlay appends an alpha channel to it. */
   bg: string;
   niche: string;
   nicheEdge: string;
@@ -87,6 +88,21 @@ const PALETTES: Record<string, Palette> = {
 
 const SANS = 'var(--font-inter), ui-sans-serif, system-ui, sans-serif';
 
+interface LatticeSpec {
+  Field: typeof KhatamField;
+  opacity: number;
+  density: number;
+}
+
+/** The tiled ornament fields share one call shape; the rest are bespoke. */
+const LATTICES: Record<string, LatticeSpec | undefined> = {
+  stars: { Field: StarField, opacity: 0.14, density: 9 },
+  khatam: { Field: KhatamField, opacity: 0.16, density: 7 },
+  hex: { Field: HexStarField, opacity: 0.15, density: 7 },
+  girih: { Field: GirihField, opacity: 0.15, density: 7 },
+  quatrefoil: { Field: QuatrefoilField, opacity: 0.14, density: 8 },
+};
+
 /** Minutes between a prayer and its iqamah, for the "+20" column. */
 function iqamahOffset(prayer: PrayerTimeEntry): number | null {
   if (!prayer.iqamahTime) return null;
@@ -104,6 +120,7 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
   );
   const showSeconds = readBoolean(config.showSeconds, true);
   const backdrop = readString(config.backdrop, 'niche');
+  const lattice = LATTICES[backdrop];
 
   const states = prayerStates(prayers, nextPrayer?.name ?? null, date);
   const countdown = nextPrayer ? countdownTo(nextPrayer.time, date) : null;
@@ -144,7 +161,22 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
 
   return (
     <div data-theme="mihrab" style={root}>
-      {/* Backdrop */}
+      {/* Carved-wood texture: a static composited layer under everything.
+          The photo is buried under a gradient of the base colour — faintest
+          overlay at the top, opaque at the foot — so the lattice reads as
+          uplit woodwork and the countdown sits on solid ground. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `linear-gradient(180deg, ${palette.bg}d6 0%, ${palette.bg}f2 72%, ${palette.bg} 100%), url('/themes/textures/mihrab-carve.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+
+      {/* Ornament, chosen by config, drawn over the texture */}
       {backdrop === 'niche' && (
         <div
           aria-hidden
@@ -167,20 +199,13 @@ export function MihrabTheme({ prayers, nextPrayer, config, isPortrait, locale }:
           <MosqueSilhouette color={palette.accent} opacity={0.13} />
         </div>
       )}
-      {backdrop === 'stars' && (
-        <StarField color={palette.accent} opacity={0.14} density={9} strokeWidth={1.3} />
-      )}
-      {backdrop === 'khatam' && (
-        <KhatamField color={palette.accent} opacity={0.16} density={7} strokeWidth={1.3} />
-      )}
-      {backdrop === 'hex' && (
-        <HexStarField color={palette.accent} opacity={0.15} density={7} strokeWidth={1.3} />
-      )}
-      {backdrop === 'girih' && (
-        <GirihField color={palette.accent} opacity={0.15} density={7} strokeWidth={1.3} />
-      )}
-      {backdrop === 'quatrefoil' && (
-        <QuatrefoilField color={palette.accent} opacity={0.14} density={8} strokeWidth={1.3} />
+      {lattice && (
+        <lattice.Field
+          color={palette.accent}
+          opacity={lattice.opacity}
+          density={lattice.density}
+          strokeWidth={1.3}
+        />
       )}
       {backdrop === 'muqarnas' && (
         <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '46%' }}>

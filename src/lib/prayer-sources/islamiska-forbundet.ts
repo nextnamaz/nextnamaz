@@ -1,22 +1,56 @@
 import type { PrayerTimesMap } from '@/types/database';
 
-const PRAYER_KEYS: (keyof PrayerTimesMap)[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const SWEDEN_TIME_ZONE = 'Europe/Stockholm';
+
+interface CalendarDay {
+  month: number;
+  day: number;
+}
+
+// The widget serves Swedish cities only, so "today" can only mean today in Sweden:
+// a UTC host is still on yesterday's date through the early-morning pre-fajr hours.
+function swedishCalendarDay(now: Date): CalendarDay {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SWEDEN_TIME_ZONE,
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(now);
+
+  const partValue = (type: Intl.DateTimeFormatPartTypes, fallback: number): number => {
+    const part = parts.find((p) => p.type === type);
+    return part ? Number(part.value) : fallback;
+  };
+
+  return {
+    month: partValue('month', now.getMonth() + 1),
+    day: partValue('day', now.getDate()),
+  };
+}
 
 function extractTdText(html: string): string[] {
   const results: string[] = [];
   const regex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(html)) !== null) {
-    results.push(match[1].replace(/<[^>]*>/g, '').trim());
+    const [, inner = ''] = match;
+    results.push(inner.replace(/<[^>]*>/g, '').trim());
   }
   return results;
 }
 
+// The widget occasionally reformats a cell; padding half of one into "HH:MM" would
+// put a time on the display that the provider never published.
+function padHHMM(cell: string | undefined): string {
+  const [h, m] = (cell ?? '').split(':');
+  if (h === undefined || m === undefined) {
+    throw new Error(`Malformed prayer time cell: ${JSON.stringify(cell)}`);
+  }
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+}
+
 export async function fetchIslamiskaForbundet(city: string): Promise<PrayerTimesMap> {
   const url = 'https://www.islamiskaforbundet.se/wp-content/plugins/bonetider/Bonetider_Widget.php';
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentDay = now.getDate();
+  const { month: currentMonth, day: currentDay } = swedishCalendarDay(new Date());
 
   const body = new URLSearchParams({
     ifis_bonetider_page_city: `${city}, SE`,
@@ -49,16 +83,18 @@ export async function fetchIslamiskaForbundet(city: string): Promise<PrayerTimes
   // Cells are in rows of 7: [day, fajr, sunrise, dhuhr, asr, maghrib, isha]
   // Find the row matching today's day
   for (let i = 0; i < cells.length; i += 7) {
-    const dayNum = parseInt(cells[i], 10);
-    if (dayNum === currentDay) {
-      const times = {} as PrayerTimesMap;
-      for (let j = 0; j < PRAYER_KEYS.length; j++) {
-        const raw = cells[i + 1 + j];
-        const [h, m] = raw.split(':');
-        times[PRAYER_KEYS[j]] = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-      }
-      return times;
-    }
+    // Sliced per row so a short row fails instead of borrowing the next day's cells
+    const [dayCell, fajr, sunrise, dhuhr, asr, maghrib, isha] = cells.slice(i, i + 7);
+    if (dayCell === undefined || parseInt(dayCell, 10) !== currentDay) continue;
+
+    return {
+      fajr: padHHMM(fajr),
+      sunrise: padHHMM(sunrise),
+      dhuhr: padHHMM(dhuhr),
+      asr: padHHMM(asr),
+      maghrib: padHHMM(maghrib),
+      isha: padHHMM(isha),
+    };
   }
 
   throw new Error(`No prayer times found for day ${currentDay}`);

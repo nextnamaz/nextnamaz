@@ -1,8 +1,8 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Smartphone, WifiOff, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ShowcaseWrapper } from '@/components/landing/showcase-wrapper';
-import { NetworkIllustration } from '@/components/landing/network-illustration';
 import { Navbar } from '@/components/landing/navbar';
 import { Footer } from '@/components/landing/footer';
 import { LANDING_COPY } from '@/lib/landing-copy';
@@ -28,8 +28,15 @@ export const metadata: Metadata = {
   },
 };
 
+/** One icon per feature, in the order the copy lists them. */
+const FEATURE_ICONS = [Smartphone, WifiOff, Monitor];
+
 export default function HomePage() {
   const t = LANDING_COPY;
+  const features = t.features.items.map((item, i) => ({
+    ...item,
+    Icon: FEATURE_ICONS[i] ?? Monitor,
+  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
@@ -38,11 +45,6 @@ export default function HomePage() {
       {/* Hero */}
       <main className="relative pt-32 pb-16 px-6 sm:pt-40 sm:pb-20 overflow-hidden">
         <div className="relative max-w-5xl mx-auto">
-          <p className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground mb-7">
-            {t.hero.badge}
-            <span aria-hidden className="h-px w-16 bg-border" />
-          </p>
-
           <h1 className="max-w-3xl text-[2.6rem] leading-[1.05] sm:text-[4.2rem] sm:leading-[1.02] font-bold tracking-[-0.02em] mb-7">
             {t.hero.title}<br className="hidden sm:block" /> {t.hero.titleBreak}
           </h1>
@@ -65,7 +67,7 @@ export default function HomePage() {
           </div>
 
           {/* Demo */}
-          <div id="showcase">
+          <div id="showcase" className="scroll-mt-24">
             <ShowcaseWrapper />
           </div>
         </div>
@@ -113,19 +115,15 @@ export default function HomePage() {
           <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-12">{t.features.title}</h2>
 
           <div className="grid sm:grid-cols-3 gap-10">
-            {t.features.items.map((item, i) => {
-              const icons = [Smartphone, WifiOff, Monitor];
-              const Icon = icons[i];
-              return (
-                <div key={i} className="border-t border-foreground/15 pt-5">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <Icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
-                    <h3 className="font-semibold">{item.title}</h3>
-                  </div>
-                  <p className="text-[15px] text-muted-foreground leading-relaxed">{item.description}</p>
+            {features.map(({ Icon, title, description }) => (
+              <div key={title} className="border-t border-foreground/15 pt-5">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <Icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
+                  <h3 className="font-semibold">{title}</h3>
                 </div>
-              );
-            })}
+                <p className="text-[15px] text-muted-foreground leading-relaxed">{description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -148,20 +146,34 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-            <NetworkIllustration />
+            {/* Süleymaniye Mosque, Istanbul — Unsplash, Esra Afşar (QXSSrsI_2nQ) */}
+            <Image
+              src="/landing/network-mosques.jpg"
+              alt="Silhouette of a city skyline crowded with mosque domes and minarets at sunset"
+              width={1200}
+              height={1500}
+              className="w-full rounded-2xl object-cover aspect-4/5 border border-border"
+            />
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative py-20 px-6 border-t border-border overflow-hidden">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        </div>
-        <div className="relative max-w-5xl mx-auto text-center">
+      <section className="relative py-28 px-6 border-t border-border overflow-hidden">
+        {/* Sheikh Zayed Grand Mosque — Unsplash (vlxgphzJomk) */}
+        <Image
+          src="/landing/cta-light.jpg"
+          alt=""
+          fill
+          aria-hidden
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[#1A1205]/70" aria-hidden />
+        <div className="relative max-w-5xl mx-auto text-center text-white">
           <h2 className="text-3xl sm:text-[2.4rem] leading-tight font-bold tracking-[-0.015em] mb-4">
             {t.cta.title}
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
+          <p className="text-white/75 mb-8 max-w-lg mx-auto leading-relaxed">
             {t.cta.subtitle}
           </p>
           <Button asChild size="lg" className="px-7 h-12">

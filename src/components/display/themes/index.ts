@@ -37,18 +37,12 @@ export interface ThemeDefinition {
 
 // --- Theme imports ---
 
-import { AndalusiTheme, andalusiDefinition } from './andalusi';
 import { DefaultTheme, defaultDefinition } from './default';
-import { ManuscriptTheme, manuscriptDefinition } from './manuscript';
 import { MihrabTheme, mihrabDefinition } from './mihrab';
-import { ZellijTheme, zellijDefinition } from './zellij';
 
-export { AndalusiTheme, DefaultTheme, ManuscriptTheme, MihrabTheme, ZellijTheme };
+export { DefaultTheme, MihrabTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   mihrab: mihrabDefinition,
-  andalusi: andalusiDefinition,
-  manuscript: manuscriptDefinition,
-  zellij: zellijDefinition,
   default: defaultDefinition,
 };

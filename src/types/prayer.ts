@@ -24,7 +24,8 @@ export function getNextPrayer(prayers: PrayerTimeEntry[]): PrayerTimeEntry | nul
 
   for (const prayer of prayers) {
     if (prayer.name === 'sunrise') continue;
-    const [hours, minutes] = prayer.time.split(':').map(Number);
+    // A malformed time stays NaN, which never compares as future, so the row is skipped.
+    const [hours = NaN, minutes = NaN] = prayer.time.split(':').map(Number);
     if (hours * 60 + minutes > currentMinutes) return prayer;
   }
 

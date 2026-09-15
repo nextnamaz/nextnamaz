@@ -6,17 +6,20 @@ import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/lib/supabase/client';
 import { THEME_REGISTRY } from '@/components/display/themes';
+import { defaultDefinition } from '@/components/display/themes/default';
 import type { ThemeProps } from '@/components/display/themes';
 import { resolveDisplayLocale, isRtlLocale } from '@/lib/display-locale';
-import { asRecord, asStringRecord } from '@/types/database';
+import Image from 'next/image';
+import { asDisplayConfig, asRecord, asStringRecord } from '@/types/database';
 import type { Screen, PrayerTimesMap } from '@/types/database';
 import { getNextPrayer, prayerTimesMapToEntries } from '@/types/prayer';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { SCREEN_STORAGE_KEY } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
+import { useBlackout, useSlideshow } from './use-schedule';
 
-const OVERLAY_HIDE_MS = 15_000;
+const OVERLAY_HIDE_MS = 10_000;
 
 function useViewportPortrait(): boolean {
   const [portrait, setPortrait] = useState(false);
@@ -136,13 +139,21 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     [todayTimes, displayLocale]
   );
   const nextPrayer = useNextPrayer(prayers);
+  const fitConfig = useMemo(() => asDisplayConfig(screen.display_config), [screen.display_config]);
+  const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
+  const { slide, onMediaEnd } = useSlideshow(
+    fitConfig.announcements.items,
+    fitConfig.announcements.enabled,
+    fitConfig.announcements.intervalMin,
+    fitConfig.announcements.showSeconds
+  );
 
   if (!screen.configured) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-8 p-8 text-center">
         <Logo size="lg" />
         <div className="max-w-xl">
-          <p className="eyebrow text-muted-foreground border-b border-rule pb-2.5 mb-6">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground border-b border-border pb-2.5 mb-6">
             Step 2 of 2 &middot; On your phone
           </p>
           <h1 className="text-4xl sm:text-5xl tracking-[-0.015em] mb-4">Scan to set up this screen</h1>
@@ -150,7 +161,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
             Open your phone camera and scan the code. Prayer times appear here the moment you save.
           </p>
         </div>
-        <div className="bg-white p-6 rounded-md border border-rule">
+        <div className="bg-white p-6 rounded-md border border-border">
           <QRCodeSVG value={settingsUrl} size={280} level="M" />
         </div>
         <p className="text-sm text-muted-foreground font-mono">{settingsUrl}</p>
@@ -158,54 +169,155 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     );
   }
 
-  const themeDef = THEME_REGISTRY[screen.theme] ?? THEME_REGISTRY['default'];
+  // An unknown saved theme must never blank the TV: fall back to the default.
+  const themeDef = THEME_REGISTRY[screen.theme] ?? defaultDefinition;
   const ThemeComponent = themeDef.component;
+  // Short form of the settings address for the overlay link — the QR carries
+  // the full secret, the text only needs to be recognisable.
+  const settingsDisplay = settingsUrl
+    .replace(/^https?:\/\//, '')
+    .replace(/(\/s\/[0-9a-f]{8})[0-9a-f-]+$/i, '$1…');
+  const fit = fitConfig;
+  const sideways = fit.rotation === 90 || fit.rotation === 270;
+  // A physically rotated TV reports the opposite viewport orientation.
+  const displayPortrait = sideways ? !isPortrait : isPortrait;
+  const slideVisible = !!slide && !blackout;
+  const splitActive = slideVisible && fit.announcements.layout === 'split';
   const themeProps: ThemeProps = {
     prayers,
     nextPrayer,
     config: { ...themeDef.defaultConfig, ...asRecord(screen.theme_config) },
-    isPortrait,
+    // Splitting halves the long axis, which flips the half's orientation.
+    isPortrait: splitActive ? !displayPortrait : displayPortrait,
     locale: displayLocale,
   };
+
+  const slideMedia =
+    slide &&
+    (slide.kind === 'video' ? (
+      <video
+        key={slide.path}
+        src={slide.url}
+        autoPlay
+        muted
+        playsInline
+        onEnded={onMediaEnd}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+      />
+    ) : (
+      <Image src={slide.url} alt="" fill unoptimized className="object-contain" />
+    ));
+
+  // For 90/270 the sized container swaps dimensions and is rotated back into
+  // place, so themes (and their container queries) see the upright geometry.
+  const rotationStyle: CSSProperties =
+    fit.rotation === 180
+      ? { transform: 'rotate(180deg)' }
+      : sideways
+        ? {
+            width: '100vh',
+            height: '100vw',
+            transformOrigin: 'top left',
+            transform:
+              fit.rotation === 90
+                ? 'rotate(90deg) translateY(-100%)'
+                : 'rotate(-90deg) translateX(-100%)',
+          }
+        : {};
 
   return (
     <div
       dir={isRtlLocale(displayLocale) ? 'rtl' : 'ltr'}
       className={overlayVisible ? undefined : 'cursor-none'}
     >
-      {/* Themes size their text with container-query units, so they need an
-          explicitly sized container with containerType: size. */}
-      <div
-        style={{
-          width: '100vw',
-          height: '100vh',
-          overflow: 'hidden',
-          containerType: 'size' as CSSProperties['containerType'],
-        }}
-      >
-        <ThemeComponent {...themeProps} />
-      </div>
+      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#000' }}>
+        {/* Zoom compensates TV overscan; margins fall in the cropped band. */}
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            ...(fit.zoom < 1 ? { transform: `scale(${fit.zoom})` } : {}),
+          }}
+        >
+          <div
+            style={{
+              width: '100vw',
+              height: '100vh',
+              overflow: 'hidden',
+              ...rotationStyle,
+            }}
+          >
+            {/* Split view shares the screen between times and announcement. */}
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: displayPortrait ? 'column' : 'row',
+              }}
+            >
+              {/* Themes size their text with container-query units, so they
+                  need an explicitly sized container with containerType: size. */}
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: 0,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  containerType: 'size' as CSSProperties['containerType'],
+                }}
+              >
+                <ThemeComponent {...themeProps} />
+              </div>
+              {splitActive && (
+                <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+                  {slideMedia}
+                </div>
+              )}
+            </div>
 
-      {overlayVisible && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8" dir="ltr">
-          <div className="bg-background rounded-lg border border-rule shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] p-8 flex flex-col items-center gap-5 max-w-sm text-center">
-            <h2 className="text-2xl">Screen settings</h2>
-            <div className="bg-white p-4 rounded-md border border-rule">
-              <QRCodeSVG value={settingsUrl} size={180} level="M" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Scan with your phone to change prayer times, language or theme.
-            </p>
-            <p className="text-xs text-muted-foreground font-mono break-all">{settingsUrl}</p>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={hideOverlay}>Hide</Button>
-              <Button variant="ghost" className="text-destructive" onClick={startOver}>
-                New setup
-              </Button>
-            </div>
+            {/* Full-screen announcement takeover. */}
+            {slideVisible && !splitActive && (
+              <div className="absolute inset-0 z-40 bg-black">{slideMedia}</div>
+            )}
+
+            {/* Dark screen while the congregation prays. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 z-45 bg-black transition-opacity duration-1000"
+              style={{ opacity: blackout ? 1 : 0, pointerEvents: 'none' }}
+            />
+
+            {overlayVisible && (
+              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8" dir="ltr">
+                <div className="bg-background rounded-lg border border-border shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] p-8 flex flex-col items-center gap-5 max-w-sm text-center">
+                  <h2 className="text-2xl">Screen settings</h2>
+                  <div className="bg-white p-4 rounded-md border border-border">
+                    <QRCodeSVG value={settingsUrl} size={180} level="M" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Scan with your phone to change prayer times, language or
+                    theme, or open the settings on this TV:
+                  </p>
+                  <a
+                    href={settingsUrl}
+                    className="text-sm font-mono text-primary underline underline-offset-4 rounded-sm px-1 focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {settingsDisplay}
+                  </a>
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={hideOverlay}>Hide</Button>
+                    <Button variant="ghost" className="text-destructive" onClick={startOver}>
+                      New setup
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

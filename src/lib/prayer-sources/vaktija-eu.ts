@@ -21,6 +21,11 @@ const PRAYER_KEYS: (keyof PrayerTimesMap)[] = ['fajr', 'sunrise', 'dhuhr', 'asr'
 
 function toHHMM(hhmmss: string): string {
   const [h, m] = hhmmss.split(':');
+  if (h === undefined || m === undefined) {
+    // Values arrive as "HH:MM:SS"; anything without a colon cannot be padded into
+    // a real clock time, so it must not reach the display.
+    throw new Error(`Unparseable time from vaktija.eu: ${hhmmss}`);
+  }
   return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
 }
 

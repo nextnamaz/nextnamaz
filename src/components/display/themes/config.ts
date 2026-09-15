@@ -20,13 +20,18 @@ export function readBoolean(value: unknown, fallback: boolean): boolean {
 }
 
 /** Pick a palette entry by key, falling back to a known-good one. */
-export function readPalette<T>(
-  palettes: Record<string, T>,
+export function readPalette<T, K extends string>(
+  palettes: Record<K, T>,
   value: unknown,
-  fallback: string
+  fallback: K
 ): T {
   const key = readString(value, fallback);
-  return palettes[key] ?? palettes[fallback];
+  // Matched against own keys only: the key comes from saved config, and an
+  // inherited name like 'constructor' is not a palette.
+  for (const [name, palette] of Object.entries<T>(palettes)) {
+    if (name === key) return palette;
+  }
+  return palettes[fallback];
 }
 
 export interface Countdown {
@@ -37,13 +42,15 @@ export interface Countdown {
 
 /** Minutes since midnight for a "HH:MM" string. */
 export function minutesOf(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
+  // A malformed time yields NaN rather than 0, so it never reads as midnight:
+  // callers compare against this value and must fail closed, not land on "past".
+  const [hours = NaN, minutes = NaN] = time.split(':').map(Number);
   return hours * 60 + minutes;
 }
 
 /** Time remaining until the next occurrence of "HH:MM", relative to `now`. */
 export function countdownTo(time: string, now: Date): Countdown {
-  const [hours, minutes] = time.split(':').map(Number);
+  const [hours = NaN, minutes = NaN] = time.split(':').map(Number);
   const target = new Date(now);
   target.setHours(hours, minutes, 0, 0);
   if (target.getTime() <= now.getTime()) {

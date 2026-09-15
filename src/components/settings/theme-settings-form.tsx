@@ -42,8 +42,8 @@ function useMeasuredWidth<T extends HTMLElement>() {
     if (!element) return;
     // Fires once on observe, so the first measurement arrives here too —
     // no setState in the effect body.
-    const observer = new ResizeObserver(([entry]) => {
-      setWidth(entry.contentRect.width);
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setWidth(entry.contentRect.width);
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -113,8 +113,8 @@ export function ThemePicker({ value, config, onChange }: ThemePickerProps) {
           className={cn(
             'flex flex-col rounded-xl border-2 text-left transition-colors overflow-hidden',
             value === theme.id
-              ? 'border-primary ring-2 ring-primary/20'
-              : 'border-muted hover:border-primary/50'
+              ? 'border-primary'
+              : 'border-border hover:border-primary/50'
           )}
         >
           <ThemeThumbnail
