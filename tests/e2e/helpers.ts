@@ -48,7 +48,7 @@ export async function createScreen(page: Page): Promise<string> {
 }
 
 /**
- * Walk a fresh screen through the three-step first-run wizard, leaving it
+ * Walk a fresh screen through the first-run wizard, leaving it
  * configured with calculated times.
  */
 export async function completeSetupWizard(page: Page, screenId: string): Promise<void> {
@@ -70,6 +70,10 @@ export async function completeSetupWizard(page: Page, screenId: string): Promise
   await page.getByRole('button', { name: /continue/i }).click();
 
   await expect(page.getByRole('heading', { name: /pick a look/i })).toBeVisible();
+  await page.getByRole('button', { name: /continue/i }).click();
+
+  // The PIN is optional; the default flow skips it.
+  await expect(page.getByRole('heading', { name: /lock it with a pin/i })).toBeVisible();
   await page.getByRole('button', { name: /turn on the display/i }).click();
 
   await expect(page.getByRole('heading', { name: /your screen is live/i })).toBeVisible();

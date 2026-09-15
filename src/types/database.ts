@@ -30,6 +30,8 @@ export type Database = {
           theme_config: Json;
           display_config: Json;
           configured: boolean;
+          /** scrypt hash of the settings PIN, or null for no PIN. Never the digits. */
+          pin: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -44,6 +46,7 @@ export type Database = {
           theme_config?: Json;
           display_config?: Json;
           configured?: boolean;
+          pin?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,6 +61,7 @@ export type Database = {
           theme_config?: Json;
           display_config?: Json;
           configured?: boolean;
+          pin?: string | null;
           created_at?: string;
           updated_at?: string;
         };

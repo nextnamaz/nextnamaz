@@ -88,3 +88,6 @@ export const screenSettingsSchema = z.object({
 });
 
 export type ScreenSettingsInput = z.infer<typeof screenSettingsSchema>;
+
+/** A PIN is four to eight digits. Shared by the client fields and the server. */
+export const PIN_RE = /^\d{4,8}$/;

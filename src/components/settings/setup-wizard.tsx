@@ -3,13 +3,18 @@
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { THEME_REGISTRY } from '@/components/display/themes';
 import { PRAYER_NAMES } from '@/types/prayer';
 import type { PrayerTimesMap } from '@/types/database';
+import { setScreenPin } from '@/lib/actions';
 import type { PrayerSourceInput } from '@/lib/actions';
+import { PIN_RE } from '@/lib/screen-settings';
 import { SourceWizard, sourceLabel } from './source-wizard';
 import { LanguageTab } from './language-tab';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
@@ -20,11 +25,13 @@ const STEPS = [
   { id: 'times', title: 'Prayer times' },
   { id: 'language', title: 'Language' },
   { id: 'theme', title: 'Theme' },
+  { id: 'pin', title: 'PIN' },
 ] as const;
 
 type StepId = (typeof STEPS)[number]['id'] | 'done';
 
 interface SetupWizardProps {
+  screenId: string;
   form: FormState;
   setForm: Dispatch<SetStateAction<FormState>>;
   saving: boolean;
@@ -34,9 +41,11 @@ interface SetupWizardProps {
   onExit: () => void;
 }
 
-export function SetupWizard({ form, setForm, saving, onFinish, onExit }: SetupWizardProps) {
+export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit }: SetupWizardProps) {
   const [step, setStep] = useState<StepId>('times');
   const [sourceChosen, setSourceChosen] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState<string | null>(null);
 
   const currentStep = STEPS.find((s) => s.id === step) ?? STEPS[0];
   const stepIndex = STEPS.indexOf(currentStep);
@@ -59,7 +68,18 @@ export function SetupWizard({ form, setForm, saving, onFinish, onExit }: SetupWi
   };
 
   const finish = async () => {
-    if (await onFinish()) setStep('done');
+    if (pin && !PIN_RE.test(pin)) {
+      setPinError('A PIN is 4 to 8 digits');
+      return;
+    }
+    if (!(await onFinish())) return;
+    // The screen is saved; the PIN is separate and optional, so a failure
+    // here leaves a working, unlocked screen rather than a broken one.
+    if (pin) {
+      const result = await setScreenPin(screenId, pin);
+      if (!result.ok) toast.error(result.error);
+    }
+    setStep('done');
   };
 
   if (step === 'done') {
@@ -195,6 +215,46 @@ export function SetupWizard({ form, setForm, saving, onFinish, onExit }: SetupWi
                     />
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {step === 'pin' && (
+          <>
+            <div>
+              <h1 className="text-2xl font-bold mb-1.5">Lock it with a PIN?</h1>
+              <p className="text-muted-foreground">
+                Optional. Anyone who scans the code on the TV can open these
+                settings; with a PIN they also need a number only you know.
+                Leave it empty to skip.
+              </p>
+            </div>
+            <Card>
+              <CardContent className="pt-6 space-y-3">
+                <Label htmlFor="setup-pin">PIN (4 to 8 digits)</Label>
+                <Input
+                  id="setup-pin"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  pattern="[0-9]*"
+                  maxLength={8}
+                  value={pin}
+                  onChange={(e) => {
+                    setPin(e.target.value.replace(/\D/g, ''));
+                    setPinError(null);
+                  }}
+                  placeholder="Leave empty for no PIN"
+                  className="max-w-xs text-lg tracking-[0.3em] tabular-nums"
+                />
+                {pinError && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {pinError}
+                  </p>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  You can add, change or remove it later under Lock in the settings.
+                </p>
               </CardContent>
             </Card>
           </>

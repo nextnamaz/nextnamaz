@@ -41,14 +41,16 @@ create table if not exists screens (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
-  -- Retired, still present on the live table. Nothing reads or writes either
-  -- one: they are not in the generated Row type in src/types/database.ts and
-  -- no query mentions them. Left in place deliberately — dropping a column
-  -- cannot be undone and buys nothing, and this file existing out of step
-  -- with production is how the July data loss started. Do not resurrect them
-  -- for new features; add a new column instead.
-  name text not null default '',
-  pin text
+  -- Optional settings PIN: an scrypt hash ("scrypt$salt$hash"), never the
+  -- digits. Null means anyone with the link may edit. See src/lib/pin.ts.
+  pin text,
+
+  -- Retired, still present on the live table. Nothing reads or writes it: it
+  -- is not in the generated Row type and no query mentions it. Left in place
+  -- deliberately: dropping a column cannot be undone and buys nothing, and
+  -- this file being out of step with production is how the July data loss
+  -- started. Do not resurrect it for a new feature; add a new column instead.
+  name text not null default ''
 );
 
 alter table screens enable row level security;

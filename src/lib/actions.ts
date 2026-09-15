@@ -7,6 +7,18 @@ import { parseSourceConfig, screenSettingsSchema } from '@/lib/screen-settings';
 import type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settings';
 import { asDisplayConfig } from '@/types/database';
 import type { PrayerTimesMap, Json } from '@/types/database';
+import { cookies } from 'next/headers';
+import { PIN_RE } from '@/lib/screen-settings';
+import {
+  clearPinFailures,
+  hashPin,
+  isUnlocked,
+  pinLockedFor,
+  recordPinFailure,
+  unlockCookie,
+  unlockCookieName,
+  verifyPin,
+} from '@/lib/pin';
 
 export type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settings';
 
@@ -25,6 +37,17 @@ export async function createScreen(): Promise<string> {
 }
 
 type SaveResult = { ok: true } | { ok: false; error: string };
+
+const LOCKED: { ok: false; error: string } = {
+  ok: false,
+  error: 'This screen is locked. Enter its PIN first.',
+};
+
+/** Whether this request may edit the screen: no PIN set, or the unlock cookie matches. */
+async function mayEdit(id: string, storedHash: string | null): Promise<boolean> {
+  const store = await cookies();
+  return isUnlocked(id, storedHash, (name) => store.get(name)?.value);
+}
 
 /**
  * Nudge the TV to reload. Sending on a channel the server never subscribed to
@@ -66,9 +89,11 @@ export async function saveScreen(
   const client = createAdminClient();
   const { data: existing } = await client
     .from('screens')
-    .select('display_config')
+    .select('display_config, pin')
     .eq('id', id)
     .single();
+  if (!existing) return { ok: false, error: 'Unknown screen' };
+  if (!(await mayEdit(id, existing.pin))) return LOCKED;
   if (existing) {
     const keep = new Set(parsed.data.display_config.announcements.items.map((i) => i.path));
     const stale = asDisplayConfig(existing.display_config)
@@ -136,10 +161,11 @@ export async function uploadSlideImage(
   const client = createAdminClient();
   const { data: screen } = await client
     .from('screens')
-    .select('id')
+    .select('id, pin')
     .eq('id', screenId)
     .single();
   if (!screen) return { ok: false, error: 'Unknown screen' };
+  if (!(await mayEdit(screenId, screen.pin))) return { ok: false, error: LOCKED.error };
 
   const path = `${screenId}/${crypto.randomUUID()}.${ext}`;
   const { error } = await client.storage
@@ -152,6 +178,51 @@ export async function uploadSlideImage(
 
   const { data } = client.storage.from('slides').getPublicUrl(path);
   return { ok: true, item: { path, url: data.publicUrl, kind } };
+}
+
+type PinResult = { ok: true } | { ok: false; error: string };
+
+/** Check a PIN and, if it is right, remember this browser for thirty days. */
+export async function unlockScreen(id: string, pin: string): Promise<PinResult> {
+  if (!UUID_RE.test(id)) return { ok: false, error: 'Unknown screen' };
+  if (!PIN_RE.test(pin)) return { ok: false, error: 'A PIN is 4 to 8 digits' };
+  const wait = pinLockedFor(id);
+  if (wait > 0) return { ok: false, error: `Too many tries. Wait ${Math.ceil(wait / 1000)} seconds.` };
+
+  const { data } = await createAdminClient().from('screens').select('pin').eq('id', id).single();
+  if (!data) return { ok: false, error: 'Unknown screen' };
+  if (!data.pin) return { ok: true };
+  if (!verifyPin(pin, data.pin)) {
+    recordPinFailure(id);
+    return { ok: false, error: 'Wrong PIN' };
+  }
+  clearPinFailures(id);
+  (await cookies()).set(unlockCookie(id, data.pin));
+  return { ok: true };
+}
+
+/**
+ * Set, change, or remove (null) the PIN. If one is already set, the caller
+ * must have entered it. Setting one also unlocks this browser, so whoever
+ * just chose the PIN is not immediately asked for it.
+ */
+export async function setScreenPin(id: string, pin: string | null): Promise<PinResult> {
+  if (!UUID_RE.test(id)) return { ok: false, error: 'Unknown screen' };
+  if (pin !== null && !PIN_RE.test(pin)) return { ok: false, error: 'A PIN is 4 to 8 digits' };
+
+  const client = createAdminClient();
+  const { data } = await client.from('screens').select('pin').eq('id', id).single();
+  if (!data) return { ok: false, error: 'Unknown screen' };
+  if (!(await mayEdit(id, data.pin))) return LOCKED;
+
+  const stored = pin === null ? null : hashPin(pin);
+  const { error } = await client.from('screens').update({ pin: stored }).eq('id', id);
+  if (error) return { ok: false, error: 'Could not save the PIN. Try again.' };
+
+  const store = await cookies();
+  if (stored) store.set(unlockCookie(id, stored));
+  else store.delete({ name: unlockCookieName(id), path: `/s/${id}` });
+  return { ok: true };
 }
 
 type FetchTimesResult = { ok: true; times: PrayerTimesMap } | { ok: false; error: string };

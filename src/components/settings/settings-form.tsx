@@ -7,6 +7,7 @@ import {
   ImagePlus,
   Languages,
   Loader2,
+  Lock,
   Megaphone,
   Palette,
   X,
@@ -25,6 +26,7 @@ import { THEME_REGISTRY } from '@/components/display/themes';
 import { LanguageTab } from './language-tab';
 import { SaveBar } from './save-bar';
 import { SetupWizard } from './setup-wizard';
+import { PinCard } from './pin-card';
 import { SourceWizard, sourceLabel } from './source-wizard';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
 import { ManualTimesFields, formFromScreen, sourceExplanation } from './settings-shared';
@@ -48,20 +50,23 @@ const ROTATION_LABELS: { value: Rotation; label: string }[] = [
   { value: 270, label: 'Rotated left (270°)' },
 ];
 
-type TabId = 'prayers' | 'language' | 'theme' | 'announcements';
+type TabId = 'prayers' | 'language' | 'theme' | 'announcements' | 'lock';
 
 const TABS: { id: TabId; label: string; icon: typeof Clock }[] = [
   { id: 'prayers', label: 'Times', icon: Clock },
   { id: 'language', label: 'Language', icon: Languages },
   { id: 'theme', label: 'Theme', icon: Palette },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
+  { id: 'lock', label: 'Lock', icon: Lock },
 ];
 
 interface SettingsFormProps {
   screen: Screen;
+  /** A PIN is set; the hash itself never reaches the client. */
+  hasPin: boolean;
 }
 
-export function SettingsForm({ screen }: SettingsFormProps) {
+export function SettingsForm({ screen, hasPin }: SettingsFormProps) {
   const initial = formFromScreen(screen);
   const [form, setForm] = useState<FormState>(initial);
   const [saved, setSaved] = useState<FormState>(initial);
@@ -163,6 +168,7 @@ export function SettingsForm({ screen }: SettingsFormProps) {
   if (inSetup) {
     return (
       <SetupWizard
+        screenId={screen.id}
         form={form}
         setForm={setForm}
         saving={saving}
@@ -664,6 +670,8 @@ export function SettingsForm({ screen }: SettingsFormProps) {
               </CardContent>
             </Card>
           )}
+
+          {tab === 'lock' && <PinCard screenId={screen.id} hasPin={hasPin} />}
         </main>
       </div>
 
@@ -671,7 +679,7 @@ export function SettingsForm({ screen }: SettingsFormProps) {
 
       {/* Mobile bottom tab bar */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-background/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
