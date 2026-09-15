@@ -21,7 +21,10 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
 import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
 
-const OVERLAY_HIDE_MS = 10_000;
+/** How long the settings overlay stays after the last real activity. */
+const OVERLAY_HIDE_MS = 5_000;
+/** Pointer travel below this is wobble, not intent, and does not count. */
+const OVERLAY_JITTER_PX = 6;
 
 /** Sits under the corner QR after each prayer. Short: it renders very small. */
 const CONTROL_QR_CAPTION = 'Scan to manage';
@@ -37,6 +40,8 @@ function BlackoutClock({ locale }: { locale: DisplayLocale }) {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <span
+        // The server rendered one second; the client hydrates on the next.
+        suppressHydrationWarning
         className="font-light tabular-nums text-white"
         style={{ fontSize: 'clamp(48px, 18vmin, 280px)', letterSpacing: '-0.02em', lineHeight: 1 }}
       >
@@ -138,13 +143,25 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     if (hideTimer.current) clearTimeout(hideTimer.current);
   }, []);
 
-  // Any mouse/remote/keyboard activity brings the QR overlay back.
+  // Any real mouse/remote/keyboard activity brings the QR overlay back. A
+  // pointer that only wobbles (a mouse on a humming shelf, a sensitive
+  // air-mouse remote) is ignored, or it would hold the overlay open forever.
+  // The first movement always counts, so a single nudge opens it.
   useEffect(() => {
     if (!screen.configured) return;
-    const events: (keyof WindowEventMap)[] = ['pointermove', 'pointerdown', 'keydown'];
-    events.forEach((e) => window.addEventListener(e, showOverlay));
+    let last: { x: number; y: number } | null = null;
+    const onPointerMove = (e: PointerEvent) => {
+      const moved = last ? Math.hypot(e.clientX - last.x, e.clientY - last.y) : Infinity;
+      last = { x: e.clientX, y: e.clientY };
+      if (moved >= OVERLAY_JITTER_PX) showOverlay();
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerdown', showOverlay);
+    window.addEventListener('keydown', showOverlay);
     return () => {
-      events.forEach((e) => window.removeEventListener(e, showOverlay));
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerdown', showOverlay);
+      window.removeEventListener('keydown', showOverlay);
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
   }, [screen.configured, showOverlay]);

@@ -239,6 +239,18 @@ export const defaultDefinition: ThemeDefinition = {
 
 // --- Theme component ---
 
+/**
+ * Long prayer names shrink rather than wrap. The table gives every row a
+ * fixed share of its height, so a second line has nowhere to go but out.
+ * Thresholds sized to the longest preset labels: "Izlazak sunca" (13),
+ * "Soluppgång" (10). Anything shorter is untouched.
+ */
+function nameScale(name: string): string | undefined {
+  if (name.length >= 12) return '0.62em';
+  if (name.length >= 10) return '0.78em';
+  return undefined;
+}
+
 export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
   const { timeStr, dateStr } = useDisplayClock(locale);
   const prayerStates = usePrayerStates(prayers, nextPrayer);
@@ -352,7 +364,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                 {/* Prayer Name */}
                 <div
                   className={cn(
-                    'default-cell default-name flex-1 flex items-center border-b border-r h-full m-0 font-bold',
+                    'default-cell default-name flex-1 flex items-center border-b border-r h-full m-0 font-bold min-w-0 overflow-hidden',
                     m.cellText,
                     m.border,
                     plain && isOdd && m.rowOdd,
@@ -367,7 +379,15 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                       <Check className="default-check-icon" strokeWidth={4} />
                     </span>
                   )}
-                  <span>{prayer.displayName}</span>
+                  {/* No wrapping: every row has a fixed share of the table, so a
+                      name that broke onto a second line spilled out of its row.
+                      Long ones ("Izlazak sunca", "Soluppgång") shrink instead. */}
+                  <span
+                    className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                    style={{ fontSize: nameScale(prayer.displayName) }}
+                  >
+                    {prayer.displayName}
+                  </span>
                   {isSunrise && (
                     <span className="inline-flex items-center ml-[0.3em]">
                       <Sunrise className="default-sunrise-icon text-amber-500" />

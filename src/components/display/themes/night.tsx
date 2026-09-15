@@ -115,7 +115,10 @@ export function NightTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
             paddingBottom: t('3cqmin', '2cqmin'),
           }}
         >
+          {/* Time-derived text is rendered on the server one second and
+              hydrated the next; without this React discards the whole tree. */}
           <div
+            suppressHydrationWarning
             style={{
               fontSize: t('15cqmin', '11cqmin'),
               lineHeight: 1,
@@ -126,6 +129,7 @@ export function NightTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
             {showSeconds ? timeStr : timeStr.split(':').slice(0, 2).join(':')}
           </div>
           <div
+            suppressHydrationWarning
             style={{
               fontSize: t('3.2cqmin', '2.1cqmin'),
               color: MUTED,
@@ -215,6 +219,7 @@ export function NightTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
               {countdownPhrase(nextPrayer, locale)}
             </div>
             <div
+              suppressHydrationWarning
               style={{
                 fontSize: t('9cqmin', '6.5cqmin'),
                 lineHeight: 1.05,
