@@ -1,10 +1,18 @@
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getScreen } from '@/lib/screens';
 import { resolveTodayTimes } from '@/lib/prayer-times';
 import { TvDisplay } from '@/components/display/tv-display';
+import { NOINDEX_METADATA } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
+
+// Same id as the settings URL, so the same rule applies.
+export const metadata: Metadata = {
+  title: 'Prayer times',
+  ...NOINDEX_METADATA,
+};
 
 interface TvPageProps {
   params: Promise<{ id: string }>;

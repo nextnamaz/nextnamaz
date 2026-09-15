@@ -13,3 +13,25 @@ export const SITE_NAME = 'NextNamaz';
  * leaked password. Kept here so robots.ts and sitemap.ts can't drift apart.
  */
 export const PRIVATE_PATHS = ['/s/', '/tv/', '/api/'];
+
+/**
+ * Metadata for a page whose URL is itself the secret.
+ *
+ * robots.txt stops a well-behaved crawler fetching these at all, but it does
+ * not stop one that learned the URL elsewhere from listing it, and it is
+ * advisory — a crawler that ignores it still fetches the page. This says
+ * noindex in the document too, and `canonical: null` stops the root layout's
+ * canonical (which points at "/") being inherited and quietly nominating the
+ * homepage as this page's canonical.
+ */
+export const NOINDEX_METADATA = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    noarchive: true,
+    nosnippet: true,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
+  alternates: { canonical: null },
+} as const;

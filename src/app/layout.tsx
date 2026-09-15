@@ -26,7 +26,9 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
-  alternates: { canonical: "/" },
+  // No canonical here: a root-layout canonical is inherited by every page, so
+  // "/" would have every screen page nominating the homepage as its canonical.
+  // Each indexable page declares its own.
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32" },

@@ -1,8 +1,16 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getScreen } from '@/lib/screens';
 import { SettingsForm } from '@/components/settings/settings-form';
+import { NOINDEX_METADATA } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
+
+// This URL is the screen's password — never let it into an index.
+export const metadata: Metadata = {
+  title: 'Screen settings',
+  ...NOINDEX_METADATA,
+};
 
 interface SettingsPageProps {
   params: Promise<{ id: string }>;
