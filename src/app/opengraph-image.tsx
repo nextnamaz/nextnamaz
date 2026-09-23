@@ -13,10 +13,12 @@ export const contentType = 'image/png';
  * fails on the host). Each read has a fallback, so a missing file degrades
  * the card rather than breaking it.
  *
- * The fonts are the site's own, self-hosted for the display themes: Amiri
- * for the headline, as on the page, and Reem Kufi for the line beneath.
- * satori's built-in font measures some words wider than it draws them,
- * which left a visible hole in the headline; a real font does not.
+ * The font is the page's own: Geist, semibold with tight tracking for the
+ * headline as on the hero, regular for the line beneath. satori reads woff,
+ * not the woff2 next/font serves, so the files come from @fontsource.
+ * satori advances past each word by its unkerned width but draws it
+ * kerned, which opens a hole after a word like "prayer". Joining each
+ * headline line with no-break spaces makes it one word, drawn in one run.
  */
 /** Paths stay literal at each call so the file tracer packs three files, not the project. */
 function attempt<T>(fn: () => T): T | null {
@@ -37,16 +39,16 @@ function wordmark(): { src: string; width: number } | null {
 }
 
 const WORDMARK = wordmark();
-const AMIRI = attempt(() =>
-  readFileSync(join(process.cwd(), 'node_modules', '@fontsource', 'amiri', 'files', 'amiri-latin-700-normal.woff'))
+const GEIST_600 = attempt(() =>
+  readFileSync(join(process.cwd(), 'node_modules', '@fontsource', 'geist-sans', 'files', 'geist-sans-latin-600-normal.woff'))
 );
-const KUFI = attempt(() =>
-  readFileSync(join(process.cwd(), 'node_modules', '@fontsource', 'reem-kufi', 'files', 'reem-kufi-latin-400-normal.woff'))
+const GEIST_400 = attempt(() =>
+  readFileSync(join(process.cwd(), 'node_modules', '@fontsource', 'geist-sans', 'files', 'geist-sans-latin-400-normal.woff'))
 );
 
 const fonts = [
-  AMIRI && { name: 'Amiri', data: AMIRI, weight: 700 as const, style: 'normal' as const },
-  KUFI && { name: 'Reem Kufi', data: KUFI, weight: 400 as const, style: 'normal' as const },
+  GEIST_600 && { name: 'Geist', data: GEIST_600, weight: 600 as const, style: 'normal' as const },
+  GEIST_400 && { name: 'Geist', data: GEIST_400, weight: 400 as const, style: 'normal' as const },
 ].filter((f): f is NonNullable<typeof f> => f !== null);
 
 export default function OpengraphImage() {
@@ -62,7 +64,7 @@ export default function OpengraphImage() {
           background: '#FAFAF8',
           padding: '64px 80px 56px',
           borderBottom: '20px solid #E8A817',
-          fontFamily: KUFI ? 'Reem Kufi' : undefined,
+          fontFamily: fonts.length ? 'Geist' : undefined,
         }}
       >
         {WORDMARK ? (
@@ -75,15 +77,15 @@ export default function OpengraphImage() {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            fontFamily: AMIRI ? 'Amiri' : undefined,
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: 84,
-            lineHeight: 1.12,
+            lineHeight: 1.05,
+            letterSpacing: '-0.035em',
             color: '#1A1A1A',
           }}
         >
-          <div style={{ display: 'flex' }}>Put prayer times</div>
-          <div style={{ display: 'flex' }}>on your mosque TV.</div>
+          <div style={{ display: 'flex' }}>{'Put\u00a0prayer\u00a0times'}</div>
+          <div style={{ display: 'flex' }}>{'on\u00a0your\u00a0mosque\u00a0TV.'}</div>
         </div>
 
         <div style={{ fontSize: 30, color: '#6B6B6B', display: 'flex' }}>

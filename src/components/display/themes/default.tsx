@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import type { ThemeProps, ThemeDefinition } from './index';
+import type { PrayerState } from './config';
 import { cn } from '@/lib/utils';
 import { formatPrayerTime } from '@/lib/display-locale';
+import { minutesOf } from '@/lib/display-schedule';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { Check, Sunrise } from 'lucide-react';
 
-type PrayerState = 'past' | 'current' | 'next' | 'upcoming';
 type UrgencyLevel = 'normal' | 'approaching' | 'imminent';
 
 // --- Color palettes (accents) ---
@@ -131,28 +132,45 @@ function fromConfig<T>(map: Record<string, T>, key: unknown, fallback: T): T {
 
 // --- Hooks ---
 
+/**
+ * Each row's state at a given minute of the day. Pure, so it can be tested
+ * without a clock.
+ */
+export function rowStates(
+  prayers: ThemeProps['prayers'],
+  nextPrayer: ThemeProps['nextPrayer'],
+  nowMinutes: number
+): PrayerState[] {
+  const nextIdx = nextPrayer ? prayers.findIndex((p) => p.name === nextPrayer.name) : -1;
+
+  // The next prayer never counts sunrise, so between Fajr and sunrise the
+  // row before it is a sunrise still to come. Fajr is the one in progress.
+  const before = prayers[nextIdx - 1];
+  const beforeStart = before ? minutesOf(before.time) : null;
+  const sunriseAhead =
+    before?.name === 'sunrise' && beforeStart !== null && beforeStart > nowMinutes;
+  const currentIdx = sunriseAhead ? nextIdx - 2 : nextIdx - 1;
+
+  return prayers.map((_, idx) => {
+    if (nextIdx === -1) {
+      return idx === prayers.length - 1 ? 'current' : 'past';
+    }
+    if (idx === nextIdx) return 'next';
+    if (nextIdx === 0) {
+      return idx === prayers.length - 1 ? 'current' : 'upcoming';
+    }
+    if (idx === currentIdx) return 'current';
+    if (idx < currentIdx) return 'past';
+    return 'upcoming';
+  });
+}
+
 function usePrayerStates(
   prayers: ThemeProps['prayers'],
-  nextPrayer: ThemeProps['nextPrayer']
+  nextPrayer: ThemeProps['nextPrayer'],
+  nowMinutes: number
 ): PrayerState[] {
-  return useMemo(() => {
-    const nextIdx = nextPrayer
-      ? prayers.findIndex((p) => p.name === nextPrayer.name)
-      : -1;
-
-    return prayers.map((_, idx) => {
-      if (nextIdx === -1) {
-        return idx === prayers.length - 1 ? 'current' : 'past';
-      }
-      if (idx === nextIdx) return 'next';
-      if (nextIdx === 0) {
-        return idx === prayers.length - 1 ? 'current' : 'upcoming';
-      }
-      if (idx === nextIdx - 1) return 'current';
-      if (idx < nextIdx) return 'past';
-      return 'upcoming';
-    });
-  }, [prayers, nextPrayer]);
+  return useMemo(() => rowStates(prayers, nextPrayer, nowMinutes), [prayers, nextPrayer, nowMinutes]);
 }
 
 function useCountdown(targetTime: string) {
@@ -252,8 +270,8 @@ function nameScale(name: string): string | undefined {
 }
 
 export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
-  const { timeStr, dateStr } = useDisplayClock(locale);
-  const prayerStates = usePrayerStates(prayers, nextPrayer);
+  const { timeStr, dateStr, date } = useDisplayClock(locale);
+  const prayerStates = usePrayerStates(prayers, nextPrayer, date.getHours() * 60 + date.getMinutes());
   const hasIqamah = prayers.some((p) => p.iqamahTime);
   const countdown = useCountdown(nextPrayer?.time ?? '00:00');
 

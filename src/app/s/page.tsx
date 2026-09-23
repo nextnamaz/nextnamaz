@@ -87,10 +87,8 @@ function SetupInner() {
           <Logo size="md" />
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
-              You&apos;re on your phone
-            </p>
-            <h1 className="text-3xl font-bold tracking-[-0.015em] mb-3">
+            <p className="text-sm text-muted-foreground mb-2">You&apos;re on your phone.</p>
+            <h1 className="font-heading text-3xl font-semibold leading-[1.08] tracking-[-0.035em] mb-3">
               Open this on the TV
             </h1>
             <p className="text-muted-foreground leading-relaxed">
@@ -132,10 +130,7 @@ function SetupInner() {
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-6">
           <Logo size="md" />
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
-              Step 1 of 2 · On this TV
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-[-0.015em] mb-4">
+            <h1 className="font-heading text-4xl sm:text-5xl font-semibold leading-[1.05] tracking-[-0.035em] mb-4">
               Set up this screen
             </h1>
             <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
@@ -145,13 +140,13 @@ function SetupInner() {
           </div>
 
           <div className="w-full max-w-md rounded-2xl border border-border bg-secondary/40 p-5 text-left">
-            <p className="text-sm font-medium mb-3">Works on any screen with a browser:</p>
+            <p className="text-sm font-medium mb-3">Works on a screen with an up-to-date browser:</p>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li className="flex items-center gap-2.5">
                 <Tv className="size-4 text-primary shrink-0" /> A smart TV
               </li>
               <li className="flex items-center gap-2.5">
-                <Cast className="size-4 text-primary shrink-0" /> A Fire Stick or Chromecast
+                <Cast className="size-4 text-primary shrink-0" /> A Fire TV Stick or another streaming stick with a browser
               </li>
               <li className="flex items-center gap-2.5">
                 <Cpu className="size-4 text-primary shrink-0" /> A Raspberry Pi or old laptop plugged into the TV

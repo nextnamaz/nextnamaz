@@ -5,21 +5,16 @@
    @fontsource so the TV never depends on an external font CDN.
    Amiri  — Naskh book hand, the workhorse for running text and numerals.
    Aref Ruqaa — Ruqaa/Thuluth display hand, for headings and the bismillah.
-   Reem Kufi  — geometric Kufic, for the tilework theme. */
-@import "@fontsource/amiri/latin-400.css";
-@import "@fontsource/amiri/latin-700.css";
-@import "@fontsource/amiri/arabic-400.css";
-@import "@fontsource/amiri/arabic-700.css";
-@import "@fontsource/aref-ruqaa/latin-400.css";
-@import "@fontsource/aref-ruqaa/latin-700.css";
-@import "@fontsource/aref-ruqaa/arabic-400.css";
-@import "@fontsource/aref-ruqaa/arabic-700.css";
-@import "@fontsource/reem-kufi/latin-400.css";
-@import "@fontsource/reem-kufi/latin-600.css";
-@import "@fontsource/reem-kufi/latin-700.css";
-@import "@fontsource/reem-kufi/arabic-400.css";
-@import "@fontsource/reem-kufi/arabic-600.css";
-@import "@fontsource/reem-kufi/arabic-700.css";
+   Reem Kufi  — geometric Kufic, for the tilework theme.
+   Import the per-weight files, not the per-subset ones: only these carry a
+   unicode-range, so the Arabic faces download only when Arabic text renders. */
+@import "@fontsource/amiri/400.css";
+@import "@fontsource/amiri/700.css";
+@import "@fontsource/aref-ruqaa/400.css";
+@import "@fontsource/aref-ruqaa/700.css";
+@import "@fontsource/reem-kufi/400.css";
+@import "@fontsource/reem-kufi/600.css";
+@import "@fontsource/reem-kufi/700.css";
 
 :root {
   --font-naskh: "Amiri", "Scheherazade New", "Times New Roman", serif;
@@ -28,13 +23,24 @@
 }
 
 @custom-variant dark (&:is(.dark *));
+/* Tall enough to pin How it works under the navbar with room for all of it:
+   40rem for the phone layout, 44rem for the side-by-side one from lg. Keep in
+   step with TALL_QUERY in how-it-works-stepper.tsx. */
+@custom-variant tall {
+  @media (min-height: 40rem) and (max-width: 63.99rem) {
+    @slot;
+  }
+  @media (min-height: 44rem) and (min-width: 64rem) {
+    @slot;
+  }
+}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-naskh);
+  --font-heading: var(--font-geist-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -150,6 +156,11 @@
 }
 
 @layer base {
+  /* Keep scrolled-to focus clear of the fixed 64px landing navbar (WCAG 2.4.11). */
+  html {
+    scroll-padding-top: 5rem;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

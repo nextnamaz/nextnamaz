@@ -17,9 +17,12 @@ interface RevealProps {
  * library: this page needs an entrance, not a physics engine. Two properties
  * of the design are deliberate.
  *
- * Nothing is ever hidden before this effect runs, so if JavaScript fails the
- * page is simply static. And anything already on screen at mount is left
- * alone, so the fold never flashes empty and then fills in.
+ * Nothing is ever hidden before the observer first reports, so if JavaScript
+ * fails the page is simply static. And anything already on screen at that
+ * point is left alone, so the fold never flashes empty and then fills in.
+ *
+ * The on-screen test reads the observer's first report rather than calling
+ * getBoundingClientRect() at mount, which forced a layout pass per Reveal.
  *
  * Reduced motion is honoured in the stylesheet (see globals.css), so this
  * component does not need to know about it.
@@ -30,12 +33,23 @@ export function Reveal({ children, delay = 0, className }: RevealProps) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
 
-    el.dataset.reveal = 'pending';
+    let pending = false;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (!entry?.isIntersecting) return;
+        if (!entry) return;
+        if (!pending) {
+          // rootBounds is empty for a display:none target; fall back to the viewport.
+          const fold = (entry.rootBounds?.height || window.innerHeight) * 0.92;
+          if (entry.isIntersecting || entry.boundingClientRect.top < fold) {
+            io.disconnect();
+            return;
+          }
+          pending = true;
+          el.dataset.reveal = 'pending';
+          return;
+        }
+        if (!entry.isIntersecting) return;
         el.dataset.reveal = 'in';
         io.disconnect();
       },

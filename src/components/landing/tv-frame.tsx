@@ -1,55 +1,60 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-interface TvFrameProps {
-  children: ReactNode;
-  /** Small frames thin the bezel further and drop the stand. */
-  compact?: boolean;
-  /** Themes measure themselves in container-query units. */
-  sized?: boolean;
-}
+/** Bezel width, as a share of the whole set's width. A current flat panel is almost all picture. */
+const BEZEL = '0.85cqw';
 
 /**
- * The television the landing page draws a screen inside.
- *
- * Modelled on a current set rather than a 2010 one: the bezel is a hairline
- * on three sides with a slightly deeper chin, the corners are barely rounded,
- * and it stands on a thin blade instead of a moulded plinth. A thick rounded
- * frame with a power LED is the thing that dates a mockup.
- *
- * Shared so the showcase and the step-by-step visuals cannot drift into two
- * different televisions.
+ * Wall-mounted, a few centimetres off the plaster: a tight shadow at the edge
+ * and a soft one falling below. Tinted to the page's warm ink, never black,
+ * which reads grey on a warm wall.
  */
-export function TvFrame({ children, compact = false, sized = true }: TvFrameProps) {
+const WALL_SHADOW = [
+  '0 0.5cqw 1cqw -0.2cqw rgba(38,24,10,0.34)',
+  '0 2.2cqw 4.4cqw -1.1cqw rgba(38,24,10,0.3)',
+  '0 5cqw 9cqw -3cqw rgba(38,24,10,0.18)',
+].join(', ');
+
+/**
+ * The television the landing page draws a screen inside: a current flat
+ * panel on a wall mount. A thin black bezel of even width, a faint metal edge
+ * where the light catches it, no stand, no chin, no logo.
+ *
+ * Everything is measured in the wrapper's own container width, so the set
+ * keeps its proportions from a 280px step illustration to the hero.
+ */
+export function TvFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col items-center">
-      {/* Panel: hairline bezel, faint top edge where the light catches it. */}
+    <div className="relative w-full" style={{ containerType: 'inline-size' }}>
       <div
-        className={
-          compact
-            ? 'relative w-full rounded-[5px] bg-[#0B0B0D] p-[2px] shadow-[0_6px_18px_-6px_rgba(26,18,5,0.35)] ring-1 ring-white/8'
-            : 'relative w-full rounded-[10px] bg-[#0B0B0D] p-[4px] pb-[10px] shadow-[0_28px_60px_-24px_rgba(26,18,5,0.4)] ring-1 ring-white/8'
-        }
+        className="relative bg-[#0C0C0E]"
+        style={{ padding: BEZEL, borderRadius: '0.55cqw', boxShadow: WALL_SHADOW }}
       >
-        <div
-          className={compact ? 'relative w-full overflow-hidden rounded-[3px]' : 'relative w-full overflow-hidden rounded-[6px]'}
+        {/* The aluminium edge: a hairline, brightest along the top. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
           style={{
-            aspectRatio: '16/9',
-            ...(sized ? { containerType: 'size' as CSSProperties['containerType'] } : {}),
+            borderRadius: 'inherit',
+            boxShadow: 'inset 0 0 0 0.1cqw rgba(255,255,255,0.08), inset 0 0.12cqw 0 rgba(255,255,255,0.14)',
           }}
+        />
+        {/* Themes measure themselves in container-query units. */}
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ aspectRatio: '16/9', containerType: 'size', borderRadius: '0.15cqw' }}
         >
           {children}
+          {/* The glass: a faint sheen from the upper left, and a crisp edge to the picture. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'linear-gradient(118deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.025) 26%, transparent 42%)',
+              boxShadow: 'inset 0 0 0 0.08cqw rgba(0,0,0,0.55)',
+            }}
+          />
         </div>
       </div>
-
-      {/* Blade stand: a thin neck onto a wide, flat foot. */}
-      {!compact && (
-        <>
-          <div className="h-3.5 w-16 bg-gradient-to-b from-[#16161A] to-[#0B0B0D]" />
-          {/* Shadows are tinted to the page's warm ink, never plain black:
-              a neutral-black shadow on a warm off-white ground reads grey. */}
-          <div className="h-[5px] w-44 rounded-b-md rounded-t-sm bg-[#141418] shadow-[0_6px_10px_-6px_rgba(26,18,5,0.35)]" />
-        </>
-      )}
     </div>
   );
 }

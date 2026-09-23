@@ -38,7 +38,12 @@ feeds `robots.ts`. Do not add screen URLs to `sitemap.ts`.
 - Lint runs the React Compiler rules: no synchronous `setState` in an effect
   body.
 - Landing copy lives in `src/lib/landing-copy.ts`, not inline in the page.
-  Headings use `font-heading` (Amiri), body uses `font-sans` (Geist).
+  Headings use `font-heading`, which maps to Geist like the body (semibold,
+  tight tracking). The Arabic faces (Amiri, Aref Ruqaa, Reem Kufi) belong to
+  the TV themes; serif headings on the site were rejected.
+- The landing page's TV is a current flat panel on a wall mount: thin black
+  bezel, no stand (`src/components/landing/tv-frame.tsx`). A picture-frame or
+  wood bezel was tried and rejected.
 
 ## Checks
 

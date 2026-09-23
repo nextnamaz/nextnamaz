@@ -271,6 +271,9 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
   return (
     <div
       dir={isRtlLocale(displayLocale) ? 'rtl' : 'ltr'}
+      // The page is lang="en"; the display's own language decides how text is
+      // cased, so a Turkish screen shows İKİNDİ rather than İKINDI.
+      lang={displayLocale.locale}
       className={overlayVisible ? undefined : 'cursor-none'}
     >
       <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#000' }}>

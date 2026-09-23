@@ -9,12 +9,13 @@ interface LogoProps {
   className?: string;
 }
 
+// Kept at logo.svg's 405:70 aspect, so the box reserved before load is the one it paints into.
 const fullSizes: Record<LogoSize, { width: number; height: number }> = {
-  xs: { width: 88, height: 36 },
-  sm: { width: 118, height: 48 },
-  md: { width: 147, height: 60 },
-  lg: { width: 196, height: 80 },
-  xl: { width: 294, height: 120 },
+  xs: { width: 88, height: 15 },
+  sm: { width: 116, height: 20 },
+  md: { width: 147, height: 25 },
+  lg: { width: 196, height: 34 },
+  xl: { width: 294, height: 51 },
 };
 
 const roundSizes: Record<LogoSize, number> = {
@@ -25,6 +26,7 @@ const roundSizes: Record<LogoSize, number> = {
   xl: 80,
 };
 
+// Eager rather than preloaded: it tops most pages, and every copy shares one URL, so one fetch.
 export function Logo({ variant = 'full', size = 'md', className }: LogoProps) {
   if (variant === 'round') {
     const dim = roundSizes[size];
@@ -35,7 +37,7 @@ export function Logo({ variant = 'full', size = 'md', className }: LogoProps) {
         width={dim}
         height={dim}
         className={className}
-        priority
+        loading="eager"
       />
     );
   }
@@ -48,7 +50,7 @@ export function Logo({ variant = 'full', size = 'md', className }: LogoProps) {
       width={width}
       height={height}
       className={className}
-      priority
+      loading="eager"
     />
   );
 }

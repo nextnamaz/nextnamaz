@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 const DESCRIPTION =
-  "Turn any TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone — no app, no account, no special hardware.";
+  "Turn a TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone. No app, no account, no special hardware.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
