@@ -176,12 +176,21 @@ export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
                   onClick={() => pick(i)}
                   className={cn(
                     // Viewports 800px tall or less set the cards tighter, so all three fit the pinned panel in any language.
-                    'flex w-full rounded-2xl px-6 py-5 text-start [@media(max-height:50rem)]:py-3.5 outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
+                    'flex w-full gap-4 rounded-2xl px-6 py-5 text-start [@media(max-height:50rem)]:py-3.5 outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
                     on
                       ? 'bg-card shadow-[0_1px_2px_rgba(38,24,10,0.05),0_12px_32px_-16px_rgba(38,24,10,0.22)] ring-1 ring-border/80'
                       : 'hover:bg-secondary/70'
                   )}
                 >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'w-9 shrink-0 text-[40px] leading-[0.9] font-semibold tabular-nums tracking-[-0.05em] transition-colors duration-300 [@media(max-height:50rem)]:text-[34px]',
+                      on ? 'text-primary' : 'text-foreground/15'
+                    )}
+                  >
+                    {i + 1}
+                  </span>
                   <span className="relative min-w-0 flex-1">
                     <span
                       id={`how-tab-${i}-title`}
@@ -269,10 +278,13 @@ export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
                     key={step.title}
                     aria-hidden={!on}
                     className={cn(
-                      'flex [grid-area:1/1] transition-opacity duration-300 motion-reduce:transition-none',
+                      'flex gap-3 [grid-area:1/1] transition-opacity duration-300 motion-reduce:transition-none',
                       on ? 'opacity-100' : 'pointer-events-none opacity-0'
                     )}
                   >
+                    <span aria-hidden className="w-8 shrink-0 text-[34px] leading-[0.9] font-semibold tabular-nums tracking-[-0.05em] text-primary">
+                      {i + 1}
+                    </span>
                     <div className="min-w-0 max-w-[62ch]">
                       <h3 className="text-[20px] leading-snug font-semibold tracking-[-0.02em] text-pretty">{step.title}</h3>
                       <p className="mt-1.5 text-[15px] leading-relaxed text-pretty text-muted-foreground">{step.description}</p>

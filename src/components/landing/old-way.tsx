@@ -1,9 +1,8 @@
-import Image from 'next/image';
 import { ArrowDown } from 'lucide-react';
 import type { LandingCopy } from '@/lib/landing-copy';
 import { Reveal } from './reveal';
-import { MotionStage } from './motion-stage';
-import { OldWayScreen } from './old-way-screen';
+import { OldWayFilm } from './old-way-film';
+import type { SupportedLocale } from '@/types/locale';
 
 /**
  * The beat between the hero and the steps: how the times are kept today, in a
@@ -27,45 +26,11 @@ interface OldWayProps {
   t: LandingCopy['oldWay'];
   /** The words of the hero's link to #how, reused for this one. */
   toSteps: string;
+  /** The language the film's screen and calendar speak: the page's own. */
+  display: SupportedLocale;
 }
 
-/**
- * Before and after, played on a loop like a short film while the frame is in
- * view (MotionStage pauses it when it is not): the photograph holds for three
- * seconds, a line sweeps slowly across from the timetable's side to show the
- * television behind it, the screen holds for four, and the line sweeps back.
- * The still, without JavaScript (whose screen would be blank), is the
- * photograph; with reduced motion it is the two halves, split at the line.
- * Not mirrored for right-to-left pages: the photograph is not, so the line
- * still starts at the timetable, which is also where Arabic starts reading.
- */
-const WIPE = `
-.ow-after { clip-path: inset(0 0 0 100%); }
-.ow-edge { opacity: 0; }
-@media (prefers-reduced-motion: no-preference) {
-  [data-live] .ow-after { animation: ow-wipe 11s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
-  [data-live] .ow-edge { animation: ow-edge 11s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
-}
-/* Reduced motion, once the screen can run: before and after side by side, held still at the line. */
-@media (prefers-reduced-motion: reduce) {
-  [data-live] .ow-after { clip-path: inset(0 0 0 50%); }
-  [data-live] .ow-edge { opacity: 1; transform: translateX(50%); }
-}
-@keyframes ow-wipe {
-  0%, 27% { clip-path: inset(0 0 0 100%); }
-  45%, 82% { clip-path: inset(0 0 0 0); }
-  100% { clip-path: inset(0 0 0 100%); }
-}
-@keyframes ow-edge {
-  0%, 27% { opacity: 0; transform: translateX(100%); }
-  29%, 43% { opacity: 1; }
-  45%, 82% { opacity: 0; transform: translateX(0); }
-  84%, 98% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(100%); }
-}
-`;
-
-export function OldWay({ t, toSteps }: OldWayProps) {
+export function OldWay({ t, toSteps, display }: OldWayProps) {
 
   return (
     <section id="old-way" aria-labelledby="old-way-title" className="relative px-6 py-20 sm:py-24">
@@ -80,42 +45,7 @@ export function OldWay({ t, toSteps }: OldWayProps) {
         </Reveal>
 
         <Reveal className="mt-8 lg:col-start-1 lg:row-span-4 lg:row-start-1 lg:mt-0 lg:self-center">
-          <style>{WIPE}</style>
-          <MotionStage>
-            <figure dir="ltr" className="ow-frame relative overflow-hidden rounded-2xl bg-[#EDEAE4] ring-1 ring-[rgba(38,24,10,0.08)]">
-              {/* Unsplash, Omar Ramadan (OEg4vcLrzcQ), Unsplash License. */}
-              <Image
-                src="/landing/old-way.jpg"
-                alt={t.imageAlt}
-                width={1600}
-                height={1258}
-                sizes="(min-width: 1280px) 640px, (min-width: 1024px) 56vw, calc(100vw - 48px)"
-                className="block h-auto w-full"
-              />
-              <figcaption dir="auto" className="absolute left-3 bottom-3 flex h-8 items-center gap-2 rounded-full bg-white px-3.5 text-[13px] font-medium text-foreground shadow-[0_1px_2px_rgba(38,24,10,0.12),0_6px_16px_-6px_rgba(38,24,10,0.3)] sm:left-4 sm:bottom-4">
-                <span aria-hidden className="size-1.5 rounded-full bg-muted-foreground/60" />
-                {t.before}
-              </figcaption>
-
-              {/* After: the same wall, out of focus and freshly limewashed, and the set on it. */}
-              <div aria-hidden className="ow-after absolute inset-0 flex items-center justify-center px-[11%] pb-[2%]">
-                <Image
-                  src="/landing/old-way.jpg"
-                  alt=""
-                  fill
-                  sizes="(min-width: 1280px) 640px, (min-width: 1024px) 56vw, calc(100vw - 48px)"
-                  className="scale-110 object-cover blur-[6px] will-change-transform"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(246,244,240,0.86)_0%,rgba(237,234,228,0.8)_100%)]" />
-                <div className="relative w-full">
-                  <OldWayScreen />
-                </div>
-              </div>
-              <div aria-hidden className="ow-edge pointer-events-none absolute inset-0">
-                <span className="absolute inset-y-0 left-0 w-[2px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(38,24,10,0.06),0_0_18px_rgba(38,24,10,0.25)]" />
-              </div>
-            </figure>
-          </MotionStage>
+          <OldWayFilm label={t.imageAlt} before={t.before} after={t.after} display={display} />
         </Reveal>
 
         <Reveal delay={80} className="mt-8 lg:col-start-2 lg:row-start-3 lg:mt-6">

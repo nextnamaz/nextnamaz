@@ -29,8 +29,10 @@ export const SV: LandingCopy = {
   oldWay: {
     title: 'Slipp byta schemat för hand',
     body: 'I många moskéer finns en klocka på väggen och ett utskrivet schema vid mihraben, och varje månad måste någon byta schemat. NextNamaz hämtar nya tider varje natt, så skärmen visar rätt varje morgon utan att någon behöver röra den.',
-    imageAlt: 'En väggklocka och ett utskrivet månadsschema bredvid mihraben i en liten moské',
+    imageAlt: 'En kort animation: varje månad tar någon ner det utskrivna bönetidsschemat och sätter upp ett nytt, tills papperet blir en skärm som uppdaterar sig själv',
     before: 'I många moskéer i dag',
+    /** The caption once the sheet has become a screen. */
+    after: 'Med NextNamaz',
   },
 
   howItWorks: {
@@ -101,19 +103,11 @@ export const SV: LandingCopy = {
     portrait: 'Stående, vid entrén',
   },
 
-  /** A whole day played through on the screen, in twelve seconds. */
-  day: {
-    title: 'Ett helt dygn på tolv sekunder',
-    body: 'Se hur skärmen följer dagen helt av sig själv. Varje bön lyser upp när det är dags, och nedräkningen visar alltid nästa. Ingen behöver röra den.',
-    play: 'Spela',
-    pause: 'Pausa',
-    scrub: 'Tid på dygnet',
-  },
 
   features: {
     title: 'Byggd för moskéns vardag',
     subtitle: 'Allt sköts från mobilen. Inget installeras på tv:n.',
-    imageAlt: 'En vit bönesal i Mecka, med bedjande på mattan under en stor ljuskrona',
+    imageAlt: 'En tecknad bönesal: bedjande sitter på mattan vända mot mihraben, och en skärm med bönetider hänger på väggen bredvid',
     rooms: { womens: 'Kvinnoavdelningen', main: 'Stora salen' },
     poster: {
       kicker: 'Varje lördag',
