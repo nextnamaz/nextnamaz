@@ -31,8 +31,9 @@ interface OldWayProps {
 
 /**
  * Before and after. Where the browser has scroll-driven animations the wipe
- * follows the scroll: it starts once the frame is wholly on screen and is done
- * by the time the frame nears the top, and runs back when scrolling up.
+ * follows the scroll: it waits until the reader has had the photograph for a
+ * while, starting two fifths of the way through its passage, and is done as
+ * the frame starts to leave the top, and runs back when scrolling up.
  * Elsewhere it plays once, as the frame comes into view (MotionStage). The
  * still, without JavaScript (whose screen would be blank), is the photograph;
  * with reduced motion it is the two halves, split at the line.
@@ -54,14 +55,14 @@ const WIPE = `
       animation-timing-function: linear;
       animation-fill-mode: both;
       animation-timeline: --ow-frame;
-      animation-range: contain 0% contain 80%;
+      animation-range: contain 40% exit 15%;
     }
   }
   @supports not (animation-timeline: view()) {
     .ow-after, .ow-edge { animation-duration: 0s; }
     [data-enter='play'] :is(.ow-after, .ow-edge) {
       animation-duration: 1.8s;
-      animation-delay: 300ms;
+      animation-delay: 1400ms;
       animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
       animation-fill-mode: both;
     }

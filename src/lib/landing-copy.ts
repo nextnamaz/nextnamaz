@@ -123,9 +123,9 @@ export const LANDING_COPY = {
     portrait: 'Portrait, by the entrance',
   },
 
-  /** A whole day played through on the screen, in twenty seconds. */
+  /** A whole day played through on the screen, in twelve seconds. */
   day: {
-    title: 'A whole day, in twenty seconds',
+    title: 'A whole day, in twelve seconds',
     body: 'Watch the screen keep up with the day on its own. Each prayer lights up as its time comes, and the countdown always points to the next one. Nobody touches it.',
     play: 'Play',
     pause: 'Pause',

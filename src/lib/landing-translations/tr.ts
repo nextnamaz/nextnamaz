@@ -101,9 +101,9 @@ export const TR: LandingCopy = {
     portrait: 'Dikey, girişte',
   },
 
-  /** A whole day played through on the screen, in twenty seconds. */
+  /** A whole day played through on the screen, in twelve seconds. */
   day: {
-    title: 'Koca bir gün, yirmi saniyede',
+    title: 'Koca bir gün, on iki saniyede',
     body: 'Ekranın günü kendi kendine nasıl takip ettiğini izleyin. Her namaz vakti geldiğinde öne çıkar, geri sayım hep bir sonrakini gösterir. Kimsenin dokunmasına gerek yok.',
     play: 'Oynat',
     pause: 'Duraklat',

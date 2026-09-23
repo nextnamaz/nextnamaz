@@ -106,9 +106,9 @@ export const DE: LandingCopy = {
     portrait: 'Hochformat, am Eingang',
   },
 
-  /** A whole day played through on the screen, in twenty seconds. */
+  /** A whole day played through on the screen, in twelve seconds. */
   day: {
-    title: 'Ein ganzer Tag in zwanzig Sekunden',
+    title: 'Ein ganzer Tag in zwölf Sekunden',
     body: 'Sehen Sie, wie die Anzeige dem Tag von selbst folgt. Jedes Gebet leuchtet auf, wenn seine Zeit kommt, und der Countdown zeigt immer auf das nächste. Niemand muss etwas tun.',
     play: 'Abspielen',
     pause: 'Pausieren',

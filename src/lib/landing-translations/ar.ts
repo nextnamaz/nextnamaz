@@ -101,9 +101,9 @@ export const AR: LandingCopy = {
     portrait: 'عمودي، عند المدخل',
   },
 
-  /** A whole day played through on the screen, in twenty seconds. */
+  /** A whole day played through on the screen, in twelve seconds. */
   day: {
-    title: 'يوم كامل في عشرين ثانية',
+    title: 'يوم كامل في اثنتي عشرة ثانية',
     body: 'شاهدوا الشاشة تواكب اليوم من تلقاء نفسها: تُضاء كل صلاة حين يحين وقتها، ويشير العدّ التنازلي دائمًا إلى الصلاة التالية. لا أحد يحتاج إلى لمسها.',
     play: 'تشغيل',
     pause: 'إيقاف مؤقت',
