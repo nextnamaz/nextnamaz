@@ -62,7 +62,7 @@ export function bestMatch<T>(items: T[], getName: (item: T) => string, city: str
 
 export async function searchCity(query: string): Promise<GeoPlace[]> {
   const res = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=15&language=en&format=json`
   );
   if (!res.ok) throw new Error('Geocoding failed');
   interface OpenMeteoResult {
@@ -73,9 +73,13 @@ export async function searchCity(query: string): Promise<GeoPlace[]> {
     latitude: number;
     longitude: number;
     timezone?: string;
+    /** GeoNames feature code: PPL* for towns and cities, others for gardens, peaks, farms… */
+    feature_code?: string;
   }
   const data: { results?: OpenMeteoResult[] } = await res.json();
-  return (data.results ?? []).map((r) => ({
+  // Only places people live: a screen is in a town, not on a mountain.
+  const places = (data.results ?? []).filter((r) => !r.feature_code || r.feature_code.startsWith('PPL'));
+  return places.slice(0, 6).map((r) => ({
     name: r.name,
     region: [r.admin1, r.country].filter(Boolean).join(', '),
     countryCode: (r.country_code ?? '').toUpperCase(),

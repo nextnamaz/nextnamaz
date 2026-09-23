@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
-import { ChevronDown, MapPin } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
+import { SourceLogo } from '@/components/settings/setup-art';
+import type { WizardSource } from '@/lib/prayer-sources/match';
 import { DEFAULT_TRANSLATIONS, LANGUAGES } from '@/lib/locale/presets';
 import { PRAYER_NAMES } from '@/types/prayer';
 import type { PrayerName } from '@/types/prayer';
@@ -68,6 +70,7 @@ function boardFor(code: SupportedLocale): BoardProps {
 /* ---------- Times from the source you use ---------- */
 
 interface SourceRow {
+  id: WizardSource;
   title: string;
   subtitle: string;
 }
@@ -78,10 +81,10 @@ interface SourceRow {
  * SOURCE_META in source-wizard.tsx.
  */
 const SOURCES: SourceRow[] = [
-  { title: 'Islamiska Förbundet', subtitle: 'Official Swedish prayer timetable' },
-  { title: 'Vaktija.eu', subtitle: 'Bosnian takvim for cities across Europe' },
-  { title: 'Calculate the times', subtitle: 'No external source. Computed astronomically for your exact location.' },
-  { title: 'AlAdhan', subtitle: 'Worldwide service with the conventions of 20+ national authorities.' },
+  { id: 'islamiska_forbundet', title: 'Islamiska Förbundet', subtitle: 'Official Swedish prayer timetable' },
+  { id: 'vaktija_eu', title: 'Vaktija.eu', subtitle: 'Bosnian takvim for cities across Europe' },
+  { id: 'aladhan', title: 'AlAdhan', subtitle: 'Worldwide service with the conventions of 20+ national authorities.' },
+  { id: 'adhan', title: 'Calculate the times', subtitle: 'No external source. Computed astronomically for your exact location.' },
 ];
 
 /** Today in Gothenburg, as the recommended source's preview shows it. */
@@ -119,15 +122,17 @@ export function SourcePickerArt() {
     <div
       aria-hidden
       dir="ltr"
-      className="w-full max-w-[30rem] rounded-2xl bg-card px-4 pt-5 pb-4 shadow-[0_1px_2px_rgba(38,24,10,0.06),0_18px_40px_-22px_rgba(38,24,10,0.35)] sm:px-5"
+      className="w-full max-w-[30rem] rounded-3xl bg-card px-4 pt-5 pb-4 shadow-[0_1px_2px_rgba(38,24,10,0.06),0_18px_40px_-22px_rgba(38,24,10,0.35)] sm:px-5"
     >
       <style>{SOURCE_MOTION}</style>
-      <p className="text-[15px] leading-none font-medium text-foreground">Choose a source</p>
-      {/* One line at any width: the place gives way before "change" does. */}
-      <p className="mt-2 flex items-center gap-x-1 text-[13px] text-muted-foreground">
-        <MapPin className="size-3.5 shrink-0" />
+      <p className="font-heading text-[19px] leading-tight font-semibold tracking-[-0.02em] text-foreground">
+        Where should the times come from?
+      </p>
+      {/* One line at any width: the place gives way before "Change" does. */}
+      <p className="mt-1.5 flex items-center gap-x-1.5 text-[13px] text-muted-foreground">
+        <span aria-hidden>🇸🇪</span>
         <span className="min-w-0 truncate">Gothenburg, Västra Götaland, Sweden</span>
-        <span className="shrink-0 underline">change</span>
+        <span className="shrink-0 font-medium text-foreground underline underline-offset-2">Change</span>
       </p>
 
       <ul className="mt-4 space-y-2">
@@ -136,44 +141,52 @@ export function SourcePickerArt() {
           return (
             <li
               key={row.title}
-              className="src-row relative rounded-lg border border-border"
+              className="src-row relative rounded-2xl border border-border bg-card"
               style={{ '--i': i } as CSSProperties}
             >
               {/* The choice, drawn over the row's own border so it can arrive after the row. */}
               {active && (
-                <span className="src-pick pointer-events-none absolute -inset-px rounded-lg border border-primary ring-3 ring-primary/15" />
+                <span className="src-pick pointer-events-none absolute -inset-px rounded-2xl border-2 border-primary shadow-[0_10px_30px_-18px_rgba(184,122,8,0.6)]" />
               )}
-              <div className="px-3 py-2.5">
-                {/* A narrow card moves the badge under the name rather than breaking the name. */}
-                <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                  <span className="text-[14px] font-medium whitespace-nowrap text-foreground">{row.title}</span>
-                  {active && (
-                    <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
-                      Recommended
-                    </span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{row.subtitle}</p>
+              <div className="flex items-center gap-3 px-3 py-3">
+                <SourceLogo source={row.id} />
+                <div className="min-w-0 flex-1">
+                  {/* A narrow card moves the badge under the name rather than breaking the name. */}
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-[14.5px] font-semibold whitespace-nowrap text-foreground">{row.title}</span>
+                    {active && (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10.5px] font-semibold text-[#8A6206]">
+                        Recommended
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{row.subtitle}</p>
+                </div>
+                {active && (
+                  <span className="src-pick flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="size-3.5" strokeWidth={3} />
+                  </span>
+                )}
               </div>
 
               {active && (
                 <div className="space-y-2 px-3 pb-3">
-                  <div className="flex h-9 items-center justify-between rounded-md border border-border px-3 text-[13.5px] text-foreground">
+                  <div className="flex h-9 items-center justify-between rounded-xl border border-border px-3 text-[13.5px] text-foreground">
                     Göteborg
                     <ChevronDown className="size-4 text-muted-foreground" />
                   </div>
-                  <div className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-background/80 p-3 text-center">
-                    {PRAYER_NAMES.map((key, k) => (
-                      <div key={key}>
-                        <div className="text-[11px] text-muted-foreground">{names[key]}</div>
-                        <div className="src-time text-[14px] font-semibold tabular-nums text-foreground" style={{ '--k': k } as CSSProperties}>
-                          {PREVIEW[key]}
+                  <div className="rounded-xl bg-secondary/60 p-3">
+                    <p className="mb-1.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Today</p>
+                    <div className="grid grid-cols-3 gap-y-2 text-center">
+                      {PRAYER_NAMES.map((key, k) => (
+                        <div key={key}>
+                          <div className="text-[11px] text-muted-foreground">{names[key]}</div>
+                          <div className="src-time text-[15px] font-semibold tabular-nums text-foreground" style={{ '--k': k } as CSSProperties}>
+                            {PREVIEW[key]}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="src-use flex h-9 items-center justify-center rounded-full bg-primary text-[13.5px] font-medium text-primary-foreground">
-                    Use this source
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -181,6 +194,9 @@ export function SourcePickerArt() {
           );
         })}
       </ul>
+      <div className="src-use mt-3 flex h-10 items-center justify-center rounded-full bg-primary text-[14px] font-semibold text-primary-foreground">
+        Use these times
+      </div>
     </div>
   );
 }
