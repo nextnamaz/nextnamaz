@@ -266,6 +266,19 @@ export const BS: LandingCopy = {
     copyright: 'Ismail Sacic. NextNamaz je slobodan softver.',
     license:
       'Možete ga koristiti, proučavati, dijeliti i mijenjati pod uslovima licence GNU Affero General Public License, verzije 3.',
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'Pišite nam',
+      heading: 'Recite nam šta mislite',
+      intro: 'Nešto ne radi kako treba ili vam nešto nedostaje? Čitamo svaku poruku.',
+      message: 'Vaša poruka',
+      email: 'E-mail (nije obavezno, ako želite odgovor)',
+      send: 'Pošalji',
+      sending: 'Slanje…',
+      sent: 'Hvala! Vaša poruka je stigla.',
+      error: 'Slanje nije uspjelo. Pokušajte ponovo.',
+      close: 'Zatvori',
+    },
     timesNote:
       'Namaska vremena preuzimaju se iz izvora koji je izabran za pojedini ekran ili se izračunavaju za njegovu lokaciju. NextNamaz nije službeno povezan ni s jednim izdavačem vaktije čija vremena prikazuje.',
   },

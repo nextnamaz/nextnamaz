@@ -8,6 +8,8 @@ import type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settin
 import { asDisplayConfig } from '@/types/database';
 import type { PrayerTimesMap, Json } from '@/types/database';
 import { cookies } from 'next/headers';
+import { after } from 'next/server';
+import { logEvent } from '@/lib/stats';
 import { PIN_RE } from '@/lib/screen-settings';
 import {
   clearPinFailures,
@@ -33,6 +35,7 @@ export async function createScreen(): Promise<string> {
     console.error('createScreen failed:', error?.message ?? 'no row returned');
     throw new Error('Could not create screen');
   }
+  after(() => logEvent(data.id, 'created'));
   return data.id;
 }
 
@@ -89,7 +92,7 @@ export async function saveScreen(
   const client = createAdminClient();
   const { data: existing } = await client
     .from('screens')
-    .select('display_config, pin')
+    .select('display_config, pin, configured')
     .eq('id', id)
     .single();
   if (!existing) return { ok: false, error: 'Unknown screen' };
@@ -119,6 +122,7 @@ export async function saveScreen(
     .eq('id', id);
   if (error) return { ok: false, error: 'Could not save' };
 
+  after(() => logEvent(id, existing.configured ? 'saved' : 'configured'));
   await broadcastRefresh(id);
   return { ok: true };
 }

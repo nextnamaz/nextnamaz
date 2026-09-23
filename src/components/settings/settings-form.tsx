@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import {
   Clock,
   ExternalLink,
+  MessageCircle,
   ImagePlus,
   Languages,
   Loader2,
@@ -31,7 +32,9 @@ import { SourceWizard, sourceLabel } from './source-wizard';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
 import { ManualTimesFields, formFromScreen, sourceExplanation } from './settings-shared';
 import type { FormState, Rotation, ThemeConfigMap } from './settings-shared';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { FeedbackButton } from '@/components/feedback-button';
+import { LANDING_COPY } from '@/lib/landing-copy';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
@@ -184,11 +187,21 @@ export function SettingsForm({ screen, hasPin }: SettingsFormProps) {
       <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-xl">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 px-4 h-14">
           <Logo size="xs" />
-          <Button variant="outline" size="sm" asChild>
-            <a href={`/tv/${screen.id}`} target="_blank" rel="noreferrer">
-              <ExternalLink className="size-3.5 mr-1.5" /> View screen
-            </a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <FeedbackButton
+              t={LANDING_COPY.footer.feedback}
+              locale="en"
+              screenId={screen.id}
+              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+            >
+              <MessageCircle className="size-3.5 mr-1.5" /> Feedback
+            </FeedbackButton>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/tv/${screen.id}`} target="_blank" rel="noreferrer">
+                <ExternalLink className="size-3.5 mr-1.5" /> View screen
+              </a>
+            </Button>
+          </div>
         </div>
       </header>
 
