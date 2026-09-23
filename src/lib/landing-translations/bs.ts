@@ -3,14 +3,14 @@ import type { LandingCopy } from '@/lib/landing-copy';
 /** Homepage copy in Bosnian. */
 export const BS: LandingCopy = {
   meta: {
-    title: 'Digitalna vaktija na TV ekranu za vašu džamiju',
+    title: 'Besplatna digitalna vaktija za televizor u džamiji',
     description:
-      'TV, tablet ili stari laptop pretvorite u vaktiju za džamiju. Podesite je mobitelom preko QR koda. Besplatno, otvoreni kod, bez aplikacije i registracije.',
+      'TV, tablet ili stari laptop pretvorite u vaktiju za džamiju. Podesite je mobitelom preko QR koda. Besplatna, otvorenog koda, bez aplikacije i registracije.',
   },
   nav: {
     howItWorks: 'Kako radi',
     features: 'Mogućnosti',
-    faq: 'Pitanja',
+    faq: 'Česta pitanja',
     getStarted: 'Pokrenite vaktiju',
     home: 'NextNamaz, početna stranica',
     language: 'Jezik',
@@ -20,42 +20,42 @@ export const BS: LandingCopy = {
     titleLine1: 'Vaktija na televizoru',
     titleLine2: 'u vašoj džamiji.',
     subtitle:
-      'Za dvije minute sve podesite s mobitela. Na televizoru otvorite web stranicu, skenirajte kod, izaberite grad i vaktija je na ekranu. Ne treba vam ni aplikacija, ni registracija, ni poseban uređaj.',
+      'Za dvije minute sve podesite s mobitela. Na televizoru otvorite web stranicu, skenirajte QR kod, izaberite grad i vaktija je na ekranu. Bez aplikacije, bez registracije i potpuno besplatno.',
     cta: 'Pokrenite vaktiju',
-    secondary: 'Kako radi',
+    secondary: 'Pogledajte kako radi',
     demoAlt: 'Televizor s vaktijom: sat, današnja namaska vremena i odbrojavanje do sljedećeg namaza',
   },
 
   oldWay: {
     title: 'Vaktiju više ne mijenjate ručno',
-    body: 'U mnogim džamijama pored mihraba visi odštampana vaktija, a na zidu sat. Svakog mjeseca neko mora okačiti novu. NextNamaz svake noći sam preuzme nova vremena, pa je vaktija na ekranu svako jutro tačna, a da je niko ne dira.',
+    body: 'U mnogim džamijama pored mihraba visi odštampana vaktija, a na zidu sat. Svakog mjeseca neko mora okačiti novu. NextNamaz svake noći sam preuzima nova vremena, pa je vaktija na ekranu svako jutro tačna, a niko je ne mora dirati.',
     imageAlt: 'Zidni sat i odštampana mjesečna vaktija pored mihraba male džamije',
     before: 'Danas u mnogim džamijama',
   },
 
   howItWorks: {
     title: 'U tri koraka do vaktije na ekranu',
-    subtitle: 'Ako znate skenirati QR kod, znate i ovo. Sve traje oko dvije minute.',
+    subtitle: 'Ako znate skenirati QR kod, snaći ćete se i ovdje. Sve skupa traje oko dvije minute.',
     steps: [
       {
         title: 'Otvorite stranicu na televizoru',
         description:
-          'U browseru na televizoru otvorite nextnamaz.com/s i pritisnite Start. Televizor tada prikaže QR kod.',
+          'U internet pretraživaču (browseru) na televizoru otvorite nextnamaz.com/s i pritisnite „Start“. Na ekranu će se zatim pojaviti QR kod.',
         detail: 'Smart TV, TV stik, laptop ili Raspberry Pi',
-        sceneAlt: 'Televizor na zidu s otvorenom stranicom nextnamaz.com/s i označenim dugmetom Start, a ispred njega daljinski',
+        sceneAlt: 'Televizor na zidu s otvorenom stranicom nextnamaz.com/s i označenim dugmetom „Start“, a ispred njega daljinski',
       },
       {
         title: 'Skenirajte kod mobitelom',
         description:
-          'Uperite kameru mobitela u kod. U browseru na mobitelu odmah će se otvoriti podešavanja baš za taj ekran.',
+          'Uperite kameru mobitela u kod. Na mobitelu će se odmah otvoriti podešavanja za taj televizor.',
         detail: 'Ne morate ništa instalirati',
         sceneAlt: 'Televizor s QR kodom i mobitel podignut prema njemu, s kodom u kadru kamere',
       },
       {
         title: 'Izaberite, sačuvajte i gotovo',
         description:
-          'Izaberite grad i izvor vaktije, zatim jezik i izgled, a po želji i PIN. Sačuvajte i za nekoliko sekundi vaktija je na televizoru.',
-        detail: 'Sačuvajte link za kasnije izmjene',
+          'Izaberite grad i izvor vaktije, zatim jezik i izgled, a po želji postavite i PIN. Sačuvajte i za nekoliko sekundi vaktija je na televizoru.',
+        detail: 'Čuvajte link, trebat će vam za izmjene',
         sceneAlt: 'Televizor s današnjim namaskim vremenima i mobitel na posljednjem koraku podešavanja, s pritisnutim dugmetom „Turn on the display“',
       },
     ],
@@ -64,21 +64,21 @@ export const BS: LandingCopy = {
   display: {
     title: 'Isprobajte sami',
     subtitle:
-      'Ovo su iste opcije koje ćete imati u podešavanjima na mobitelu. Promijenite jezik, izgled ili tekst na dnu i ekran se odmah prilagodi. Isto će se desiti i na vašem televizoru.',
+      'Ovo su opcije koje ćete imati i u podešavanjima na mobitelu. Promijenite jezik, izgled ili tekst na dnu i pogledajte kako se ekran mijenja. Kad sačuvate, tako će izgledati i vaktija na vašem televizoru.',
     /** Text alternative for the demo TV in the playground. */
-    screenAlt: 'Televizor s vaktijom koji prikazuje podešavanja izabrana pored njega',
+    screenAlt: 'Televizor s vaktijom koja se mijenja prema podešavanjima pored njega',
     controls: {
       heading: 'Podešavanja',
       language: 'Jezik',
       theme: 'Tema',
       mode: 'Režim',
-      colours: 'Boje',
-      accent: 'Akcent',
-      line: 'Vaš tekst na dnu',
-      linePlaceholder: 'Ajet, selam ili naziv vaše džamije',
+      colours: 'Paleta boja',
+      accent: 'Boja isticanja',
+      line: 'Tekst na dnu ekrana',
+      linePlaceholder: 'Ajet, selam ili naziv džamije',
       prayer: 'Za vrijeme namaza',
-      prayerToggle: 'Zatamni ekran',
-      reset: 'Vrati na početno',
+      prayerToggle: 'Tamni ekran',
+      reset: 'Ispočetka',
     },
     themes: { default: 'Osnovna', night: 'Noćna' },
     modes: { light: 'Svijetli', dark: 'Tamni' },
@@ -96,7 +96,7 @@ export const BS: LandingCopy = {
 
   orientation: {
     title: 'Vodoravno ili uspravno',
-    body: 'Okačite televizor onako kako zid dozvoljava. Ako stoji uspravno pored ulaza ili u uskom hodniku, vaktija se sama preslaže da sve stane.',
+    body: 'Okačite televizor kako vam prostor dopušta. Ako stoji uspravno pored ulaza ili u uskom hodniku, vaktija se sama preslaže da sve stane.',
     landscape: 'Vodoravno, u glavnom prostoru',
     portrait: 'Uspravno, pored ulaza',
   },
@@ -109,54 +109,54 @@ export const BS: LandingCopy = {
     poster: {
       kicker: 'Svake subote',
       title: 'Mekteb za djecu',
-      details: 'Od 10 do 12 sati, uzrast 6 do 14 godina',
-      action: 'Prijave u kancelariji džemata',
+      details: 'Od 10 do 12 sati, uzrast od 6 do 14 godina',
+      action: 'Upis kod imama',
     },
     items: [
       {
         id: 'sources',
-        title: 'Vaktija iz izvora koji koristite',
-        body: 'Vaktija.ba za Bosnu i Hercegovinu, Vaktija.eu za gradove u 17 evropskih zemalja, Islamiska Förbundet za Švedsku, AlAdhan za cijeli svijet ili vremena izračunata za vašu lokaciju. Nova vremena se učitavaju svaki dan.',
+        title: 'Vaktija po kojoj već klanjate',
+        body: 'Vaktija.ba za Bosnu i Hercegovinu, Vaktija.eu za gradove u 17 evropskih zemalja, Islamiska Förbundet za Švedsku, AlAdhan za cijeli svijet ili proračun za vašu lokaciju. Nova vremena učitavaju se svaki dan.',
       },
       {
         id: 'phone',
-        title: 'Sve mijenjate s mobitela',
-        body: 'Ekrane u glavnom prostoru i ženskom dijelu podešavate zasebno. Svaki ekran ima svoj link: otvorite ga na mobitelu, promijenite šta god želite i za nekoliko sekundi to se vidi na tom televizoru.',
+        title: 'Izmjene s bilo kojeg mobitela',
+        body: 'Ekrane u glavnom prostoru i ženskom dijelu podešavate zasebno. Svaki ekran ima svoj link: otvorite ga na mobitelu, promijenite šta god želite i promjena se za nekoliko sekundi vidi na tom televizoru.',
       },
       {
         id: 'offline',
         title: 'Kad nestane interneta',
-        body: 'Sat i odbrojavanje rade i dalje, a današnja vremena ostaju na ekranu. Izmjene i sutrašnja vremena stignu čim se internet vrati. Nakon nestanka struje ekranu treba internet da se ponovo pokrene.',
+        body: 'Sat i odbrojavanje rade i dalje, a današnja vremena ostaju na ekranu. Izmjene i sutrašnja vremena stići će čim se internet vrati. Nakon nestanka struje ekran se ponovo pokreće tek kad ima interneta.',
       },
       {
         id: 'dark',
         title: 'Tamni ekran za vrijeme namaza',
-        body: 'Ekran se od nastupa svakog vakta može zatamniti na 5 do 45 minuta, tako da ostane samo sat i da ništa na zidu ne odvlači pažnju.',
+        body: 'Od nastupa svakog vakta ekran se može zatamniti na 5 do 45 minuta. Na crnoj pozadini ostaje samo sat, pa ništa na zidu ne odvlači pažnju.',
       },
       {
         id: 'announcements',
-        title: 'Obavještenja između vakata',
-        body: 'Dodajte do 12 plakata ili kratkih video snimaka. Televizor ih prikazuje preko cijelog ekrana ili pored vaktije, onoliko često koliko odredite, od jednom u minuti do jednom na sat, pa se vraća na vaktiju. Snimci se puštaju bez zvuka.',
+        title: 'Obavještenja između namaza',
+        body: 'Dodajte do 12 plakata ili kratkih video snimaka. Televizor ih prikazuje preko cijelog ekrana ili pored vaktije, pa se vraća na vaktiju. Koliko često, birate sami: od svake minute do jednom na sat. Snimci se puštaju bez zvuka.',
       },
       {
         id: 'screen',
         title: 'Prilagođava se vašem televizoru',
-        body: 'Prikaz može biti vodoravan ili uspravan, rotiran ako je televizor okrenut na bok, i umanjen za televizore koji odsijecaju ivice slike.',
+        body: 'Prikaz može biti vodoravan ili uspravan. Ako je televizor na zidu okrenut za 90 stepeni, prikaz možete zaokrenuti, a ako odsijeca ivice slike, možete ga smanjiti.',
       },
       {
         id: 'languages',
-        title: 'Devet jezika i vaši nazivi',
-        body: 'Engleski, arapski, bosanski, švedski, turski, urdu, njemački, francuski i španski, a arapski i urdu se pišu zdesna nalijevo. Namaze i naslove možete nazvati onako kako ih zove vaš džemat.',
+        title: 'Devet jezika, a nazive birate sami',
+        body: 'Engleski, arapski, bosanski, švedski, turski, urdu, njemački, francuski i španski. Arapski i urdu pišu se zdesna nalijevo. Namaze i naslove možete nazvati onako kako se kaže u vašem džematu, recimo Sabah umjesto Zora.',
       },
       {
         id: 'lock',
-        title: 'Kod za podešavanja i PIN',
-        body: 'Od 10. do 25. minute nakon svakog namaza u uglu ekrana se pojavi mali kod, da neko od prisutnih može otvoriti podešavanja. Kod možete isključiti, a PIN, ako ga postavite, ograničava ko može praviti izmjene.',
+        title: 'QR kod za podešavanja i PIN',
+        body: 'Od 10. do 25. minute nakon nastupa svakog vakta u uglu ekrana prikazuje se mali QR kod preko kojeg neko od prisutnih može otvoriti podešavanja. Kod možete isključiti. Ako postavite PIN, podešavanja može mijenjati samo onaj ko ga zna.',
       },
       {
         id: 'free',
         title: 'Zauvijek besplatno',
-        body: 'Ništa se ne plaća, nema paketa ni reklama i ništa ne treba obnavljati. Podesite onoliko ekrana koliko vaša džamija ima zidova.',
+        body: 'Ništa se ne plaća: nema pretplate, nema reklama i ništa ne ističe. Podesite onoliko ekrana koliko vaša džamija ima zidova.',
       },
       {
         id: 'open',
@@ -168,11 +168,11 @@ export const BS: LandingCopy = {
 
   devices: {
     title: 'Radi na onome što već imate',
-    body: 'Kao ekran može poslužiti svaki uređaj s novijim browserom i pristupom internetu. Ako vaš televizor nema browser ili mu je browser zastario, priključite na njega mali TV stik ili stari laptop.',
+    body: 'Kao ekran može poslužiti svaki uređaj s internetom i novijim browserom. Ako televizor nema browser ili je njegov zastario, priključite na njega mali TV stik ili stari laptop.',
     items: [
       { id: 'tv', label: 'Smart TV s browserom' },
       { id: 'stick', label: 'Fire TV Stick ili drugi TV stik s browserom' },
-      { id: 'pi', label: 'Raspberry Pi ili mini PC na HDMI ulazu televizora' },
+      { id: 'pi', label: 'Raspberry Pi ili mini-PC priključen na HDMI ulaz televizora' },
       { id: 'laptop', label: 'Stari laptop priključen na televizor' },
       { id: 'tablet', label: 'Tablet na stalku, uspravno ili vodoravno' },
     ],
@@ -183,50 +183,50 @@ export const BS: LandingCopy = {
     items: [
       {
         q: 'Koliko košta i moramo li se registrovati?',
-        a: 'Ne košta ništa i ne morate. Nema pretplate ni registracije, ne treba vam ni e-mail ni lozinka. Svaki ekran pri podešavanju dobije svoj privatni link i preko tog linka ulazite u njegova podešavanja.',
+        a: 'Ne košta ništa i ne morate se registrovati. Nema pretplate, ne treba vam ni e-mail ni lozinka. Svaki ekran pri postavljanju dobije svoj privatni link, a preko njega ulazite u podešavanja.',
       },
       {
-        q: 'Šta trebamo kupiti?',
-        a: 'Najčešće ništa. Potreban vam je televizor ili monitor s browserom i pristupom internetu. Ugrađeni browser na novijem smart televizoru obično radi. Ako stranica ostane prazna ili se ne prikazuje kako treba, taj browser je prestar: priključite TV stik s browserom, Raspberry Pi ili stari laptop. Nikakav poseban uređaj nije potreban.',
+        q: 'Trebamo li nešto kupiti?',
+        a: 'Najčešće ništa. Treba vam televizor ili monitor s internetom i browserom. Na novijim smart televizorima ugrađeni browser obično radi. Ako stranica ostane prazna ili se ne prikazuje kako treba, browser je prestar, pa priključite TV stik, Raspberry Pi ili stari laptop. Nikakav namjenski uređaj za vaktiju ne treba.',
       },
       {
         q: 'Šta ako nestane interneta ili struje?',
-        a: 'Kad nestane interneta, sat i odbrojavanje rade i dalje, a današnja vremena ostaju na ekranu. Vaše izmjene stignu čim se internet vrati. Nakon nestanka struje stranici treba internet da se ponovo učita. Televizor pamti svoj ekran, pa čim otvorite nextnamaz.com/s, vaktija je opet tu.',
+        a: 'Kad nestane interneta, sat i odbrojavanje rade i dalje, a današnja vremena ostaju na ekranu. Vaše izmjene stići će čim se internet vrati. Nakon nestanka struje stranica se može ponovo učitati tek kad ima interneta. Televizor pamti svoju vaktiju, pa čim ponovo otvorite nextnamaz.com/s, ona je opet tu.',
       },
       {
-        q: 'Odakle su vremena i jesu li tačna?',
-        a: 'Iz izvora koji izaberete: Vaktija.ba, Vaktija.eu, Islamiska Förbundet, AlAdhan ili proračun, s metodom i načinom određivanja ikindije po vašem izboru. Pri podešavanju dobijete prijedlog izvora koji najbolje odgovara vašem gradu i prvo vidite današnja vremena, pa ih možete uporediti s vaktijom koju inače koristite.',
+        q: 'Odakle su namaska vremena i jesu li tačna?',
+        a: 'Iz izvora koji izaberete: Vaktija.ba, Vaktija.eu, Islamiska Förbundet, AlAdhan ili proračun, gdje sami birate metodu i ikindiju po hanefijskom ili šafijskom mezhebu. Pri podešavanju dobijete prijedlog izvora koji najbolje odgovara vašem gradu i prvo vidite današnja vremena, pa ih možete uporediti s vaktijom koju inače koristite.',
       },
       {
         q: 'Možemo li kasnije nešto promijeniti?',
-        a: 'Kad god želite. Otvorite link za podešavanja na bilo kojem mobitelu ili računaru, promijenite izvor, jezik, izgled ili obavještenja i sačuvajte. Za nekoliko sekundi promjena je na televizoru. Ako izgubite link, pomjerite miš ili pritisnite bilo koje dugme na televizoru i kod će se ponovo pojaviti.',
+        a: 'Kad god želite. Otvorite link za podešavanja na bilo kojem mobitelu ili računaru, promijenite izvor, jezik, izgled ili obavještenja i sačuvajte. Za nekoliko sekundi promjena je na televizoru. Ako izgubite link, pomjerite miš ili pritisnite neko dugme na daljinskom ili tastaturi i QR kod će se ponovo pojaviti.',
       },
       {
         q: 'Ko može mijenjati podešavanja našeg ekrana?',
-        a: 'Svako ko ima link ekrana ili skenira njegov kod s televizora. Čuvajte link kao ključ i dajte ga samo ljudima kojima vjerujete. Ako želite veću kontrolu, dodajte PIN od 4 do 8 cifara. Zaboravljeni PIN se ne može resetovati, zato ga zapišite.',
+        a: 'Svako ko ima link ekrana ili skenira njegov kod s televizora. Čuvajte link kao ključ od džamije i dajte ga samo ljudima kojima vjerujete. Za dodatnu zaštitu postavite PIN od 4 do 8 cifara. Zaboravljeni PIN nije moguće vratiti ni zamijeniti novim, zato ga zapišite.',
       },
       {
         q: 'Imamo više prostorija. Može li svaka imati svoj ekran?',
-        a: 'Može. Svaki televizor podesite zasebno i svaki dobije svoj link, vremena, jezik i izgled. Ekran u glavnom prostoru može biti na bosanskom, a u ženskom dijelu na njemačkom, svaki sa svojim obavještenjima.',
+        a: 'Može. Svaki televizor podešavate zasebno i svaki ima svoj link, vremena, jezik i izgled. Ekran u glavnom prostoru može biti na bosanskom, a onaj u ženskom dijelu na njemačkom, s drugačijim obavještenjima.',
       },
       {
         q: 'Koje jezike ekran podržava?',
-        a: 'Devet: engleski, arapski, bosanski, švedski, turski, urdu, njemački, francuski i španski. Arapski i urdu se čitaju zdesna nalijevo. Nazive svih namaza i naslova na ekranu možete promijeniti. Podešavanja na mobitelu, stranice za podešavanje na televizoru i mali natpis „Scan to manage“ su na engleskom.',
+        a: 'Devet: engleski, arapski, bosanski, švedski, turski, urdu, njemački, francuski i španski. Arapski i urdu pišu se zdesna nalijevo. Nazive svih namaza i naslova na ekranu možete promijeniti. Na engleskom su podešavanja na mobitelu, stranice za postavljanje na televizoru i mali natpis „Scan to manage“.',
       },
       {
-        q: 'Može li prikazivati ikamet, džumu ili hidžretski datum?',
-        a: 'Zasad ne. Ekran prikazuje nastup svakog vakta i izlazak sunca, prema izvoru koji izaberete. Vrijeme ikameta i džume, hidžretski datum i ručni unos vlastitih vremena trenutno nisu dostupni. Sat je u 24-satnom formatu, a datum u obliku dan/mjesec/godina.',
+        q: 'Može li ekran prikazati vrijeme ikameta, džume ili hidžretski datum?',
+        a: 'Zasad ne. Ekran prikazuje nastup svakog vakta i izlazak sunca, prema izvoru koji izaberete. Vrijeme ikameta i džume i hidžretski datum još ne prikazuje, a vremena ne možete ni ručno upisati. Sat je u 24-satnom formatu, a datum u obliku dan/mjesec/godina.',
       },
       {
         q: 'Koje podatke čuvate?',
-        a: 'Za svaki ekran čuvamo njegova podešavanja, grad ili koordinate, PIN u nečitljivom obliku ako ste ga postavili, te slike i video snimke koje dodate. Dodane fajlove može otvoriti svako ko zna njihovu web adresu, zato ne dodajte ništa privatno. Kad tražite grad ili koristite svoju lokaciju, mjesto pronalaze servisi Open-Meteo i BigDataCloud. Posjete stranici anonimno broji Vercel Web Analytics. Registracije nema, pa nema ni imena, ni e-mail adresa, ni lozinki.',
+        a: 'Za svaki ekran čuvamo podešavanja, grad ili koordinate te slike i video snimke koje dodate. Ako postavite PIN, čuvamo ga u nečitljivom obliku. Dodane slike i snimke može otvoriti svako ko ima njihov link, zato ne dodajte ništa privatno. Kad tražite grad ili koristite svoju lokaciju, mjesto pronalaze servisi Open-Meteo i BigDataCloud. Posjete stranici anonimno broji Vercel Web Analytics. Registracije nema, pa nema ni imena, ni e-mail adresa, ni lozinki.',
       },
     ],
   },
 
   openSource: {
-    title: 'Besplatno, s otvorenim kodom',
-    body: 'NextNamaz je besplatan i bez reklama. Cijeli kod je na GitHubu pod licencom AGPL-3.0, pa svaka džamija, programer ili zajednica može vidjeti kako radi, predložiti izmjene ili pokrenuti vlastitu kopiju.',
+    title: 'Zauvijek besplatno, s otvorenim kodom',
+    body: 'NextNamaz je besplatan i bez reklama. Cijeli kod je na GitHubu pod licencom AGPL-3.0, pa džamije, zajednice i programeri mogu vidjeti kako radi, predložiti izmjene ili pokrenuti vlastitu kopiju.',
     link: {
       label: 'Pogledajte kod na GitHubu',
       href: 'https://github.com/nextnamaz/nextnamaz',
@@ -234,8 +234,8 @@ export const BS: LandingCopy = {
   },
 
   cta: {
-    title: 'Podesite svoj prvi ekran',
-    subtitle: 'Traje oko dvije minute, a sve možete kasnije promijeniti. Uzmite mobitel i stanite pored televizora.',
+    title: 'Vaktija na zidu vaše džamije, već danas',
+    subtitle: 'Traje oko dvije minute, a sve možete kasnije promijeniti. Pripremite mobitel i stanite pored televizora.',
     button: 'Pokrenite vaktiju',
     points: ['Zauvijek besplatno', 'Otvoreni kod', 'Bez registracije'],
   },
@@ -248,7 +248,7 @@ export const BS: LandingCopy = {
         getStarted: 'Pokrenite vaktiju',
         howItWorks: 'Kako radi',
         features: 'Mogućnosti',
-        faq: 'Pitanja',
+        faq: 'Česta pitanja',
       },
     },
     project: {
@@ -265,8 +265,8 @@ export const BS: LandingCopy = {
     },
     copyright: 'Ismail Sacic. NextNamaz je slobodan softver.',
     license:
-      'Možete ga koristiti, proučavati, dijeliti i mijenjati pod uslovima licence GNU Affero General Public License, verzija 3.',
+      'Možete ga koristiti, proučavati, dijeliti i mijenjati pod uslovima licence GNU Affero General Public License, verzije 3.',
     timesNote:
-      'Namaska vremena dolaze iz izvora izabranog za svaki ekran ili se izračunavaju za njegovu lokaciju. NextNamaz nije povezan s izdavačima vaktija koje može prikazati.',
+      'Namaska vremena preuzimaju se iz izvora koji je izabran za pojedini ekran ili se izračunavaju za njegovu lokaciju. NextNamaz nije službeno povezan ni s jednim izdavačem vaktije čija vremena prikazuje.',
   },
 };
