@@ -86,8 +86,8 @@ export function StepStage({ children, withPhone, label, className }: StepStagePr
 /**
  * Each scene acts out its step as it comes on (SceneLayer marks it data-on):
  * the remote comes up and presses Start; the phone comes up to the TV, a line
- * sweeps the code and the link it read pops up; the thumb taps "Turn on the
- * display", and the times fill the TV from the top as the done note appears.
+ * sweeps the code and the link it read pops up; the setup completes with a
+ * tick, and the times fill the TV from the top as the done note appears.
  * Transform, opacity and clip-path only. Held still under reduced motion.
  */
 const ACT = `
@@ -388,9 +388,17 @@ function ScreenLive({ display }: { display: SupportedLocale }) {
   );
 }
 
+/** What the finished setup chose: the rows of its summary. */
+const DONE_ROWS: [string, string][] = [
+  ['City', 'Göteborg'],
+  ['Times', 'Islamiska Förbundet'],
+  ['Language', 'English'],
+  ['Look', 'Classic'],
+];
+
 /**
- * The setup's real last step, "Step 4 of 4 · PIN", its PIN left empty and
- * "Turn on the display" under the thumb.
+ * The setup, finished: a tick as the TV comes on, and what was chosen, the
+ * city, where the times come from, the language and the look.
  */
 function PhoneSettings({ rtl }: { rtl: boolean }) {
   return (
@@ -399,28 +407,23 @@ function PhoneSettings({ rtl }: { rtl: boolean }) {
         <div className="absolute inset-0 bg-[#F6F5F1]">
           <div className="flex items-center justify-between gap-[2cqw] border-b border-border bg-background px-[5cqw] pt-[14.5cqw] pb-[3.4cqw]">
             <Logo className="h-[4.8cqw] w-auto shrink-0" />
-            <span className="text-[6.6cqw] leading-none whitespace-nowrap text-muted-foreground">Step 4 of 4 · PIN</span>
+            <span className="text-[6.6cqw] leading-none whitespace-nowrap text-muted-foreground">Setup complete</span>
           </div>
 
-          <div className="px-[5cqw] pt-[6cqw]">
-            <p className="text-[8cqw] leading-[1.15] font-bold tracking-[-0.015em]">Lock it with a PIN?</p>
-            <p className="mt-[2.4cqw] text-[7cqw] leading-[1.35] text-muted-foreground">
-              Optional. Leave it empty to skip.
-            </p>
+          <div className="px-[5cqw] pt-[7cqw] text-center">
+            <span className="sa-pop [--sa-delay:1000ms] mx-auto flex size-[20cqw] items-center justify-center rounded-full bg-[#2F9E5B] text-white shadow-[0_1.4cqw_4cqw_-1cqw_rgba(47,158,91,0.7)]">
+              <Check className="size-[11cqw]" strokeWidth={3.2} />
+            </span>
+            <p className="mt-[4.5cqw] text-[8.4cqw] leading-[1.15] font-bold tracking-[-0.015em]">Your screen is set up</p>
+            <p className="mt-[2cqw] text-[6.6cqw] leading-[1.35] text-muted-foreground">The TV shows your times now.</p>
 
-            <div className="mt-[5cqw] rounded-[4cqw] border border-border bg-card p-[3.6cqw]">
-              <p className="text-[7cqw] leading-none font-medium">PIN (4 to 8 digits)</p>
-              <div className="mt-[3cqw] flex h-[14cqw] items-center rounded-[3cqw] border border-[#D6D1C6] px-[2.6cqw] text-[6.6cqw] whitespace-nowrap text-[#787364]">
-                Leave empty for no PIN
-              </div>
-              <p className="mt-[3cqw] text-[7cqw] leading-[1.35] text-muted-foreground">
-                You can add, change or remove it later.
-              </p>
-            </div>
-
-            {/* Mid-press: pushed in a touch, and ringed a shade darker. */}
-            <div className="sa-tap mt-[6cqw] flex h-[15cqw] scale-[0.96] items-center justify-center rounded-full bg-primary text-[7.4cqw] font-semibold text-primary-foreground shadow-[0_0_0_0.8cqw_#B87A08]">
-              Turn on the display
+            <div className="mt-[5cqw] divide-y divide-border rounded-[4cqw] border border-border bg-card text-start">
+              {DONE_ROWS.map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-[2cqw] px-[3.6cqw] py-[2.6cqw] text-[6.4cqw] leading-none">
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="truncate font-semibold">{v}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

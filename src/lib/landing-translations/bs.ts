@@ -107,7 +107,7 @@ export const BS: LandingCopy = {
   features: {
     title: 'Po mjeri džamije i džemata',
     subtitle: 'Sve podešavate s mobitela, a na televizor ne instalirate ništa.',
-    imageAlt: 'Nacrtana sala za namaz: klanjači sjede na ćilimu okrenuti mihrabu, a pored njega na zidu visi ekran s vaktijom',
+    imageAlt: 'Nacrtan zid sale za namaz: mihrab s mesinganom lampom iznad, a pored njega uspravno okačen ekran s vaktijom',
     rooms: { womens: 'Ženski dio', main: 'Glavni prostor' },
     poster: {
       kicker: 'Svake subote',

@@ -107,7 +107,7 @@ export const SV: LandingCopy = {
   features: {
     title: 'Byggd för moskéns vardag',
     subtitle: 'Allt sköts från mobilen. Inget installeras på tv:n.',
-    imageAlt: 'En tecknad bönesal: bedjande sitter på mattan vända mot mihraben, och en skärm med bönetider hänger på väggen bredvid',
+    imageAlt: 'En tecknad vägg i en bönesal: mihraben med en mässingslampa ovanför, och bredvid en stående skärm som visar bönetiderna',
     rooms: { womens: 'Kvinnoavdelningen', main: 'Stora salen' },
     poster: {
       kicker: 'Varje lördag',

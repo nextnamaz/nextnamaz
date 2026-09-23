@@ -129,7 +129,7 @@ export const LANDING_COPY = {
   features: {
     title: 'Made for how a mosque runs',
     subtitle: 'Everything is set from a phone. Nothing is installed on the TV.',
-    imageAlt: 'A drawn prayer hall: worshippers sit on the carpet facing the mihrab, and a prayer times screen hangs on the wall beside it',
+    imageAlt: 'A drawn prayer hall wall: the mihrab with a brass lamp above it, and beside it a screen on its side showing the prayer times',
     /** Names under the two televisions in the 'Change it from your phone' drawing. */
     rooms: { womens: "Women's section", main: 'Main hall' },
     /** The sample poster in the announcements drawing. */

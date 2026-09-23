@@ -112,7 +112,7 @@ export const DE: LandingCopy = {
   features: {
     title: 'Gemacht für den Alltag in der Moschee',
     subtitle: 'Alles stellen Sie am Handy ein. Auf dem Fernseher wird nichts installiert.',
-    imageAlt: 'Ein gezeichneter Gebetssaal: Betende sitzen auf dem Teppich mit Blick zum Mihrab, daneben hängt eine Gebetszeitenanzeige an der Wand',
+    imageAlt: 'Eine gezeichnete Wand im Gebetssaal: der Mihrab mit einer Messinglampe darüber, daneben ein hochkant hängender Bildschirm mit den Gebetszeiten',
     rooms: { womens: 'Frauenbereich', main: 'Hauptsaal' },
     poster: {
       kicker: 'Jeden Samstag',

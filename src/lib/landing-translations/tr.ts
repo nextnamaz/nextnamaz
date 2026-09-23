@@ -107,7 +107,7 @@ export const TR: LandingCopy = {
   features: {
     title: 'Caminin işleyişine göre tasarlandı',
     subtitle: 'Her şey telefondan ayarlanır. Televizyona hiçbir şey yüklenmez.',
-    imageAlt: 'Çizilmiş bir namaz salonu: halıda mihraba dönük oturan cemaat ve yanındaki duvarda asılı bir namaz vakitleri ekranı',
+    imageAlt: 'Çizilmiş bir namaz salonu duvarı: üstünde pirinç bir kandil asılı mihrap ve yanında dikey asılmış, namaz vakitlerini gösteren bir ekran',
     rooms: { womens: 'Kadınlar mahfili', main: 'Ana salon' },
     poster: {
       kicker: 'Her cumartesi',
