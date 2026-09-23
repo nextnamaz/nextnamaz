@@ -24,9 +24,16 @@ if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
   exit 1
 fi
 
-if ! command -v pg_dump >/dev/null 2>&1; then
-  echo "pg_dump not found. Install postgresql-client." >&2
-  exit 1
+# pg_dump refuses a server newer than itself. The project runs Postgres 17;
+# with an older local client, use the official image's client instead.
+dump() { pg_dump "$@"; }
+if ! pg_dump --version 2>/dev/null | grep -qE ' (1[7-9]|[2-9][0-9])\.'; then
+  if command -v docker >/dev/null 2>&1; then
+    dump() { docker run --rm --network host postgres:17-alpine pg_dump "$@"; }
+  else
+    echo "Need pg_dump 17 or newer (or docker). Install postgresql-client-17." >&2
+    exit 1
+  fi
 fi
 
 mkdir -p backups
@@ -34,10 +41,10 @@ STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="backups/nextnamaz-${STAMP}.sql"
 
 echo "Dumping to ${OUT} ..."
-pg_dump "$SUPABASE_DB_URL" \
+dump "$SUPABASE_DB_URL" \
   --no-owner --no-privileges \
   --schema=public --schema=storage \
-  --file "$OUT"
+  > "$OUT"
 
 if [[ ! -s "$OUT" ]]; then
   echo "Dump is empty. Do NOT migrate." >&2
