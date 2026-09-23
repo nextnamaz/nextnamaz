@@ -10,6 +10,8 @@ import { SITE_URL } from '@/lib/site';
 import { cn } from '@/lib/utils';
 import { TvFrame } from './tv-frame';
 import { PhoneMock } from './phone-mock';
+import { resolveDisplayLocale } from '@/lib/display-locale';
+import type { SupportedLocale } from '@/types/locale';
 
 /**
  * The drawings for "How it works": one wall, one TV, and whatever is
@@ -34,7 +36,7 @@ const SCAN_URL = `${SITE_URL}/s`;
 
 /** Limewash: a faint mottle, so the plaster reads as a surface and not a fill. */
 const PLASTER = `url("data:image/svg+xml,${encodeURIComponent(
-  "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.006 0.009' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.36 0 0 0 0 0.24 0 0 0 0.5 -0.17'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>"
+  "<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.006 0.009' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.35 0 0 0 0 0.33 0 0 0 0.35 -0.12'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>"
 )}")`;
 
 interface StepStageProps {
@@ -46,7 +48,7 @@ interface StepStageProps {
   className?: string;
 }
 
-/** A stretch of warm plaster wall, set in slightly like a recess. */
+/** A stretch of pale plaster wall, set in slightly like a recess: the same stage as the playground's and the features'. */
 export function StepStage({ children, withPhone, label, className }: StepStageProps) {
   return (
     <div
@@ -58,21 +60,22 @@ export function StepStage({ children, withPhone, label, className }: StepStagePr
       )}
       style={{
         containerType: 'inline-size',
-        backgroundColor: '#EAE3D6',
+        backgroundColor: '#EDEAE4',
         backgroundImage: [
-          'radial-gradient(ellipse 70% 55% at 22% 8%, rgba(255,252,246,0.75), transparent 70%)',
+          'radial-gradient(ellipse 70% 55% at 22% 8%, rgba(255,255,255,0.7), transparent 70%)',
           PLASTER,
-          'linear-gradient(165deg, #EEE7DB 0%, #E6DDCD 100%)',
+          'linear-gradient(165deg, #F6F4F0 0%, #EDEAE4 100%)',
         ].join(', '),
         backgroundSize: 'auto, cover, auto',
         boxShadow: [
-          'inset 0 1px 2px rgba(38,24,10,0.10)',
-          'inset 0 14px 28px -18px rgba(38,24,10,0.28)',
-          'inset 0 0 0 1px rgba(38,24,10,0.06)',
+          'inset 0 1px 2px rgba(38,24,10,0.06)',
+          'inset 0 14px 28px -20px rgba(38,24,10,0.16)',
+          'inset 0 0 0 1px rgba(38,24,10,0.05)',
         ].join(', '),
       }}
     >
-      <div aria-hidden className="absolute inset-0">
+      {/* The app's own screens, laid out as they are: never mirrored on a right-to-left page. */}
+      <div aria-hidden dir="ltr" className="absolute inset-0">
         {children}
       </div>
     </div>
@@ -93,7 +96,8 @@ export function SceneTv({ children }: { children: ReactNode }) {
 /**
  * The phone, held up in front of the TV's lower right and cropped by the
  * stage's bottom edge. Below `sm` the camera is held square in front of the
- * code; the settings phone keeps to the right so the display shows.
+ * code; the settings phone keeps to the countdown's side so the times show,
+ * which is the left on a right-to-left display.
  */
 const PHONE_BOX = 'absolute w-[47%] sm:top-[26cqw] sm:left-[72%] sm:w-[26%]';
 
@@ -278,7 +282,7 @@ function PhoneCamera() {
   return (
     <div className={cn(PHONE_BOX, 'top-[25cqw] left-[26.5%]')}>
       <PhoneMock darkScreen className="w-full">
-        <div className="absolute inset-x-0 top-[10%] bottom-[19%] overflow-hidden bg-[#CFC4B1]">
+        <div className="absolute inset-x-0 top-[10%] bottom-[19%] overflow-hidden bg-[#C9C8C4]">
           <div className="absolute inset-0 scale-[1.06] rotate-[-2.5deg]">
             <CameraTv />
             {/* The code in focus, and the brackets the camera draws on it. */}
@@ -342,17 +346,17 @@ function ScreenBlank() {
  * The real display, on the visitor's clock. The stepper (lg and up) and the
  * phone layout both draw this scene; only the one on screen mounts a display.
  */
-function ScreenLive() {
-  return <DemoDisplay />;
+function ScreenLive({ display }: { display: SupportedLocale }) {
+  return <DemoDisplay locale={resolveDisplayLocale(display)} />;
 }
 
 /**
  * The setup's real last step, "Step 4 of 4 · PIN", its PIN left empty and
  * "Turn on the display" under the thumb.
  */
-function PhoneSettings() {
+function PhoneSettings({ rtl }: { rtl: boolean }) {
   return (
-    <div className={cn(PHONE_BOX, 'top-[23cqw] left-[49.5%]')}>
+    <div className={cn(PHONE_BOX, 'top-[23cqw]', rtl ? 'left-[3.5%] sm:left-[2%]' : 'left-[49.5%]')}>
       <PhoneMock className="w-full">
         <div className="absolute inset-0 bg-[#F6F5F1]">
           <div className="flex items-center justify-between gap-[2cqw] border-b border-border bg-background px-[5cqw] pt-[14.5cqw] pb-[3.4cqw]">
@@ -388,10 +392,15 @@ function PhoneSettings() {
   );
 }
 
-/** The press lands: the wizard's own done line, as a note on the wall by the TV. */
-function SavedNote() {
+/** The press lands: the wizard's own done line, as a note on the wall by the TV, on the side the phone is not. */
+function SavedNote({ rtl }: { rtl: boolean }) {
   return (
-    <div className="absolute top-[62cqw] left-[5%] flex max-w-[41%] items-start gap-[1.8cqw] rounded-[3cqw] bg-card px-[3.2cqw] py-[2.6cqw] shadow-[0_1.2cqw_3cqw_-1cqw_rgba(38,24,10,0.3),0_0_0_1px_rgba(38,24,10,0.06)] sm:top-[55.5cqw] sm:left-[4.5%] sm:max-w-none sm:items-center sm:gap-[1cqw] sm:rounded-[1.6cqw] sm:px-[1.8cqw] sm:py-[1.3cqw]">
+    <div
+      className={cn(
+        'absolute top-[62cqw] flex max-w-[41%] items-start gap-[1.8cqw] rounded-[3cqw] bg-card px-[3.2cqw] py-[2.6cqw] shadow-[0_1.2cqw_3cqw_-1cqw_rgba(38,24,10,0.3),0_0_0_1px_rgba(38,24,10,0.06)] sm:top-[55.5cqw] sm:max-w-none sm:items-center sm:gap-[1cqw] sm:rounded-[1.6cqw] sm:px-[1.8cqw] sm:py-[1.3cqw]',
+        rtl ? 'right-[5%] sm:right-[21.5%]' : 'left-[5%] sm:left-[4.5%]'
+      )}
+    >
       <Check className="mt-[0.4cqw] size-[4cqw] shrink-0 text-[#2F7A4B] sm:mt-0 sm:size-[2.3cqw]" strokeWidth={3} />
       <p className="text-[3.3cqw] leading-snug font-semibold text-balance text-foreground sm:text-[1.95cqw]">
         Your screen is live
@@ -402,21 +411,21 @@ function SavedNote() {
 
 /* ── Composition ──────────────────────────────────────────────────────── */
 
-/** What the TV shows at a step. */
-export function StepScreen({ index }: { index: number }) {
+/** What the TV shows at a step; the live display speaks the page's language. */
+export function StepScreen({ index, display }: { index: number; display: SupportedLocale }) {
   if (index === 0) return <ScreenBrowser />;
   if (index === 1) return <ScreenPairing />;
-  return <ScreenLive />;
+  return <ScreenLive display={display} />;
 }
 
-/** What sits in front of the TV at a step. */
-export function StepForeground({ index }: { index: number }) {
+/** What sits in front of the TV at a step. `rtl`: the live display in the last step is mirrored. */
+export function StepForeground({ index, rtl }: { index: number; rtl: boolean }) {
   if (index === 0) return <Remote />;
   if (index === 1) return <PhoneCamera />;
   return (
     <>
-      <SavedNote />
-      <PhoneSettings />
+      <SavedNote rtl={rtl} />
+      <PhoneSettings rtl={rtl} />
     </>
   );
 }

@@ -59,9 +59,20 @@ and scaling it down with a CSS transform.
 
 ## The landing page
 
-`src/app/page.tsx` composes the sections in `src/components/landing/`. All of
-its words live in `src/lib/landing-copy.ts`. Every TV on the page runs the
-real Default theme, on the visitor's clock with sample times. The photographs
+The homepage is written in six languages: English at `/`, and Swedish,
+Bosnian, German, Arabic and Turkish at `/sv`, `/bs`, `/de`, `/ar` and `/tr`,
+each with its own title, description, canonical and `hreflang` alternates.
+A first visit to `/` goes to the visitor's language (browser language first,
+then country); a language picked in the header is remembered in a cookie.
+Only the homepage is translated; setup, settings and the TV stay as they are.
+
+`src/components/landing/landing-page.tsx` composes the sections in
+`src/components/landing/` and passes each its words. The English copy is
+`src/lib/landing-copy.ts`, which also defines the `LandingCopy` shape; the
+translations in `src/lib/landing-translations/` must match it exactly, so a
+new English string fails the type check until every language has it. Every
+TV on the page runs the real display themes, on the visitor's clock with
+sample times, in the page's language. The photographs
 in `public/landing/` are from Unsplash, under the Unsplash License; each is
 credited in the component that uses it.
 

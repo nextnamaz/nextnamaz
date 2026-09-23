@@ -3,15 +3,17 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { LANDING_COPY } from '@/lib/landing-copy';
+import type { LandingCopy } from '@/lib/landing-copy';
+import type { SupportedLocale } from '@/types/locale';
+import { isRtlLocale, resolveDisplayLocale } from '@/lib/display-locale';
 import { cn } from '@/lib/utils';
 import { SceneLayer, SceneTv, StepForeground, StepScreen, StepStage } from './step-scenes';
 
 const PANEL_ID = 'how-panel';
 /** The fixed navbar the pinned panel sits under, in px (top-16). */
 const NAV_PX = 64;
-/** Matches the `tall` variant in globals.css: shorter than this, the panel does not pin. */
-const TALL_QUERY = '(min-height: 40rem) and (max-width: 63.99rem), (min-height: 44rem) and (min-width: 64rem)';
+/** Breathing room kept around the pinned panel, in px. */
+const PIN_ROOM = 8;
 
 /** Share of the whole scroll through the track spent on each step, 0 to 1 per step. */
 const segment = (i: number, count: number) => `clamp(0, calc(var(--how-p, 0) * ${count} - ${i}), 1)`;
@@ -23,8 +25,10 @@ const segment = (i: number, count: number) => `clamp(0, calc(var(--how-p, 0) * $
  * navbar. Scrolling through the track moves the steps on, one third of it
  * each, while the picture crossfades; past the last step the panel lets go
  * and the page carries on. Picking a step scrolls to it, so the scroll and
- * the step can never disagree. On a screen too short to pin (a phone held
- * sideways) it is a plain set of tabs.
+ * the step can never disagree. It pins whenever the steps fit the visible
+ * height under the navbar, measured, so zoom, window size and the length of
+ * a language's words all count; where they do not fit (a phone held
+ * sideways, a very short window) it is a plain set of tabs.
  *
  * The scroll position reaches the page as a CSS variable, not React state,
  * so the progress bars move every frame without re-rendering anything. Only
@@ -33,16 +37,36 @@ const segment = (i: number, count: number) => `clamp(0, calc(var(--how-p, 0) * $
  * One stage serves every width: beside the list from lg, above the step's
  * words below it.
  */
-export function HowItWorksStepper() {
-  const steps = LANDING_COPY.howItWorks.steps;
+interface HowItWorksStepperProps {
+  steps: LandingCopy['howItWorks']['steps'];
+  display: SupportedLocale;
+}
+
+export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
   const count = steps.length;
   const [active, setActive] = useState(0);
   /** The step fading out, kept mounted until its fade ends. */
   const [leaving, setLeaving] = useState<number | null>(null);
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)', true);
-  const pinned = useMediaQuery(TALL_QUERY, true);
+  // Assume it fits until measured: most screens do, and the page then renders its final height first.
+  const [pinned, setPinned] = useState(true);
   const trackRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(0);
+
+  // Pin only when the steps fit between the navbar and the bottom of the window.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const measure = () => setPinned(grid.getBoundingClientRect().height <= window.innerHeight - NAV_PX - PIN_ROOM);
+    const ro = new ResizeObserver(measure);
+    ro.observe(grid);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
 
   const show = (index: number) => {
     if (index === activeRef.current) return;
@@ -101,11 +125,13 @@ export function HowItWorksStepper() {
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const last = count - 1;
+    // On a right-to-left page the next step is to the left.
+    const rtl = getComputedStyle(e.currentTarget).direction === 'rtl';
     const targets: Record<string, number> = {
       ArrowDown: Math.min(last, active + 1),
-      ArrowRight: Math.min(last, active + 1),
+      [rtl ? 'ArrowLeft' : 'ArrowRight']: Math.min(last, active + 1),
       ArrowUp: Math.max(0, active - 1),
-      ArrowLeft: Math.max(0, active - 1),
+      [rtl ? 'ArrowRight' : 'ArrowLeft']: Math.max(0, active - 1),
       Home: 0,
       End: last,
     };
@@ -117,12 +143,14 @@ export function HowItWorksStepper() {
     pick(next);
   };
 
-  const mounted = (i: number) => i === active || i === leaving;
+  // The last step, the live display, stays mounted under the others, so moving on to it is only a fade.
+  const mounted = (i: number) => i === active || i === leaving || i === count - 1;
+  const rtl = isRtlLocale(resolveDisplayLocale(display));
 
   return (
-    <div ref={trackRef} className="relative mt-12 sm:mt-14 tall:h-[calc(100svh-4rem+150svh)]">
-      <div className="flex items-center-safe tall:sticky tall:top-16 tall:h-[calc(100svh-4rem)]">
-        <div className="grid w-full grid-cols-1 items-center gap-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)] lg:gap-8 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:gap-14">
+    <div ref={trackRef} className={cn('relative mt-12 sm:mt-14', pinned && 'h-[calc(100svh-4rem+150svh)]')}>
+      <div className={cn('flex items-center-safe', pinned && 'sticky top-16 h-[calc(100svh-4rem)]')}>
+        <div ref={gridRef} className="grid w-full grid-cols-1 items-center gap-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)] lg:gap-8 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:gap-14">
           {/* lg and up: the steps as a vertical list of cards. */}
           <div
             role="tablist"
@@ -146,7 +174,8 @@ export function HowItWorksStepper() {
                   tabIndex={on ? 0 : -1}
                   onClick={() => pick(i)}
                   className={cn(
-                    'flex w-full gap-4 rounded-2xl px-5 pt-[18px] pb-6 text-left outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
+                    // Viewports 800px tall or less set the cards tighter, so all three fit the pinned panel in any language.
+                    'flex w-full gap-4 rounded-2xl px-5 pt-[18px] pb-6 text-start [@media(max-height:50rem)]:pt-3 [@media(max-height:50rem)]:pb-5 outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
                     on
                       ? 'bg-card shadow-[0_1px_2px_rgba(38,24,10,0.05),0_12px_32px_-16px_rgba(38,24,10,0.22)] ring-1 ring-border/80'
                       : 'hover:bg-secondary/70'
@@ -166,19 +195,22 @@ export function HowItWorksStepper() {
                     <span
                       id={`how-tab-${i}-title`}
                       className={cn(
-                        'block text-[20px] leading-snug font-semibold tracking-[-0.02em] text-pretty transition-colors duration-300',
+                        'block text-[20px] leading-snug font-semibold tracking-[-0.02em] text-pretty transition-colors duration-300 [@media(max-height:50rem)]:text-[18px]',
                         on ? 'text-foreground' : 'text-foreground/80'
                       )}
                     >
                       {step.title}
                     </span>
-                    <span id={`how-tab-${i}-text`} className="mt-1.5 block text-[15px] leading-relaxed text-pretty text-muted-foreground">
+                    <span
+                      id={`how-tab-${i}-text`}
+                      className="mt-1.5 block text-[15px] leading-relaxed text-pretty text-muted-foreground [@media(max-height:50rem)]:text-[14px] [@media(max-height:50rem)]:leading-normal"
+                    >
                       {step.description}
                     </span>
                     <span
                       id={`how-tab-${i}-detail`}
                       className={cn(
-                        'mt-3 flex items-start gap-2 text-[14px] leading-normal font-medium text-pretty transition-colors duration-300',
+                        'mt-3 flex items-start gap-2 text-[14px] leading-normal font-medium text-pretty transition-colors duration-300 [@media(max-height:50rem)]:mt-2',
                         on ? 'text-foreground' : 'text-muted-foreground'
                       )}
                     >
@@ -195,7 +227,7 @@ export function HowItWorksStepper() {
                     {pinned && (
                       <span aria-hidden className="absolute inset-x-0 -bottom-3 h-[3px] overflow-hidden rounded-full bg-border/60">
                         <span
-                          className="block h-full origin-left rounded-full bg-primary"
+                          className="block h-full origin-left rounded-full rtl:origin-right bg-primary"
                           style={{ transform: `scaleX(${segment(i, count)})` }}
                         />
                       </span>
@@ -217,7 +249,7 @@ export function HowItWorksStepper() {
               <SceneTv>
                 {steps.map((step, i) => (
                   <SceneLayer key={step.title} on={i === active} hold>
-                    {mounted(i) && <StepScreen index={i} />}
+                    {mounted(i) && <StepScreen index={i} display={display} />}
                   </SceneLayer>
                 ))}
               </SceneTv>
@@ -227,7 +259,7 @@ export function HowItWorksStepper() {
                   on={i === active}
                   onFadedOut={() => setLeaving((l) => (l === i ? null : l))}
                 >
-                  {mounted(i) && <StepForeground index={i} />}
+                  {mounted(i) && <StepForeground index={i} rtl={rtl} />}
                 </SceneLayer>
               ))}
             </StepStage>
@@ -253,7 +285,7 @@ export function HowItWorksStepper() {
                   >
                     <span className="block h-1 overflow-hidden rounded-full bg-border">
                       <span
-                        className={cn('block h-full origin-left rounded-full bg-primary', !pinned && (i <= active ? 'scale-x-100' : 'scale-x-0'))}
+                        className={cn('block h-full origin-left rounded-full rtl:origin-right bg-primary', !pinned && (i <= active ? 'scale-x-100' : 'scale-x-0'))}
                         style={pinned ? { transform: `scaleX(${segment(i, count)})` } : undefined}
                       />
                     </span>

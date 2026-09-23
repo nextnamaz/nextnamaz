@@ -2,16 +2,18 @@ import type { ReactNode } from 'react';
 
 /** Bezel width, as a share of the whole set's width. A current flat panel is almost all picture. */
 const BEZEL = '0.85cqw';
+/** The same bezel on a set turned on its side, measured against its narrow width. */
+const PORTRAIT_BEZEL = '1.5cqw';
 
 /**
  * Wall-mounted, a few centimetres off the plaster: a tight shadow at the edge
  * and a soft one falling below. Tinted to the page's warm ink, never black,
- * which reads grey on a warm wall.
+ * and kept light, as a set casts on a white wall.
  */
 const WALL_SHADOW = [
-  '0 0.5cqw 1cqw -0.2cqw rgba(38,24,10,0.34)',
-  '0 2.2cqw 4.4cqw -1.1cqw rgba(38,24,10,0.3)',
-  '0 5cqw 9cqw -3cqw rgba(38,24,10,0.18)',
+  '0 0.5cqw 1cqw -0.2cqw rgba(38,24,10,0.28)',
+  '0 2.2cqw 4.4cqw -1.1cqw rgba(38,24,10,0.22)',
+  '0 5cqw 9cqw -3cqw rgba(38,24,10,0.14)',
 ].join(', ');
 
 /**
@@ -22,12 +24,18 @@ const WALL_SHADOW = [
  * Everything is measured in the wrapper's own container width, so the set
  * keeps its proportions from a 280px step illustration to the hero.
  */
-export function TvFrame({ children }: { children: ReactNode }) {
+interface TvFrameProps {
+  children: ReactNode;
+  /** Turned on its side: 9:16. The bezel and corners keep their real size, so they grow against the narrower width. */
+  portrait?: boolean;
+}
+
+export function TvFrame({ children, portrait = false }: TvFrameProps) {
   return (
     <div className="relative w-full" style={{ containerType: 'inline-size' }}>
       <div
         className="relative bg-[#0C0C0E]"
-        style={{ padding: BEZEL, borderRadius: '0.55cqw', boxShadow: WALL_SHADOW }}
+        style={{ padding: portrait ? PORTRAIT_BEZEL : BEZEL, borderRadius: portrait ? '1cqw' : '0.55cqw', boxShadow: WALL_SHADOW }}
       >
         {/* The aluminium edge: a hairline, brightest along the top. */}
         <span
@@ -41,7 +49,7 @@ export function TvFrame({ children }: { children: ReactNode }) {
         {/* Themes measure themselves in container-query units. */}
         <div
           className="relative w-full overflow-hidden"
-          style={{ aspectRatio: '16/9', containerType: 'size', borderRadius: '0.15cqw' }}
+          style={{ aspectRatio: portrait ? '9/16' : '16/9', containerType: 'size', borderRadius: '0.15cqw' }}
         >
           {children}
           {/* The glass: a faint sheen from the upper left, and a crisp edge to the picture. */}

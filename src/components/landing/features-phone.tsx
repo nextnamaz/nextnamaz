@@ -7,12 +7,13 @@ import { PhoneMock } from './phone-mock';
 interface Field {
   label: string;
   value: string;
-  changed?: boolean;
+  /** The value before the change: the field is the one just set. */
+  was?: string;
 }
 
 /** The Default theme's three fields (themes/default.tsx defaultDefinition). */
 const FIELDS: Field[] = [
-  { label: 'Mode', value: 'Dark', changed: true },
+  { label: 'Mode', value: 'Dark', was: 'Light' },
   { label: 'Color Scheme', value: 'Classic' },
   { label: 'Footer Text', value: 'بسم الله الرحمن الرحيم' },
 ];
@@ -31,11 +32,14 @@ const TABS: { icon: LucideIcon; active?: boolean }[] = [
  * with its Mode set to Dark, and the toast the page shows once it has saved.
  * Drawn from settings-form.tsx and the Default theme's fields, with the type
  * set larger than life so it reads at the size it hangs on the page.
+ *
+ * The .ph-* parts are what RemoteArt's motion plays: the tap, the choice,
+ * Light turning to Dark, and the toast.
  */
 export function SettingsPhone({ url, className }: { url: string; className?: string }) {
   return (
     <PhoneMock className={className}>
-      <div className="absolute inset-0 flex flex-col bg-[#F7F6F2] pt-[12.5cqw] font-sans">
+      <div dir="ltr" className="absolute inset-0 flex flex-col bg-[#F7F6F2] pt-[12.5cqw] font-sans">
         {/* The browser's address bar: the one screen this page controls. */}
         <div className="bg-background px-[4cqw] pb-[2.4cqw]">
           <div className="flex h-[9.5cqw] items-center gap-[1.6cqw] rounded-full bg-[#ECE9E2] px-[3.6cqw] text-[4.8cqw] text-[#4A463C]">
@@ -60,14 +64,19 @@ export function SettingsPhone({ url, className }: { url: string; className?: str
             {FIELDS.map((field) => (
               <div key={field.label}>
                 <p className="text-[4.8cqw] leading-none font-medium">{field.label}</p>
-                <div
-                  className={cn(
-                    'mt-[1.8cqw] flex h-[10cqw] items-center justify-between rounded-[2cqw] border px-[3cqw] text-[5cqw]',
-                    field.changed ? 'border-primary ring-[0.8cqw] ring-primary/20' : 'border-border'
+                <div className="relative mt-[1.8cqw] flex h-[10cqw] items-center justify-between rounded-[2cqw] border border-border px-[3cqw] text-[5cqw]">
+                  {field.was && (
+                    <span className="ph-pick pointer-events-none absolute -inset-px rounded-[2cqw] border border-primary ring-[0.8cqw] ring-primary/20" />
                   )}
-                >
-                  <span className="truncate">{field.value}</span>
+                  <span className="grid min-w-0 overflow-hidden">
+                    {field.was && <span className="ph-was truncate opacity-0 [grid-area:1/1]">{field.was}</span>}
+                    <span className={cn('truncate [grid-area:1/1]', field.was && 'ph-now')}>{field.value}</span>
+                  </span>
                   <ChevronDown className="size-[4.4cqw] shrink-0 text-muted-foreground" />
+                  {/* A fingertip's press, over the field. */}
+                  {field.was && (
+                    <span className="ph-tap pointer-events-none absolute top-1/2 end-[16%] -mt-[5cqw] size-[10cqw] rounded-full bg-foreground/15 opacity-0" />
+                  )}
                 </div>
               </div>
             ))}
@@ -85,7 +94,7 @@ export function SettingsPhone({ url, className }: { url: string; className?: str
         </div>
 
         {/* The toast the page raises once the save has gone through. */}
-        <div className="mx-[4cqw] mt-auto mb-[4cqw] flex items-start gap-[2.4cqw] rounded-[3cqw] border border-border bg-card px-[3.6cqw] py-[3.4cqw] shadow-[0_2cqw_5cqw_-2cqw_rgba(38,24,10,0.3)]">
+        <div className="ph-toast mx-[4cqw] mt-auto mb-[4cqw] flex items-start gap-[2.4cqw] rounded-[3cqw] border border-border bg-card px-[3.6cqw] py-[3.4cqw] shadow-[0_2cqw_5cqw_-2cqw_rgba(38,24,10,0.3)]">
           <CircleCheck className="mt-[0.3cqw] size-[5cqw] shrink-0" />
           <p className="text-[4.8cqw] leading-[1.3] font-medium">Saved. The screen updates in a moment.</p>
         </div>

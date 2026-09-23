@@ -38,6 +38,10 @@ feeds `robots.ts`. Do not add screen URLs to `sitemap.ts`.
 - Lint runs the React Compiler rules: no synchronous `setState` in an effect
   body.
 - Landing copy lives in `src/lib/landing-copy.ts`, not inline in the page.
+  The homepage is also in sv, bs, de, ar and tr (`src/lib/landing-translations/`,
+  routes `/[lang]`, detection in `src/proxy.ts`). A new English string must be
+  written into every language, as a native copywriter would, not translated
+  word for word: Ismail reads Bosnian and rejected a literal draft.
   Headings use `font-heading`, which maps to Geist like the body (semibold,
   tight tracking). The Arabic faces (Amiri, Aref Ruqaa, Reem Kufi) belong to
   the TV themes; serif headings on the site were rejected.

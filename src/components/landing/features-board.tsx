@@ -31,6 +31,8 @@ export interface BoardProps {
   mode?: 'light' | 'dark';
   /** The language the board is written in, so `uppercase` cases it right (Turkish İkindi → İKİNDİ, not İKINDI). */
   lang?: string;
+  /** Right to left mirrors the grid, as the real theme does on an Arabic screen. */
+  dir?: 'ltr' | 'rtl';
 }
 
 interface ModeTokens {
@@ -94,12 +96,13 @@ function nameScale(name: string): string | undefined {
 /** Vertical padding of the header and body cells. */
 const PAD = '1.6% 0';
 
-export function Board({ clock, labels, rows, next, footer, mode = 'light', lang }: BoardProps) {
+export function Board({ clock, labels, rows, next, footer, mode = 'light', lang, dir = 'ltr' }: BoardProps) {
   const m = MODES[mode];
 
   return (
     <div
       lang={lang}
+      dir={dir}
       className="absolute inset-0 grid overflow-hidden select-none"
       style={{
         gridTemplateColumns: '1fr 1fr',

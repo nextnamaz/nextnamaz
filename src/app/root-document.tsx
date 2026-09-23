@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
-import "./globals.css";
+
+/**
+ * What every page's document shares, whichever root layout renders it: the
+ * site's own pages under app/(site), and the translated homepages under
+ * app/[lang], which need their own <html lang> and dir.
+ */
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +24,7 @@ const geistMono = Geist_Mono({
 const DESCRIPTION =
   "Turn a TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone. No app, no account, no special hardware.";
 
-export const metadata: Metadata = {
+export const ROOT_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "NextNamaz | Prayer Times Display for Mosques",
@@ -53,20 +59,20 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
+export const ROOT_VIEWPORT: Viewport = {
   themeColor: "#E8A817",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+interface RootDocumentProps {
+  lang: string;
+  dir?: "ltr" | "rtl";
+  children: ReactNode;
+}
+
+export function RootDocument({ lang, dir = "ltr", children }: RootDocumentProps) {
   return (
-    <html lang="en" className="motion-safe:scroll-smooth">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-      >
+    <html lang={lang} dir={dir} className="motion-safe:scroll-smooth">
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         {children}
         <Analytics />
         <Toaster />

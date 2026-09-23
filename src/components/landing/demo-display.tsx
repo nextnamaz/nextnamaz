@@ -57,6 +57,8 @@ const HOLD_STILL =
 interface DemoDisplayProps {
   locale?: DisplayLocale;
   footer?: string;
+  /** The theme's own portrait layout, for a set turned on its side. */
+  portrait?: boolean;
 }
 
 /**
@@ -69,7 +71,7 @@ interface DemoDisplayProps {
  * labelled image, or the legend beside it) says what it shows. Out of sight it swaps to its placeholder, so
  * its clocks and its pulse stop.
  */
-export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله الرحمن الرحيم' }: DemoDisplayProps) {
+export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله الرحمن الرحيم', portrait = false }: DemoDisplayProps) {
   const minute = useSyncExternalStore(subscribeMinute, minuteOfDay, minuteOfDay);
   const prayers = useMemo(
     () => DEMO_PRAYERS.map((p) => ({ ...p, displayName: locale.prayerNames[p.name] })),
@@ -96,7 +98,8 @@ export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله
       aria-hidden
       dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
       lang={locale.locale}
-      className="demo-display absolute inset-0"
+      // Isolated, so the theme's own z-indexes stay under whatever the frame draws over it (the glass).
+      className="demo-display absolute inset-0 isolate"
     >
       {near ? (
         <>
@@ -104,7 +107,7 @@ export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله
             prayers={prayers}
             nextPrayer={nextPrayer}
             config={{ mode: 'light', colorScheme: 'classic', displayText: footer }}
-            isPortrait={false}
+            isPortrait={portrait}
             locale={locale}
           />
           <style>{HOLD_STILL}</style>

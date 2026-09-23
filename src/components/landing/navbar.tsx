@@ -1,27 +1,40 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
-import { LANDING_COPY } from '@/lib/landing-copy';
+import type { LandingCopy } from '@/lib/landing-copy';
+import { landingPath } from '@/lib/landing-locales';
+import type { LandingLocale } from '@/lib/landing-locales';
+import { HeaderBar } from './header-bar';
+import { LogoLink } from './header-logo-link';
+import { LanguagePicker } from './language-picker';
 
-const LINKS = [
-  { href: '#how', label: LANDING_COPY.nav.howItWorks },
-  { href: '#features', label: LANDING_COPY.nav.features },
-  { href: '#faq', label: LANDING_COPY.nav.faq },
-];
+interface NavbarProps {
+  t: LandingCopy['nav'];
+  locale: LandingLocale;
+}
 
-export function Navbar() {
-  const t = LANDING_COPY.nav;
+export function Navbar({ t, locale }: NavbarProps) {
+  const links = [
+    { href: '#how', label: t.howItWorks },
+    { href: '#features', label: t.features },
+    { href: '#faq', label: t.faq },
+  ];
 
   return (
-    <nav aria-label="Main" className="fixed top-0 z-50 w-full border-b border-black/5 bg-background px-6">
+    <HeaderBar label="Main">
       {/* Same container as the sections and footer, so the logo lines up down the page. */}
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6">
-        <Link href="/" aria-label={t.home} className="rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-foreground">
-          <Logo size="sm" />
-        </Link>
-        <div className="flex items-center gap-8">
+      {/* Below 25rem the row tightens (a smaller wordmark, less space, a compact button) so nothing has to shrink. */}
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 min-[25rem]:gap-6">
+        <LogoLink
+          href={landingPath(locale)}
+          aria-label={t.home}
+          className="inline-flex h-10 shrink-0 items-center rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-foreground"
+        >
+          <Logo size="sm" className="h-5 w-auto max-[25rem]:h-[17px]" />
+        </LogoLink>
+        <div className="flex min-w-0 items-center gap-2 min-[25rem]:gap-3 md:gap-6">
           <ul className="hidden items-center gap-7 md:flex">
-            {LINKS.map(({ href, label }) => (
+            {links.map(({ href, label }) => (
               <li key={href}>
                 <a href={href} className="inline-flex h-10 items-center rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-foreground">
                   {label}
@@ -29,11 +42,12 @@ export function Navbar() {
               </li>
             ))}
           </ul>
-          <Button asChild size="sm" className="h-10 px-4">
+          <LanguagePicker current={locale} label={t.language} />
+          <Button asChild size="sm" className="h-10 px-4 max-[25rem]:px-3 max-[25rem]:text-[13px]">
             <Link href="/s">{t.getStarted}</Link>
           </Button>
         </div>
       </div>
-    </nav>
+    </HeaderBar>
   );
 }

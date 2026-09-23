@@ -1,15 +1,16 @@
-import { LANDING_COPY } from '@/lib/landing-copy';
+import type { LandingCopy } from '@/lib/landing-copy';
+import type { SupportedLocale } from '@/types/locale';
+import { PlaygroundStage } from './playground-stage';
 import { Reveal } from './reveal';
-import { AnatomyStage } from './screen-anatomy-stage';
 
-/**
- * What the room sees: the demo display hung on the hero's wall, its five
- * parts numbered, and a language switch that re-renders it. A server
- * component; only the stage (switch, set and legend) runs on the client.
- */
-export function ScreenAnatomy() {
-  const t = LANDING_COPY.display;
+interface ScreenAnatomyProps {
+  t: LandingCopy['display'];
+  /** The language the screen starts in: the page's own. */
+  display: SupportedLocale;
+}
 
+/** "Try the display yourself": the real display on a set, and the settings that drive it. */
+export function ScreenAnatomy({ t, display }: ScreenAnatomyProps) {
   return (
     <section id="display" aria-labelledby="display-title" className="border-t border-border px-6 py-24 sm:py-28">
       <div className="mx-auto max-w-6xl">
@@ -17,15 +18,15 @@ export function ScreenAnatomy() {
           <h2 id="display-title" className="font-heading text-[2rem] font-semibold leading-[1.08] tracking-[-0.035em] text-balance sm:text-[2.5rem]">
             {t.title}
           </h2>
-          <p className="mx-auto mt-5 max-w-[62ch] text-[17px] leading-relaxed text-pretty text-muted-foreground">
-            {t.subtitle}
-          </p>
+          <p className="mx-auto mt-5 max-w-[62ch] text-[17px] leading-relaxed text-pretty text-muted-foreground">{t.subtitle}</p>
         </Reveal>
 
-        <AnatomyStage callouts={t.callouts} languagesLabel={t.languagesLabel} languagesNote={t.languagesNote} />
+        <Reveal delay={80} className="mt-12 sm:mt-14">
+          <PlaygroundStage t={t} display={display} />
+        </Reveal>
 
-        <p className="mx-auto mt-8 max-w-[62ch] text-center text-sm leading-relaxed text-pretty text-muted-foreground md:mt-10">
-          {t.themesNote}
+        <p className="mx-auto mt-6 max-w-[60ch] text-center text-sm leading-relaxed text-pretty text-muted-foreground">
+          {t.note}
         </p>
       </div>
     </section>

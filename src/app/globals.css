@@ -23,17 +23,6 @@
 }
 
 @custom-variant dark (&:is(.dark *));
-/* Tall enough to pin How it works under the navbar with room for all of it:
-   40rem for the phone layout, 44rem for the side-by-side one from lg. Keep in
-   step with TALL_QUERY in how-it-works-stepper.tsx. */
-@custom-variant tall {
-  @media (min-height: 40rem) and (max-width: 63.99rem) {
-    @slot;
-  }
-  @media (min-height: 44rem) and (min-width: 64rem) {
-    @slot;
-  }
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -79,44 +68,46 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* ── NextNamaz Gold ───────────────────────────────
-   Warm white mode with #E8A817 gold primary.
+/* ── NextNamaz white mode ─────────────────────────
+   White ground, near-black ink, neutral greys with the faintest warmth.
+   Gold #E8A817 is kept for CTAs, active states and small markers.
    ──────────────────────────────────────────────────── */
 
 :root {
   --radius: 0.75rem;
-  --background: #FAFAF8;
-  --foreground: #1A1A1A;
+  --background: #FFFFFF;
+  --foreground: #111111;
   --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
+  --card-foreground: #111111;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  /* The logo gold with white text, mirroring the wordmark badge. */
+  --popover-foreground: #111111;
   --primary: #E8A817;
   /* Ink on gold: 8.9:1. White on this gold is 2.1:1, well under WCAG AA. */
   --primary-foreground: #1A1205;
-  --secondary: #F3F1EC;
-  --secondary-foreground: #1A1A1A;
-  --muted: #F3F2EF;
-  --muted-foreground: #64604F;
-  --accent: #F2F0EB;
-  --accent-foreground: #1A1A1A;
+  --secondary: #F6F6F3;
+  --secondary-foreground: #111111;
+  --muted: #F6F6F3;
+  /* 6.7:1 on white, 6.2:1 on the secondary surface. */
+  --muted-foreground: #5C5C57;
+  /* Hover wash for outline and ghost controls: one step under the secondary surface. */
+  --accent: #F1F1ED;
+  --accent-foreground: #111111;
   --destructive: #DC2626;
-  --border: #DED9CF;
-  --input: #DED9CF;
+  --border: #E7E6E1;
+  --input: #DEDDD7;
   --ring: #E8A817;
   --chart-1: #E8A817;
   --chart-2: #D4940A;
   --chart-3: #B87A08;
   --chart-4: #F0C04E;
   --chart-5: #FAE6A0;
-  --sidebar: #FAFAF8;
-  --sidebar-foreground: #1A1A1A;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #111111;
   --sidebar-primary: #E8A817;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FDF4DC;
-  --sidebar-accent-foreground: #1A1A1A;
-  --sidebar-border: #E8E2D9;
+  --sidebar-primary-foreground: #1A1205;
+  --sidebar-accent: #F6F6F3;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #E7E6E1;
   --sidebar-ring: #E8A817;
 }
 
@@ -187,9 +178,9 @@
 }
 
 /* --- Landing page motion -------------------------------------------------
-   Two effects, both gated on the visitor not having asked for reduced motion.
-   Neither touches layout: opacity and translate only, so nothing reflows and
-   nothing shifts (CLS stays at zero).
+   All of it gated on the visitor not having asked for reduced motion, and
+   none of it touches layout: opacity, transforms and clip-path only, so
+   nothing reflows and nothing shifts (CLS stays at zero).
 
    .hero-in       entrance stagger on first paint; --in-delay sets the offset.
    [data-reveal]  scroll-reveal driven by components/landing/reveal.tsx. The

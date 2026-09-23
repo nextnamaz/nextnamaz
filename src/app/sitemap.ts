@@ -1,18 +1,24 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site';
+import { LANDING_LOCALES, landingPath } from '@/lib/landing-locales';
 
 /**
- * Only the two public pages. Individual screens are deliberately absent —
+ * The public pages only. Individual screens are deliberately absent:
  * see PRIVATE_PATHS in src/lib/site.ts.
  */
+/** The homepage in each language, each naming the others, and the setup page. */
 export default function sitemap(): MetadataRoute.Sitemap {
+  const languages: Record<string, string> = {};
+  for (const code of LANDING_LOCALES) languages[code] = `${SITE_URL}${landingPath(code) === '/' ? '' : landingPath(code)}`;
+
   return [
-    {
-      url: SITE_URL,
+    ...LANDING_LOCALES.map((code) => ({
+      url: languages[code] ?? SITE_URL,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 1,
-    },
+      changeFrequency: 'monthly' as const,
+      priority: code === 'en' ? 1 : 0.9,
+      alternates: { languages },
+    })),
     {
       url: `${SITE_URL}/s`,
       lastModified: new Date(),
