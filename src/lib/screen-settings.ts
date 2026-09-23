@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { prayerTimesSchema } from '@/lib/validations';
 import { LANGUAGES } from '@/lib/locale/presets';
+import { ALADHAN_METHODS } from '@/lib/prayer-sources/aladhan';
 import type { PrayerSourceConfig } from '@/types/prayer-config';
 
 // --- Prayer source validation (schema picked by source type) ---
@@ -18,9 +19,16 @@ const adhanConfigSchema = z.object({
   locationName: z.string().max(100),
 });
 
+// AlAdhan answers an unknown method id with ISNA times instead of an error, so
+// only ids we list may reach it.
+const aladhanConfigSchema = adhanConfigSchema.extend({
+  method: z.number().int().refine((id) => ALADHAN_METHODS.some((m) => m.id === id)),
+});
+
 const sourceConfigSchemas = {
   manual: z.object({}),
   adhan: adhanConfigSchema,
+  aladhan: aladhanConfigSchema,
   vaktija_ba: z.object({
     locationId: z.number().int().min(0).max(1000),
     locationName: z.string().max(100),
@@ -35,7 +43,7 @@ const sourceConfigSchemas = {
   }),
 } as const;
 
-const prayerSourceSchema = z.enum(['manual', 'adhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet']);
+const prayerSourceSchema = z.enum(['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet']);
 export type PrayerSourceInput = z.infer<typeof prayerSourceSchema>;
 
 export function parseSourceConfig(source: PrayerSourceInput, config: unknown): PrayerSourceConfig | null {

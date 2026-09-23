@@ -25,7 +25,7 @@ create table if not exists screens (
   -- per-key overrides for on-screen text (prayer names + labels); empty keys
   -- fall back to the locale's preset translations
   display_text jsonb not null default '{}'::jsonb,
-  -- where times come from: manual | adhan | vaktija_ba | vaktija_eu |
+  -- where times come from: manual | adhan | aladhan | vaktija_ba | vaktija_eu |
   -- islamiska_forbundet. Non-manual sources are fetched live on the TV daily;
   -- prayer_times then holds the last fetched day as an offline fallback.
   prayer_source text not null default 'manual',

@@ -8,6 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 const PRAYER_SOURCES: readonly PrayerSourceType[] = [
   'manual',
   'adhan',
+  'aladhan',
   'vaktija_ba',
   'vaktija_eu',
   'islamiska_forbundet',

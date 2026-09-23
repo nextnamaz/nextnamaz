@@ -1,6 +1,7 @@
 export type PrayerSourceType =
   | 'manual'
   | 'adhan'
+  | 'aladhan'
   | 'vaktija_ba'
   | 'vaktija_eu'
   | 'islamiska_forbundet';
@@ -28,6 +29,16 @@ export interface AdhanSourceConfig {
   locationName: string;
 }
 
+/** api.aladhan.com: `method` is one of its numeric convention ids (see ALADHAN_METHODS). */
+export interface AlAdhanSourceConfig {
+  latitude: number;
+  longitude: number;
+  method: number;
+  madhab: 'shafi' | 'hanafi';
+  timezone: string;
+  locationName: string;
+}
+
 export interface VaktijaBaSourceConfig {
   locationId: number;
   locationName: string;
@@ -45,6 +56,7 @@ export interface IslamiskaForbundetSourceConfig {
 
 export type PrayerSourceConfig =
   | AdhanSourceConfig
+  | AlAdhanSourceConfig
   | VaktijaBaSourceConfig
   | VaktijaEuSourceConfig
   | IslamiskaForbundetSourceConfig

@@ -12,6 +12,7 @@ import { VAKTIJA_LOCATIONS } from '@/lib/prayer-sources/vaktija-ba';
 import { VAKTIJA_EU_COUNTRIES } from '@/lib/prayer-sources/vaktija-eu';
 import { ISLAMISKA_CITIES } from '@/lib/prayer-sources/islamiska-forbundet';
 import { CALCULATION_METHODS } from '@/lib/prayer-sources/adhan';
+import { ALADHAN_METHODS, defaultAlAdhanMethod } from '@/lib/prayer-sources/aladhan';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils';
 
 import {
   bestMatch,
+  defaultMadhab,
   locateMe,
   normalize,
   rankSources,
@@ -37,6 +39,8 @@ import type { GeoPlace, WizardSource } from '@/lib/prayer-sources/match';
 
 export { sourceLabel };
 export type { GeoPlace };
+
+type Madhab = 'shafi' | 'hanafi';
 
 const SOURCE_META: Record<WizardSource, { title: string; subtitle: string }> = {
   vaktija_ba: {
@@ -51,11 +55,26 @@ const SOURCE_META: Record<WizardSource, { title: string; subtitle: string }> = {
     title: 'Islamiska Förbundet',
     subtitle: 'Official Swedish prayer timetable',
   },
+  aladhan: {
+    title: 'AlAdhan',
+    subtitle: 'Worldwide service with the conventions of 20+ national authorities.',
+  },
   adhan: {
     title: 'Calculate the times',
     subtitle: 'No external source. Computed astronomically for your exact location.',
   },
 };
+
+/** The part of a calculated source's config that comes from the place itself. */
+function placeConfig(place: GeoPlace, madhab: Madhab) {
+  return {
+    latitude: place.latitude,
+    longitude: place.longitude,
+    madhab,
+    timezone: place.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locationName: place.name,
+  };
+}
 
 interface SourceWizardProps {
   translations: DisplayTextConfig;
@@ -82,6 +101,8 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
   const [euSlug, setEuSlug] = useState<string | null>(null);
   const [ifCity, setIfCity] = useState<string>('Stockholm');
   const [method, setMethod] = useState<AdhanCalculationMethod>('MuslimWorldLeague');
+  const [alMethod, setAlMethod] = useState<number>(3);
+  const [madhab, setMadhab] = useState<Madhab>('shafi');
 
   const [preview, setPreview] = useState<PrayerTimesMap | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -100,6 +121,8 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
       ? (bestMatch(country.locations, (l) => l.name, p.name)?.slug ?? country.locations[0]?.slug ?? null)
       : null);
     setIfCity(bestMatch(ISLAMISKA_CITIES, (c) => c, p.name) ?? 'Stockholm');
+    setAlMethod(defaultAlAdhanMethod(p.countryCode));
+    setMadhab(defaultMadhab(p.countryCode));
     const order = rankSources(p);
     setRanked(order);
     // Preselect the recommended source; nothing to preselect if none fit.
@@ -118,16 +141,31 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
     setLocating(false);
   };
 
-  const handleSearch = async () => {
-    if (query.trim().length < 2) return;
-    setSearching(true);
-    setGeoError(false);
-    try {
-      setResults(await searchCity(query.trim()));
-    } catch {
-      setGeoError(true);
-    }
-    setSearching(false);
+  // Suggest cities while typing. Two characters is the geocoder's minimum.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      setGeoError(false);
+      try {
+        const found = await searchCity(q);
+        if (!cancelled) setResults(found);
+      } catch {
+        if (!cancelled) setGeoError(true);
+      }
+      if (!cancelled) setSearching(false);
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    if (value.trim().length < 2) setResults([]);
   };
 
   const buildConfig = (source: WizardSource): Record<string, unknown> | null => {
@@ -145,15 +183,10 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
       }
       case 'islamiska_forbundet':
         return { city: ifCity };
+      case 'aladhan':
+        return { ...placeConfig(place, madhab), method: alMethod };
       case 'adhan':
-        return {
-          latitude: place.latitude,
-          longitude: place.longitude,
-          method,
-          madhab: 'shafi',
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          locationName: place.name,
-        };
+        return { ...placeConfig(place, madhab), method };
     }
   };
 
@@ -175,15 +208,10 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
         }
         case 'islamiska_forbundet':
           return { city: ifCity };
+        case 'aladhan':
+          return { ...placeConfig(place, madhab), method: alMethod };
         case 'adhan':
-          return {
-            latitude: place.latitude,
-            longitude: place.longitude,
-            method,
-            madhab: 'shafi' as const,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            locationName: place.name,
-          };
+          return { ...placeConfig(place, madhab), method };
       }
     })();
     if (!config) return;
@@ -208,13 +236,15 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [step, selected, place, baId, euSlug, ifCity, method]);
+  }, [step, selected, place, baId, euSlug, ifCity, method, alMethod, madhab]);
 
   const apply = () => {
     if (!selected || !preview) return;
     const config = buildConfig(selected);
     if (config) onApply(selected, config, preview);
   };
+
+  const noResults = !searching && !geoError && query.trim().length >= 3 && results.length === 0;
 
   return (
     <Card>
@@ -256,18 +286,17 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
               <div className="h-px flex-1 bg-border" />
             </div>
 
-            <div className="flex gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                className="pl-9 pr-9"
                 placeholder="Type your city…"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onChange={(e) => handleQueryChange(e.target.value)}
               />
-              <Button variant="outline" onClick={handleSearch} disabled={searching}>
-                {searching
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Search className="w-4 h-4" />}
-              </Button>
+              {searching && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+              )}
             </div>
 
             {results.length > 0 && (
@@ -287,6 +316,12 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
               </div>
             )}
 
+            {noResults && (
+              <p className="text-sm text-muted-foreground">
+                No city found. Try another spelling.
+              </p>
+            )}
+
             {geoError && (
               <p className="text-sm text-destructive">
                 Couldn&apos;t get a location. Try typing your city instead.
@@ -301,6 +336,7 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
               {ranked.map((source, i) => {
                 const meta = SOURCE_META[source];
                 const active = selected === source;
+                const calculated = source === 'adhan' || source === 'aladhan';
                 return (
                   <div
                     key={source}
@@ -326,7 +362,7 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                     </button>
 
                     {active && (
-                      <div className="px-3 pb-3">
+                      <div className="px-3 pb-3 space-y-2">
                         {source === 'vaktija_ba' && baId !== null && (
                           <Select value={String(baId)} onValueChange={(v) => setBaId(Number(v))}>
                             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -357,6 +393,18 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                             </SelectContent>
                           </Select>
                         )}
+                        {source === 'aladhan' && (
+                          <Select value={String(alMethod)} onValueChange={(v) => setAlMethod(Number(v))}>
+                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {ALADHAN_METHODS.map((m) => (
+                                <SelectItem key={m.id} value={String(m.id)}>
+                                  {m.name} · {m.description}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                         {source === 'adhan' && (
                           <Select value={method} onValueChange={(v) => setMethod(v as AdhanCalculationMethod)}>
                             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -366,6 +414,15 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                                   {m.name} · {m.description}
                                 </SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {calculated && (
+                          <Select value={madhab} onValueChange={(v) => setMadhab(v as Madhab)}>
+                            <SelectTrigger className="w-full" aria-label="Asr"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="shafi">Asr · Standard (Shafi&apos;i, Maliki, Hanbali)</SelectItem>
+                              <SelectItem value="hanafi">Asr · Hanafi (later)</SelectItem>
                             </SelectContent>
                           </Select>
                         )}

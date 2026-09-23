@@ -3,11 +3,13 @@ import type {
   PrayerSourceType,
   PrayerSourceConfig,
   AdhanSourceConfig,
+  AlAdhanSourceConfig,
   VaktijaBaSourceConfig,
   VaktijaEuSourceConfig,
   IslamiskaForbundetSourceConfig,
 } from '@/types/prayer-config';
 import { calculateAdhanTimes } from './adhan';
+import { fetchAlAdhan } from './aladhan';
 import { fetchVaktijaBa } from './vaktija-ba';
 import { fetchVaktijaEu } from './vaktija-eu';
 import { fetchIslamiskaForbundet } from './islamiska-forbundet';
@@ -19,6 +21,7 @@ const providers: Record<string, PrayerSourceFetcher> = {
     const c = config as AdhanSourceConfig;
     return Promise.resolve(calculateAdhanTimes(c));
   },
+  aladhan: (config) => fetchAlAdhan(config as AlAdhanSourceConfig),
   vaktija_ba: (config) => {
     const c = config as VaktijaBaSourceConfig;
     return fetchVaktijaBa(c.locationId);

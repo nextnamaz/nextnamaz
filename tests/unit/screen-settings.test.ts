@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseSourceConfig, screenSettingsSchema } from '@/lib/screen-settings';
 import type { ScreenSettingsInput } from '@/lib/screen-settings';
 import { LANGUAGES } from '@/lib/locale/presets';
-import type { AdhanSourceConfig } from '@/types/prayer-config';
+import type { AdhanSourceConfig, AlAdhanSourceConfig } from '@/types/prayer-config';
 
 /** Field patches are deliberately untyped so hostile values can reach the schema. */
 type Patch = Record<string, unknown>;
@@ -106,12 +106,12 @@ describe('screenSettingsSchema', () => {
     expect(ok({ display_config: null })).toBe(false);
   });
 
-  it('accepts all five prayer sources and nothing else', () => {
-    const sources = ['manual', 'adhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet'];
+  it('accepts all six prayer sources and nothing else', () => {
+    const sources = ['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet'];
     for (const prayer_source of sources) {
       expect(ok({ prayer_source }), `${prayer_source} was rejected`).toBe(true);
     }
-    expect(ok({ prayer_source: 'aladhan' })).toBe(false);
+    expect(ok({ prayer_source: 'muslim_pro' })).toBe(false);
     expect(ok({ prayer_source: 'Manual' })).toBe(false);
     expect(ok({ prayer_source: '' })).toBe(false);
     expect(ok({ prayer_source: null })).toBe(false);
@@ -352,6 +352,35 @@ describe('parseSourceConfig', () => {
     // countryCode is only length-capped, so these get through to the fetch URL.
     expect(parseSourceConfig('vaktija_eu', { ...eu, countryCode: '' })).not.toBeNull();
     expect(parseSourceConfig('vaktija_eu', { ...eu, countryCode: 'SE' })).not.toBeNull();
+  });
+
+  it('accepts an aladhan method only from the ids the service documents', () => {
+    const base: AlAdhanSourceConfig = {
+      latitude: 48.8566,
+      longitude: 2.3522,
+      method: 12,
+      madhab: 'shafi',
+      timezone: 'Europe/Paris',
+      locationName: 'Paris',
+    };
+    const method = (value: unknown) => parseSourceConfig('aladhan', { ...base, method: value });
+    expect(method(12)).toEqual(base);
+    expect(method(0)).not.toBeNull();
+    expect(method(23)).not.toBeNull();
+    // The service answers these with ISNA times instead of an error.
+    expect(method(6)).toBeNull();
+    expect(method(24)).toBeNull();
+    expect(method(77)).toBeNull();
+    expect(method(99)).toBeNull();
+    expect(method(12.5)).toBeNull();
+    expect(method('12')).toBeNull();
+    expect(method('MuslimWorldLeague')).toBeNull();
+    expect(method(null)).toBeNull();
+    expect(method(undefined)).toBeNull();
+    // The rest of the shape is the adhan one: coordinates, madhab and zone are still checked.
+    expect(parseSourceConfig('aladhan', { ...base, latitude: 91 })).toBeNull();
+    expect(parseSourceConfig('aladhan', { ...base, madhab: 'maliki' })).toBeNull();
+    expect(parseSourceConfig('aladhan', { ...base, timezone: 'x'.repeat(65) })).toBeNull();
   });
 
   it('limits an islamiska_forbundet city to accented letters, space, dot, hyphen and apostrophe', () => {

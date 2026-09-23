@@ -12,7 +12,7 @@ function recordScreen(id: string): void {
 }
 
 /**
- * A city in a country with no regional timetable, so the wizard offers only
+ * A city in a country with no regional timetable, so the wizard recommends
  * the local astronomical calculation. That keeps the suite hermetic: the one
  * network call the browser makes (geocoding) is stubbed, and the prayer times
  * are computed on the server with no outbound request at all.
@@ -60,7 +60,7 @@ export async function completeSetupWizard(page: Page, screenId: string): Promise
   await page.getByPlaceholder(/type your city/i).press('Enter');
   await page.getByRole('button', { name: new RegExp(STUB_CITY.name) }).first().click();
 
-  // Only the astronomical calculation is offered for this country.
+  // The astronomical calculation is preselected for this country.
   await page.getByRole('button', { name: /use this source/i }).click();
 
   await expect(page.getByRole('heading', { name: /check the times/i })).toBeVisible();

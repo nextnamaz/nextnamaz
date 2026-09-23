@@ -1,6 +1,7 @@
+import { hasAlAdhanOnlyConvention } from '@/lib/prayer-sources/aladhan';
 import { VAKTIJA_EU_COUNTRIES } from '@/lib/prayer-sources/vaktija-eu';
 
-export type WizardSource = 'vaktija_ba' | 'vaktija_eu' | 'islamiska_forbundet' | 'adhan';
+export type WizardSource = 'vaktija_ba' | 'vaktija_eu' | 'islamiska_forbundet' | 'aladhan' | 'adhan';
 
 export interface GeoPlace {
   name: string;
@@ -8,6 +9,8 @@ export interface GeoPlace {
   countryCode: string;
   latitude: number;
   longitude: number;
+  /** IANA zone from the geocoder; absent for a GPS fix, where the browser's zone is right. */
+  timezone?: string;
 }
 
 /** Human label for a saved source, shown on the Prayer times tab. */
@@ -17,6 +20,7 @@ export function sourceLabel(source: string, config: Record<string, unknown>): st
     case 'vaktija_ba': return `Vaktija.ba · ${name}`;
     case 'vaktija_eu': return `Vaktija.eu · ${name}`;
     case 'islamiska_forbundet': return `Islamiska Förbundet · ${typeof config.city === 'string' ? config.city : ''}`;
+    case 'aladhan': return `AlAdhan · ${name}`;
     case 'adhan': return `Automatic calculation · ${name}`;
     default: return 'Manual times';
   }
@@ -68,6 +72,7 @@ export async function searchCity(query: string): Promise<GeoPlace[]> {
     admin1?: string;
     latitude: number;
     longitude: number;
+    timezone?: string;
   }
   const data: { results?: OpenMeteoResult[] } = await res.json();
   return (data.results ?? []).map((r) => ({
@@ -76,18 +81,33 @@ export async function searchCity(query: string): Promise<GeoPlace[]> {
     countryCode: (r.country_code ?? '').toUpperCase(),
     latitude: r.latitude,
     longitude: r.longitude,
+    ...(r.timezone ? { timezone: r.timezone } : {}),
   }));
 }
 
 
 export function rankSources(place: GeoPlace): WizardSource[] {
   const inVaktijaEu = VAKTIJA_EU_COUNTRIES.some((c) => c.code === place.countryCode);
-  if (place.countryCode === 'BA') return ['vaktija_ba', 'adhan'];
+  // Local calculation needs no network; AlAdhan wins only where it knows a
+  // national convention the local library cannot compute.
+  const calculated: WizardSource[] = hasAlAdhanOnlyConvention(place.countryCode)
+    ? ['aladhan', 'adhan']
+    : ['adhan', 'aladhan'];
+  if (place.countryCode === 'BA') return ['vaktija_ba', ...calculated];
   if (place.countryCode === 'SE') {
-    return inVaktijaEu ? ['islamiska_forbundet', 'vaktija_eu', 'adhan'] : ['islamiska_forbundet', 'adhan'];
+    return inVaktijaEu
+      ? ['islamiska_forbundet', 'vaktija_eu', ...calculated]
+      : ['islamiska_forbundet', ...calculated];
   }
-  if (inVaktijaEu) return ['vaktija_eu', 'adhan'];
-  return ['adhan'];
+  if (inVaktijaEu) return ['vaktija_eu', ...calculated];
+  return calculated;
+}
+
+// Hanafi asr is the published norm in South Asia; elsewhere the earlier asr is.
+const HANAFI_COUNTRIES = new Set(['PK', 'IN', 'BD', 'AF']);
+
+export function defaultMadhab(countryCode: string): 'shafi' | 'hanafi' {
+  return HANAFI_COUNTRIES.has(countryCode) ? 'hanafi' : 'shafi';
 }
 
 

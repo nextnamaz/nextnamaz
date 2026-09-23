@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   bestMatch,
+  defaultMadhab,
   locateMe,
   normalize,
   rankSources,
@@ -48,6 +49,7 @@ interface OpenMeteoResult {
   admin1?: string;
   latitude: number;
   longitude: number;
+  timezone?: string;
 }
 
 function stubFetch(body: string, status = 200) {
@@ -186,39 +188,60 @@ describe('bestMatch', () => {
 describe('rankSources', () => {
   it('offers only Vaktija.ba in Bosnia, even though vaktija.eu also covers BA', () => {
     expect(VAKTIJA_EU_COUNTRIES.some((c) => c.code === 'BA')).toBe(true);
-    expect(rankSources(place('BA'))).toEqual(['vaktija_ba', 'adhan']);
+    expect(rankSources(place('BA'))).toEqual(['vaktija_ba', 'adhan', 'aladhan']);
   });
 
   it('puts Islamiska Förbundet first in Sweden, with Vaktija.eu behind it', () => {
-    expect(rankSources(place('SE'))).toEqual(['islamiska_forbundet', 'vaktija_eu', 'adhan']);
+    expect(rankSources(place('SE'))).toEqual(['islamiska_forbundet', 'vaktija_eu', 'adhan', 'aladhan']);
   });
 
   it('offers Vaktija.eu for its other listed countries', () => {
-    expect(rankSources(place('AT'))).toEqual(['vaktija_eu', 'adhan']);
-    expect(rankSources(place('DE'))).toEqual(['vaktija_eu', 'adhan']);
-    expect(rankSources(place('NL'))).toEqual(['vaktija_eu', 'adhan']);
+    expect(rankSources(place('AT'))).toEqual(['vaktija_eu', 'adhan', 'aladhan']);
+    expect(rankSources(place('DE'))).toEqual(['vaktija_eu', 'adhan', 'aladhan']);
+    expect(rankSources(place('NL'))).toEqual(['vaktija_eu', 'adhan', 'aladhan']);
   });
 
-  it('offers calculation only for an unlisted country', () => {
-    expect(rankSources(place('US'))).toEqual(['adhan']);
-    expect(rankSources(place('JP'))).toEqual(['adhan']);
-    expect(rankSources(place(''))).toEqual(['adhan']);
+  it('recommends local calculation for an unlisted country, with AlAdhan behind it', () => {
+    // The e2e suite depends on the US order: its stub city must not need the network.
+    expect(rankSources(place('US'))).toEqual(['adhan', 'aladhan']);
+    expect(rankSources(place('JP'))).toEqual(['adhan', 'aladhan']);
+    expect(rankSources(place(''))).toEqual(['adhan', 'aladhan']);
+  });
+
+  it('recommends AlAdhan where only it knows the national convention', () => {
+    expect(rankSources(place('FR'))).toEqual(['vaktija_eu', 'aladhan', 'adhan']);
+    expect(rankSources(place('MY'))).toEqual(['aladhan', 'adhan']);
+    expect(rankSources(place('ID'))).toEqual(['aladhan', 'adhan']);
+    expect(rankSources(place('MA'))).toEqual(['aladhan', 'adhan']);
+    // Turkey's convention the local library also has, so it stays local-first.
+    expect(rankSources(place('TR'))).toEqual(['adhan', 'aladhan']);
   });
 
   it('ignores a lowercase country code — the comparison is case-sensitive', () => {
     // Safe only because searchCity/locateMe both uppercase before handing a place over.
-    expect(rankSources(place('ba'))).toEqual(['adhan']);
-    expect(rankSources(place('se'))).toEqual(['adhan']);
+    expect(rankSources(place('ba'))).toEqual(['adhan', 'aladhan']);
+    expect(rankSources(place('se'))).toEqual(['adhan', 'aladhan']);
   });
 
-  it('always ends with adhan as the fallback', () => {
-    const codes = [...VAKTIJA_EU_COUNTRIES.map((c) => c.code), 'US', 'XX', ''];
+  it('always offers both calculated sources, each once', () => {
+    const codes = [...VAKTIJA_EU_COUNTRIES.map((c) => c.code), 'US', 'MY', 'XX', ''];
     for (const code of codes) {
       const ranked: WizardSource[] = rankSources(place(code));
       expect(ranked).toContain('adhan');
-      expect(ranked[ranked.length - 1]).toBe('adhan');
+      expect(ranked).toContain('aladhan');
       expect(new Set(ranked).size).toBe(ranked.length);
     }
+  });
+});
+
+describe('defaultMadhab', () => {
+  it('is hanafi in South Asia and shafi everywhere else', () => {
+    expect(defaultMadhab('PK')).toBe('hanafi');
+    expect(defaultMadhab('IN')).toBe('hanafi');
+    expect(defaultMadhab('BD')).toBe('hanafi');
+    expect(defaultMadhab('SE')).toBe('shafi');
+    expect(defaultMadhab('TR')).toBe('shafi');
+    expect(defaultMadhab('')).toBe('shafi');
   });
 });
 
@@ -227,6 +250,7 @@ describe('sourceLabel', () => {
     expect(sourceLabel('vaktija_ba', { locationName: 'Sarajevo' })).toBe('Vaktija.ba · Sarajevo');
     expect(sourceLabel('vaktija_eu', { locationName: 'Wien' })).toBe('Vaktija.eu · Wien');
     expect(sourceLabel('adhan', { locationName: 'Stockholm' })).toBe('Automatic calculation · Stockholm');
+    expect(sourceLabel('aladhan', { locationName: 'Paris' })).toBe('AlAdhan · Paris');
   });
 
   it('reads the Swedish source from config.city, not config.locationName', () => {
@@ -278,6 +302,19 @@ describe('searchCity', () => {
     expect(url).toContain('name=Sankt%20P%C3%B6lten');
     expect(url).toContain('count=5');
     expect(url).toContain('language=en');
+  });
+
+  it('carries the geocoder timezone through, and leaves the key off when there is none', async () => {
+    stubJsonFetch<{ results: OpenMeteoResult[] }>({
+      results: [
+        { name: 'Auckland', latitude: -36.85, longitude: 174.76, timezone: 'Pacific/Auckland' },
+        { name: 'Nowhere', latitude: 0, longitude: 0 },
+      ],
+    });
+
+    const [auckland, nowhere] = await searchCity('au');
+    expect(auckland?.timezone).toBe('Pacific/Auckland');
+    expect(nowhere).not.toHaveProperty('timezone');
   });
 
   it('drops missing region parts and tolerates a missing country code', async () => {

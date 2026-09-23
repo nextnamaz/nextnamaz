@@ -1,6 +1,7 @@
 import { CalculationMethod } from 'adhan';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { calculateAdhanTimes, CALCULATION_METHODS } from '@/lib/prayer-sources/adhan';
+import { fetchAlAdhan, ALADHAN_METHODS } from '@/lib/prayer-sources/aladhan';
 import type { AdhanCalculationParams } from '@/lib/prayer-sources/adhan';
 import { fetchPrayerTimes } from '@/lib/prayer-sources';
 import { fetchIslamiskaForbundet } from '@/lib/prayer-sources/islamiska-forbundet';
@@ -11,6 +12,7 @@ import type { PrayerTimesMap } from '@/types/database';
 import type {
   AdhanCalculationMethod,
   AdhanSourceConfig,
+  AlAdhanSourceConfig,
   IslamiskaForbundetSourceConfig,
   PrayerSourceType,
   VaktijaBaSourceConfig,
@@ -398,6 +400,158 @@ describe('fetchVaktijaEu', () => {
   });
 });
 
+// --- AlAdhan: JSON envelope, capitalised prayer names, "today" chosen by us ---
+
+interface AlAdhanPayload {
+  code?: number;
+  data?: {
+    timings?: Record<string, string | undefined>;
+    meta?: { method?: { id?: number } };
+  };
+}
+
+const PARIS_TIMINGS: Record<string, string> = {
+  Fajr: '04:36',
+  Sunrise: '06:26',
+  Dhuhr: '13:57',
+  Asr: '17:56',
+  Sunset: '21:28',
+  Maghrib: '21:28',
+  Isha: '23:18',
+  Imsak: '04:26',
+  Midnight: '01:57',
+};
+
+const alPayload = (
+  timings: Record<string, string | undefined> = PARIS_TIMINGS,
+  methodId = 12
+): AlAdhanPayload => ({ code: 200, data: { timings, meta: { method: { id: methodId } } } });
+
+const PARIS: AlAdhanSourceConfig = {
+  latitude: 48.8566,
+  longitude: 2.3522,
+  method: 12,
+  madhab: 'shafi',
+  timezone: 'Europe/Paris',
+  locationName: 'Paris',
+};
+
+describe('fetchAlAdhan', () => {
+  it('maps the capitalised timings onto the six prayers and ignores the extras', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(alPayload()));
+
+    const times = await fetchAlAdhan(PARIS);
+
+    expectCompleteMap(times);
+    expect(times).toEqual({
+      fajr: '04:36',
+      sunrise: '06:26',
+      dhuhr: '13:57',
+      asr: '17:56',
+      maghrib: '21:28',
+      isha: '23:18',
+    });
+  });
+
+  it("requests today's date, the coordinates, the method, the school and the zone", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(alPayload()));
+
+    await fetchAlAdhan(PARIS);
+
+    const [url] = firstFetchCall();
+    const parsed = new URL(String(url));
+    expect(parsed.origin + parsed.pathname).toBe('https://api.aladhan.com/v1/timings/30-07-2026');
+    expect(parsed.searchParams.get('latitude')).toBe('48.8566');
+    expect(parsed.searchParams.get('longitude')).toBe('2.3522');
+    expect(parsed.searchParams.get('method')).toBe('12');
+    expect(parsed.searchParams.get('school')).toBe('0');
+    expect(parsed.searchParams.get('timezonestring')).toBe('Europe/Paris');
+  });
+
+  it("uses the screen's calendar day, not the host's", async () => {
+    // Noon UTC on 30 July is already 31 July in Auckland and still 30 July in Honolulu.
+    fetchMock.mockImplementation(() => Promise.resolve(jsonResponse(alPayload())));
+    await fetchAlAdhan({ ...PARIS, timezone: 'Pacific/Auckland' });
+    expect(String(firstFetchCall()[0])).toContain('/timings/31-07-2026?');
+
+    fetchMock.mockClear();
+    await fetchAlAdhan({ ...PARIS, timezone: 'Pacific/Honolulu' });
+    expect(String(firstFetchCall()[0])).toContain('/timings/30-07-2026?');
+  });
+
+  it('sends school=1 for the hanafi madhab', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(alPayload()));
+
+    await fetchAlAdhan({ ...PARIS, madhab: 'hanafi' });
+
+    expect(new URL(String(firstFetchCall()[0])).searchParams.get('school')).toBe('1');
+  });
+
+  it('drops a zone suffix and pads a single-digit hour', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(alPayload({ ...PARIS_TIMINGS, Fajr: '4:36 (CEST)', Isha: '23:18 (CEST)' }))
+    );
+
+    const times = await fetchAlAdhan(PARIS);
+
+    expectCompleteMap(times);
+    expect([times.fajr, times.isha]).toEqual(['04:36', '23:18']);
+  });
+
+  it('throws on a non-ok response', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ code: 500, status: 'error' }, 500));
+
+    await expect(fetchAlAdhan(PARIS)).rejects.toThrow('AlAdhan API error: 500');
+  });
+
+  it('rejects an answer computed with a method other than the one asked for', async () => {
+    // The service swaps an unknown id for ISNA and still answers 200.
+    fetchMock.mockResolvedValue(jsonResponse(alPayload(PARIS_TIMINGS, 2)));
+
+    await expect(fetchAlAdhan(PARIS)).rejects.toThrow('different calculation method');
+  });
+
+  it('rejects an envelope without timings, and one missing a prayer', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ code: 200, data: {} }));
+    await expect(fetchAlAdhan(PARIS)).rejects.toThrow('No prayer times in AlAdhan response');
+
+    fetchMock.mockResolvedValue(jsonResponse(alPayload({ ...PARIS_TIMINGS, Asr: undefined })));
+    await expect(fetchAlAdhan(PARIS)).rejects.toThrow('Unparseable time from AlAdhan');
+  });
+
+  it('rejects a 200 that carries an error body instead of the data envelope', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ code: 400, status: 'Invalid date' }));
+
+    await expect(fetchAlAdhan(PARIS)).rejects.toThrow();
+  });
+
+  it('throws on an unknown timezone rather than guessing a date', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(alPayload()));
+
+    await expect(fetchAlAdhan({ ...PARIS, timezone: 'Mars/Olympus' })).rejects.toThrow(RangeError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('ALADHAN_METHODS', () => {
+  it('lists every method exactly once, each with a name and a description', () => {
+    const ids = ALADHAN_METHODS.map((m) => m.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const m of ALADHAN_METHODS) {
+      expect(m.name.length).toBeGreaterThan(0);
+      expect(m.description.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('matches the ids the settings validator accepts', () => {
+    const listed = ALADHAN_METHODS.map((m) => m.id);
+    for (let id = -1; id <= 100; id++) {
+      const accepted = parseSourceConfig('aladhan', { ...PARIS, method: id }) !== null;
+      expect([id, accepted]).toEqual([id, listed.includes(id)]);
+    }
+  });
+});
+
 // --- Islamiska Förbundet: scraped HTML table, seven cells per row ---
 
 function bonetiderHtml(rows: string[][]): string {
@@ -565,6 +719,17 @@ describe('fetchPrayerTimes', () => {
   it('calculates adhan times locally without touching the network', async () => {
     expectCompleteMap(await fetchPrayerTimes('adhan', adhanConfig));
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sends aladhan to api.aladhan.com with the configured method', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(alPayload()));
+
+    const times = await fetchPrayerTimes('aladhan', PARIS);
+
+    const [url] = firstFetchCall();
+    expect(String(url)).toContain('api.aladhan.com/v1/timings/');
+    expect(String(url)).toContain('method=12');
+    expect(times.fajr).toBe('04:36');
   });
 
   it('sends vaktija_ba to the vaktija.ba API with the configured location id', async () => {

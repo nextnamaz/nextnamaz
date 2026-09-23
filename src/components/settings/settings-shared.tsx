@@ -26,7 +26,7 @@ export interface FormState {
   displayConfig: DisplayConfig;
 }
 
-const SOURCE_VALUES: PrayerSourceInput[] = ['manual', 'adhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet'];
+const SOURCE_VALUES: PrayerSourceInput[] = ['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet'];
 
 export function formFromScreen(screen: Screen): FormState {
   return {
