@@ -106,6 +106,15 @@ export const DE: LandingCopy = {
     portrait: 'Hochformat, am Eingang',
   },
 
+  /** A whole day played through on the screen, in twenty seconds. */
+  day: {
+    title: 'Ein ganzer Tag in zwanzig Sekunden',
+    body: 'Sehen Sie, wie die Anzeige dem Tag von selbst folgt. Jedes Gebet leuchtet auf, wenn seine Zeit kommt, und der Countdown zeigt immer auf das nächste. Niemand muss etwas tun.',
+    play: 'Abspielen',
+    pause: 'Pausieren',
+    scrub: 'Tageszeit',
+  },
+
   features: {
     title: 'Gemacht für den Alltag in der Moschee',
     subtitle: 'Alles stellen Sie am Handy ein. Auf dem Fernseher wird nichts installiert.',

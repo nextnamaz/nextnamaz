@@ -101,6 +101,15 @@ export const SV: LandingCopy = {
     portrait: 'Stående, vid entrén',
   },
 
+  /** A whole day played through on the screen, in twenty seconds. */
+  day: {
+    title: 'Ett helt dygn på tjugo sekunder',
+    body: 'Se hur skärmen följer dagen helt av sig själv. Varje bön lyser upp när det är dags, och nedräkningen visar alltid nästa. Ingen behöver röra den.',
+    play: 'Spela',
+    pause: 'Pausa',
+    scrub: 'Tid på dygnet',
+  },
+
   features: {
     title: 'Byggd för moskéns vardag',
     subtitle: 'Allt sköts från mobilen. Inget installeras på tv:n.',

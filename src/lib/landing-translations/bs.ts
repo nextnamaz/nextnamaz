@@ -101,6 +101,15 @@ export const BS: LandingCopy = {
     portrait: 'Uspravno, pored ulaza',
   },
 
+  /** A whole day played through on the screen, in twenty seconds. */
+  day: {
+    title: 'Cijeli dan za dvadeset sekundi',
+    body: 'Pogledajte kako ekran sam prati dan. Svaki namaz zasvijetli kad mu dođe vrijeme, a odbrojavanje uvijek pokazuje sljedeći. Niko ga ne mora dirati.',
+    play: 'Pusti',
+    pause: 'Pauziraj',
+    scrub: 'Doba dana',
+  },
+
   features: {
     title: 'Po mjeri džamije i džemata',
     subtitle: 'Sve podešavate s mobitela, a na televizor ne instalirate ništa.',

@@ -123,6 +123,15 @@ export const LANDING_COPY = {
     portrait: 'Portrait, by the entrance',
   },
 
+  /** A whole day played through on the screen, in twenty seconds. */
+  day: {
+    title: 'A whole day, in twenty seconds',
+    body: 'Watch the screen keep up with the day on its own. Each prayer lights up as its time comes, and the countdown always points to the next one. Nobody touches it.',
+    play: 'Play',
+    pause: 'Pause',
+    scrub: 'Time of day',
+  },
+
   features: {
     title: 'Made for how a mosque runs',
     subtitle: 'Everything is set from a phone. Nothing is installed on the TV.',

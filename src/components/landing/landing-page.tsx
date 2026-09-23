@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Navbar } from './navbar';
 import { Hero } from './hero-v3';
 import { OldWay } from './old-way';
+import { DaySection } from './day-section';
 import { HowItWorksSection } from './how-it-works-section';
 import { ScreenAnatomy } from './screen-anatomy';
 import { OrientationShowcase } from './orientation-showcase';
@@ -94,6 +95,7 @@ export function LandingPage({ locale }: { locale: LandingLocale }) {
       <main>
         <Hero t={t.hero} display={info.display} />
         <OldWay t={t.oldWay} toSteps={t.hero.secondary} />
+        <DaySection t={t.day} display={info.display} />
         <HowItWorksSection t={t.howItWorks} display={info.display} />
         <ScreenAnatomy t={t.display} display={info.display} />
         <OrientationShowcase t={t.orientation} display={info.display} />
