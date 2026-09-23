@@ -50,6 +50,7 @@ interface OpenMeteoResult {
   latitude: number;
   longitude: number;
   timezone?: string;
+  feature_code?: string;
 }
 
 function stubFetch(body: string, status = 200) {
@@ -300,8 +301,21 @@ describe('searchCity', () => {
     const url = String(fetchMock.mock.calls[0]?.[0]);
     expect(url).toContain('https://geocoding-api.open-meteo.com/v1/search?');
     expect(url).toContain('name=Sankt%20P%C3%B6lten');
-    expect(url).toContain('count=5');
+    expect(url).toContain('count=15');
     expect(url).toContain('language=en');
+  });
+
+  it('keeps towns and cities, and drops peaks, gardens and the like', async () => {
+    stubJsonFetch<{ results: OpenMeteoResult[] }>({
+      results: [
+        { name: 'Gothenburg', latitude: 57.7, longitude: 11.97, feature_code: 'PPLA' },
+        { name: 'Göteborgnuten', latitude: 77.9, longitude: 16.7, feature_code: 'MT' },
+        { name: 'Göteborgs Botaniska Trädgård', latitude: 57.68, longitude: 11.95, feature_code: 'GDN' },
+        { name: 'Torslanda', latitude: 57.72, longitude: 11.77, feature_code: 'PPL' },
+      ],
+    });
+    const found = await searchCity('Göteborg');
+    expect(found.map((p) => p.name)).toEqual(['Gothenburg', 'Torslanda']);
   });
 
   it('carries the geocoder timezone through, and leaves the key off when there is none', async () => {

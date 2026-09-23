@@ -25,6 +25,47 @@ const LABEL_KEYS: { key: keyof DisplayTextConfig['labels']; label: string }[] = 
   { key: 'adhan', label: 'Adhan' },
 ];
 
+interface LanguagePickerProps {
+  value: SupportedLocale;
+  onChange: (code: SupportedLocale) => void;
+}
+
+/** The display's languages as large tiles: the name in its own script, and in English below. */
+export function LanguagePicker({ value, onChange }: LanguagePickerProps) {
+  return (
+    <div role="radiogroup" aria-label="Screen language" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {LANGUAGES.map((lang) => {
+        const on = value === lang.code;
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(lang.code)}
+            className={`relative flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+              on ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-card hover:border-primary/50'
+            }`}
+          >
+            <span className="text-2xl leading-none" aria-hidden>
+              {lang.flag}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate font-semibold" dir={lang.rtl ? 'rtl' : 'ltr'}>
+                {lang.nativeName}
+              </span>
+              {lang.name !== lang.nativeName && (
+                <span className="block truncate text-xs text-muted-foreground">{lang.name}</span>
+              )}
+            </span>
+            {on && <Check className="absolute top-2 right-2 size-4 text-primary" aria-hidden />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 interface LanguageTabProps {
   locale: SupportedLocale;
   displayText: DisplayTextConfig;
@@ -74,30 +115,10 @@ export function LanguageTab({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Language</CardTitle>
-        <CardDescription>Choose a language and customize every text on the screen</CardDescription>
+        <CardDescription>The language of the screen. Every word on it can be changed below.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Choose a language</Label>
-          <div className="flex flex-wrap gap-2">
-            {LANGUAGES.map((lang) => (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => handleLanguageSelect(lang.code)}
-                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors ${
-                  locale === lang.code
-                    ? 'border-primary bg-primary text-primary-foreground font-semibold'
-                    : 'border-border hover:border-primary/50 hover:bg-muted'
-                }`}
-              >
-                <span>{lang.flag}</span>
-                <span>{lang.nativeName}</span>
-                {locale === lang.code && <Check className="size-4" />}
-              </button>
-            ))}
-          </div>
-        </div>
+        <LanguagePicker value={locale} onChange={handleLanguageSelect} />
 
         <Separator />
 

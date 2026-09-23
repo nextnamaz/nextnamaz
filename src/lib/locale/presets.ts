@@ -8,8 +8,8 @@ import type {
 export const LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English',  nativeName: 'English',   flag: '🇬🇧', rtl: false },
   { code: 'ar', name: 'Arabic',   nativeName: 'العربية',   flag: '🇸🇦', rtl: true  },
-  { code: 'bs', name: 'Bosanski', nativeName: 'Bosanski',  flag: '🇧🇦', rtl: false },
-  { code: 'sv', name: 'Svenska',  nativeName: 'Svenska',   flag: '🇸🇪', rtl: false },
+  { code: 'bs', name: 'Bosnian',  nativeName: 'Bosanski',  flag: '🇧🇦', rtl: false },
+  { code: 'sv', name: 'Swedish',  nativeName: 'Svenska',   flag: '🇸🇪', rtl: false },
   { code: 'tr', name: 'Turkish',  nativeName: 'Türkçe',    flag: '🇹🇷', rtl: false },
   { code: 'ur', name: 'Urdu',     nativeName: 'اردو',      flag: '🇵🇰', rtl: true  },
   { code: 'de', name: 'German',   nativeName: 'Deutsch',   flag: '🇩🇪', rtl: false },

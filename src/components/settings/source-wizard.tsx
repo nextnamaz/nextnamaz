@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { LocateFixed, MapPin, Search, Loader2 } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { Check, ChevronRight, LocateFixed, Search, Loader2 } from 'lucide-react';
+import { SourceLogo } from './setup-art';
+import { MapView } from './map-view';
 import { fetchSourceTimes } from '@/lib/actions';
 import type { PrayerSourceInput } from '@/lib/actions';
 import type { PrayerTimesMap } from '@/types/database';
@@ -14,7 +17,6 @@ import { ISLAMISKA_CITIES } from '@/lib/prayer-sources/islamiska-forbundet';
 import { CALCULATION_METHODS } from '@/lib/prayer-sources/adhan';
 import { ALADHAN_METHODS, defaultAlAdhanMethod } from '@/lib/prayer-sources/aladhan';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -41,6 +43,11 @@ export { sourceLabel };
 export type { GeoPlace };
 
 type Madhab = 'shafi' | 'hanafi';
+
+/** A country's flag, from its two-letter code. */
+function flagOf(code: string): string {
+  return /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '';
+}
 
 const SOURCE_META: Record<WizardSource, { title: string; subtitle: string }> = {
   vaktija_ba: {
@@ -244,233 +251,257 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
     if (config) onApply(selected, config, preview);
   };
 
+  // Every option in view: the recommended one first, then the rest, with the
+  // calculation, which needs no outside source, last.
+  const shown = ranked.length > 1
+    ? [ranked[0] as WizardSource, ...ranked.slice(1).filter((x) => x !== 'adhan'), ...ranked.slice(1).filter((x) => x === 'adhan')]
+    : ranked;
+
   const noResults = !searching && !geoError && query.trim().length >= 3 && results.length === 0;
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {step === 'location' ? 'Where is this screen?' : 'Choose a source'}
-        </CardTitle>
-        {step === 'location' ? (
-          <CardDescription>
-            The location decides which prayer time sources fit best.
-          </CardDescription>
-        ) : (
-          place && (
-            <CardDescription className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {place.name}
-              {place.region ? `, ${place.region}` : ''}
-              <button type="button" className="underline ml-1" onClick={() => setStep('location')}>
-                change
-              </button>
-            </CardDescription>
-          )
-        )}
-      </CardHeader>
+  const heading = 'font-heading text-[26px] leading-tight font-semibold tracking-[-0.025em] text-balance';
 
-      <CardContent className="space-y-4">
-        {step === 'location' && (
-          <>
-            <Button className="w-full h-12" onClick={handleLocate} disabled={locating}>
-              {locating
-                ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                : <LocateFixed className="w-4 h-4 mr-2" />}
+  return (
+    <div className="space-y-5 sm:space-y-6">
+      {step === 'location' && (
+        <div key="location" className="wiz-step space-y-6" style={{ '--wiz-dir': -1 } as CSSProperties}>
+          <div>
+            <h2 className={heading}>Where is this screen?</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+              We&apos;ll find the right prayer times for that place.
+            </p>
+          </div>
+
+          {/* The first match while typing, pinned; before that, Göteborg, where NextNamaz is made. */}
+          {results[0] ? (
+            <MapView lat={results[0].latitude} lon={results[0].longitude} zoom={12} pinned />
+          ) : (
+            <MapView lat={57.7089} lon={11.9746} zoom={11.5} pinned={false} />
+          )}
+
+          <div>
+            <Button size="lg" className="h-14 w-full rounded-full text-base" onClick={handleLocate} disabled={locating}>
+              {locating ? <Loader2 className="mr-2 size-5 animate-spin" /> : <LocateFixed className="mr-2 size-5" />}
               Use my location
             </Button>
+            <p className="mt-2 text-center text-sm text-muted-foreground">Best when you are at the mosque. Your phone asks first.</p>
+            {geoError && (
+              <p className="mt-2 text-center text-sm text-destructive">Couldn&apos;t get your location. Type the city below instead.</p>
+            )}
+          </div>
 
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />
-              or search
-              <div className="h-px flex-1 bg-border" />
-            </div>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            or type the city
+            <span className="h-px flex-1 bg-border" />
+          </div>
 
+          <div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="pl-9 pr-9"
-                placeholder="Type your city…"
+                className="h-14 rounded-2xl bg-card pr-11 pl-12 text-[17px] md:text-[17px]"
+                placeholder="Göteborg, Sarajevo, Berlin…"
+                // On a phone the keyboard takes half the screen: bring the field to the top so its results show.
+                onFocus={(e) => {
+                  const el = e.currentTarget;
+                  if (window.matchMedia('(max-width: 640px)').matches) setTimeout(() => el.scrollIntoView({ block: 'start', behavior: 'smooth' }), 250);
+                }}
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
               />
               {searching && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                <Loader2 className="absolute top-1/2 right-4 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
               )}
             </div>
 
             {results.length > 0 && (
-              <div className="space-y-1">
+              <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
                 {results.map((r) => (
-                  <button
-                    key={`${r.name}-${r.latitude}-${r.longitude}`}
-                    type="button"
-                    onClick={() => choosePlace(r)}
-                    className="w-full flex items-center gap-2 rounded-lg border p-3 text-left text-sm hover:border-primary/50 hover:bg-muted transition-colors"
-                  >
-                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="font-medium">{r.name}</span>
-                    <span className="text-muted-foreground truncate">{r.region}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {noResults && (
-              <p className="text-sm text-muted-foreground">
-                No city found. Try another spelling.
-              </p>
-            )}
-
-            {geoError && (
-              <p className="text-sm text-destructive">
-                Couldn&apos;t get a location. Try typing your city instead.
-              </p>
-            )}
-          </>
-        )}
-
-        {step === 'source' && place && (
-          <>
-            <div className="space-y-2">
-              {ranked.map((source, i) => {
-                const meta = SOURCE_META[source];
-                const active = selected === source;
-                const calculated = source === 'adhan' || source === 'aladhan';
-                return (
-                  <div
-                    key={source}
-                    className={cn(
-                      'rounded-md border transition-colors',
-                      active ? 'border-primary' : 'border-border hover:border-primary/50'
-                    )}
-                  >
+                  <li key={`${r.name}-${r.latitude}-${r.longitude}`}>
                     <button
                       type="button"
-                      onClick={() => setSelected(source)}
-                      className="w-full p-3 text-left"
+                      onClick={() => choosePlace(r)}
+                      className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-medium">{meta.title}</span>
+                      <span className="text-2xl leading-none" aria-hidden>{flagOf(r.countryCode)}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold">{r.name}</span>
+                        <span className="block truncate text-sm text-muted-foreground">{r.region}</span>
+                      </span>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {noResults && <p className="mt-3 px-1 text-sm text-muted-foreground">No city found. Try another spelling.</p>}
+          </div>
+        </div>
+      )}
+
+      {step === 'source' && place && (
+        <div key="source" className="wiz-step space-y-6" style={{ '--wiz-dir': 1 } as CSSProperties}>
+          <div>
+            <h2 className={heading}>Where should the times come from?</h2>
+            <p className="mt-2 flex items-center gap-1.5 text-[15px] text-muted-foreground">
+              <span aria-hidden>{flagOf(place.countryCode)}</span>
+              <span className="truncate">{place.name}{place.region ? `, ${place.region}` : ''}</span>
+              <button type="button" className="shrink-0 font-medium text-foreground underline underline-offset-4" onClick={() => setStep('location')}>
+                Change
+              </button>
+            </p>
+          </div>
+
+          <div role="radiogroup" aria-label="Prayer time source" className="space-y-2.5">
+            {shown.map((source, i) => {
+              const meta = SOURCE_META[source];
+              const active = selected === source;
+              const calculated = source === 'adhan' || source === 'aladhan';
+              return (
+                <div
+                  key={source}
+                  className={cn(
+                    'rounded-2xl border bg-card transition-[border-color,box-shadow]',
+                    active ? 'border-primary shadow-[0_0_0_1px_var(--color-primary),0_10px_30px_-18px_rgba(184,122,8,0.6)]' : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setSelected(source)}
+                    className="flex w-full items-center gap-3.5 p-4 text-left"
+                  >
+                    <SourceLogo source={source} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-[17px] font-semibold">{meta.title}</span>
                         {i === 0 && (
-                          <span className="text-[10px] font-medium uppercase tracking-wider rounded-full border border-border px-1.5 py-0.5 text-muted-foreground">
+                          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-[#8A6206]">
                             Recommended
                           </span>
                         )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{meta.subtitle}</p>
-                    </button>
-
+                      </span>
+                      <span className="mt-0.5 block text-sm text-muted-foreground">{meta.subtitle}</span>
+                    </span>
                     {active && (
-                      <div className="px-3 pb-3 space-y-2">
-                        {source === 'vaktija_ba' && baId !== null && (
-                          <Select value={String(baId)} onValueChange={(v) => setBaId(Number(v))}>
-                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {VAKTIJA_LOCATIONS.map((l) => (
-                                <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {source === 'vaktija_eu' && euCountry && euSlug && (
-                          <Select value={euSlug} onValueChange={setEuSlug}>
-                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {euCountry.locations.map((l) => (
-                                <SelectItem key={l.slug} value={l.slug}>{l.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {source === 'islamiska_forbundet' && (
-                          <Select value={ifCity} onValueChange={setIfCity}>
-                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {ISLAMISKA_CITIES.map((c) => (
-                                <SelectItem key={c} value={c}>{c}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {source === 'aladhan' && (
-                          <Select value={String(alMethod)} onValueChange={(v) => setAlMethod(Number(v))}>
-                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {ALADHAN_METHODS.map((m) => (
-                                <SelectItem key={m.id} value={String(m.id)}>
-                                  {m.name} · {m.description}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {source === 'adhan' && (
-                          <Select value={method} onValueChange={(v) => setMethod(v as AdhanCalculationMethod)}>
-                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {CALCULATION_METHODS.map((m) => (
-                                <SelectItem key={m.id} value={m.id}>
-                                  {m.name} · {m.description}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {calculated && (
-                          <Select value={madhab} onValueChange={(v) => setMadhab(v as Madhab)}>
-                            <SelectTrigger className="w-full" aria-label="Asr"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="shafi">Asr · Standard (Shafi&apos;i, Maliki, Hanbali)</SelectItem>
-                              <SelectItem value="hanafi">Asr · Hanafi (later)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-
-                        {/* Today's times from this source, right where it's chosen */}
-                        <div className="rounded-lg bg-background/80 border p-3 mt-3 min-h-16">
-                          {previewLoading && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Loader2 className="w-4 h-4 animate-spin" /> Fetching today&apos;s times…
-                            </div>
-                          )}
-                          {previewError && (
-                            <p className="text-sm text-destructive">
-                              Couldn&apos;t fetch times from this source right now.
-                            </p>
-                          )}
-                          {preview && (
-                            <div className="grid grid-cols-3 gap-2 text-center">
-                              {PRAYER_NAMES.map((p) => (
-                                <div key={p}>
-                                  <div className="text-[11px] text-muted-foreground truncate">
-                                    {translations.prayers[p]}
-                                  </div>
-                                  <div className="text-sm font-semibold tabular-nums">{preview[p]}</div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <Button className="w-full mt-3" onClick={apply} disabled={!preview}>
-                          Use this source
-                        </Button>
-                      </div>
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check className="size-4" strokeWidth={3} />
+                      </span>
                     )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
+                  </button>
 
-        {onCancel && (
-          <div className="flex justify-end pt-1">
-            <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
+                  {active && (
+                    <div className="space-y-3 px-4 pb-4">
+                      {source === 'vaktija_ba' && baId !== null && (
+                        <Select value={String(baId)} onValueChange={(v) => setBaId(Number(v))}>
+                          <SelectTrigger className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {VAKTIJA_LOCATIONS.map((l) => (
+                              <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {source === 'vaktija_eu' && euCountry && euSlug && (
+                        <Select value={euSlug} onValueChange={setEuSlug}>
+                          <SelectTrigger className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {euCountry.locations.map((l) => (
+                              <SelectItem key={l.slug} value={l.slug}>{l.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {source === 'islamiska_forbundet' && (
+                        <Select value={ifCity} onValueChange={setIfCity}>
+                          <SelectTrigger className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {ISLAMISKA_CITIES.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {source === 'aladhan' && (
+                        <Select value={String(alMethod)} onValueChange={(v) => setAlMethod(Number(v))}>
+                          <SelectTrigger className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {ALADHAN_METHODS.map((m) => (
+                              <SelectItem key={m.id} value={String(m.id)}>
+                                {m.name} · {m.description}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {source === 'adhan' && (
+                        <Select value={method} onValueChange={(v) => setMethod(v as AdhanCalculationMethod)}>
+                          <SelectTrigger className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {CALCULATION_METHODS.map((m) => (
+                              <SelectItem key={m.id} value={m.id}>
+                                {m.name} · {m.description}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {calculated && (
+                        <Select value={madhab} onValueChange={(v) => setMadhab(v as Madhab)}>
+                          <SelectTrigger className="h-11 w-full rounded-xl" aria-label="Asr"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="shafi">Asr · Standard (Shafi&apos;i, Maliki, Hanbali)</SelectItem>
+                            <SelectItem value="hanafi">Asr · Hanafi (later)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+
+                      {/* Today's times from this source, right where it's chosen. */}
+                      <div className="min-h-[5.5rem] rounded-xl bg-secondary/60 p-3">
+                        <p className="mb-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Today</p>
+                        {previewLoading && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="size-4 animate-spin" /> Fetching today&apos;s times…
+                          </div>
+                        )}
+                        {previewError && (
+                          <p className="text-sm text-destructive">Couldn&apos;t fetch times from this source right now.</p>
+                        )}
+                        {preview && (
+                          <div className="grid grid-cols-3 gap-y-2.5 text-center">
+                            {PRAYER_NAMES.map((p) => (
+                              <div key={p}>
+                                <div className="truncate text-xs text-muted-foreground">{translations.prayers[p]}</div>
+                                <div className="text-[17px] font-semibold tabular-nums">{preview[p]}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* The one way on, kept at the bottom of the screen on a phone. */}
+          <div className="sticky bottom-0 -mx-4 bg-linear-to-t from-background via-background to-background/0 px-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <Button size="lg" className="h-12 w-full rounded-full text-[15px]" onClick={apply} disabled={!preview}>
+              Use these times
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {onCancel && (
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
+        </div>
+      )}
+    </div>
   );
 }

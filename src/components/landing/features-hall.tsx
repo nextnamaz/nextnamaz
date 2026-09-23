@@ -206,7 +206,7 @@ export function FeaturesHall({ label, display }: { label: string; display: Suppo
         </svg>
 
         {/* The set on the plain wall beside the mihrab, on its side, running the display. */}
-        <div className="absolute" style={{ left: '58%', top: '31%', width: '31%' }}>
+        <div className="absolute" style={{ left: '54%', top: '31%', width: '28%' }}>
           <TvFrame portrait>
             <DemoDisplay locale={resolveDisplayLocale(display)} portrait />
           </TvFrame>

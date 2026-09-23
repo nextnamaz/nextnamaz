@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
+import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/ui/logo';
@@ -10,16 +10,32 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { THEME_REGISTRY } from '@/components/display/themes';
-import { PRAYER_NAMES } from '@/types/prayer';
 import type { PrayerTimesMap } from '@/types/database';
 import { setScreenPin } from '@/lib/actions';
 import type { PrayerSourceInput } from '@/lib/actions';
 import { PIN_RE } from '@/lib/screen-settings';
-import { SourceWizard, sourceLabel } from './source-wizard';
-import { LanguageTab } from './language-tab';
-import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
-import { sourceExplanation } from './settings-shared';
-import type { FormState, ThemeConfigMap } from './settings-shared';
+import { SourceWizard } from './source-wizard';
+import { LanguagePicker } from './language-tab';
+import { PinArt } from './setup-art';
+import { TvFrame } from '@/components/landing/tv-frame';
+import { DemoDisplay } from '@/components/landing/demo-display';
+import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
+import { resolveDisplayLocale } from '@/lib/display-locale';
+import { ThemePicker } from './theme-settings-form';
+import type { FormState } from './settings-shared';
+
+/** Each step slides in from the side it was reached from and fades up. Still under reduced motion. */
+const SLIDE = `
+@media (prefers-reduced-motion: no-preference) {
+  .wiz-step { animation: wiz-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .wiz-step > * { animation: wiz-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .wiz-step > :nth-child(2) { animation-delay: 60ms; }
+  .wiz-step > :nth-child(3) { animation-delay: 120ms; }
+  .wiz-step > :nth-child(n + 4) { animation-delay: 170ms; }
+}
+@keyframes wiz-in { from { opacity: 0; transform: translateX(calc(var(--wiz-dir, 1) * 36px)); } }
+@keyframes wiz-rise { from { opacity: 0; transform: translateY(10px); } }
+`;
 
 const STEPS = [
   { id: 'times', title: 'Prayer times' },
@@ -43,7 +59,12 @@ interface SetupWizardProps {
 
 export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit }: SetupWizardProps) {
   const [step, setStep] = useState<StepId>('times');
-  const [sourceChosen, setSourceChosen] = useState(false);
+  /** Which way the last move went, so the next step slides in from that side. */
+  const [dir, setDir] = useState<1 | -1>(1);
+  const go = (id: StepId, way: 1 | -1) => {
+    setDir(way);
+    setStep(id);
+  };
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
 
@@ -51,7 +72,6 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
   const stepIndex = STEPS.indexOf(currentStep);
   const prevStep = STEPS[stepIndex - 1];
   const nextStep = STEPS[stepIndex + 1];
-  const themeDef = THEME_REGISTRY[form.theme];
 
   const applySource = (
     source: PrayerSourceInput,
@@ -64,7 +84,8 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
       sourceConfig: config,
       times: times ?? prev.times,
     }));
-    setSourceChosen(true);
+    // The times were just shown beside the source; no need to show them again.
+    go('language', 1);
   };
 
   const finish = async () => {
@@ -79,12 +100,12 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
       const result = await setScreenPin(screenId, pin);
       if (!result.ok) toast.error(result.error);
     }
-    setStep('done');
+    go('done', 1);
   };
 
   if (step === 'done') {
     return (
-      <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-6">
+      <div className="min-h-dvh bg-background flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardContent className="py-10 text-center space-y-4">
             <span className="inline-flex items-center justify-center size-12 rounded-full bg-primary text-primary-foreground">
@@ -106,92 +127,55 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <header className="border-b bg-background">
-        <div className="max-w-2xl mx-auto flex items-center justify-between px-4 h-14">
-          <Logo size="xs" />
-          <p className="text-xs text-muted-foreground">
-            Step {stepIndex + 1} of {STEPS.length} · {currentStep.title}
-          </p>
+    <div className="min-h-dvh bg-background">
+      <header className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
+        <Logo size="xs" />
+        {/* Where you are: one dot per step, the current one drawn out. */}
+        <div className="flex items-center gap-1.5" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}: ${currentStep.title}`}>
+          {STEPS.map((s, i) => (
+            <span
+              key={s.id}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === stepIndex ? 'w-6 bg-primary' : i < stepIndex ? 'w-1.5 bg-primary' : 'w-1.5 bg-border'}`}
+            />
+          ))}
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
-        {step === 'times' && !sourceChosen && (
-          <>
-            <div>
-              <h1 className="text-2xl font-bold mb-1.5">Where should the times come from?</h1>
-              <p className="text-muted-foreground">
-                Pick your city and we&apos;ll find the right source for its
-                prayer times.
-              </p>
-            </div>
-            <SourceWizard translations={form.displayText} onApply={applySource} />
-          </>
-        )}
-
-        {step === 'times' && sourceChosen && (
-          <>
-            <div>
-              <h1 className="text-2xl font-bold mb-1.5">Check the times</h1>
-              <p className="text-muted-foreground">
-                {sourceExplanation(form.prayerSource)}
-              </p>
-            </div>
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="font-semibold">
-                    {sourceLabel(form.prayerSource, form.sourceConfig)}
-                  </p>
-                  <Button variant="ghost" size="sm" onClick={() => setSourceChosen(false)}>
-                    Change source
-                  </Button>
-                </div>
-                <div className="divide-y divide-border">
-                  {PRAYER_NAMES.map((prayer) => (
-                    <div key={prayer} className="flex items-center justify-between py-2.5">
-                      <span className="text-muted-foreground">
-                        {form.displayText.prayers[prayer]}
-                      </span>
-                      <span className="text-lg font-semibold tabular-nums">
-                        {form.times[prayer]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+      <style>{SLIDE}</style>
+      <div className="mx-auto max-w-lg space-y-6 px-4 pt-4 pb-8">
+        <div key={step} className="wiz-step space-y-6" style={{ '--wiz-dir': dir } as CSSProperties}>
+        {step === 'times' && <SourceWizard translations={form.displayText} onApply={applySource} />}
 
         {step === 'language' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold mb-1.5">What language should the TV show?</h1>
-              <p className="text-muted-foreground">
-                Every word on the display can be changed later, too.
+              <h1 className="font-heading text-[26px] leading-tight font-semibold tracking-[-0.025em] text-balance mb-2">Which language should the TV show?</h1>
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
+                The prayer names and labels change; the times stay the same. You can reword anything later in the settings.
               </p>
             </div>
-            <LanguageTab
-              locale={form.locale}
-              displayText={form.displayText}
-              onLocaleChange={(locale) => setForm((prev) => ({ ...prev, locale }))}
-              onDisplayTextChange={(displayText) => setForm((prev) => ({ ...prev, displayText }))}
+            <LanguagePicker
+              value={form.locale}
+              onChange={(locale) => setForm((prev) => ({ ...prev, locale, displayText: DEFAULT_TRANSLATIONS[locale] }))}
             />
+            {/* The screen as it will read, in the language just picked. */}
+            <div className="mx-auto w-full max-w-md pt-2">
+              <TvFrame>
+                <DemoDisplay locale={resolveDisplayLocale(form.locale)} />
+              </TvFrame>
+            </div>
           </>
         )}
 
         {step === 'theme' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold mb-1.5">Pick a look for your display</h1>
-              <p className="text-muted-foreground">
-                All themes work in landscape and portrait, on any screen size.
+              <h1 className="font-heading text-[26px] leading-tight font-semibold tracking-[-0.025em] text-balance mb-2">Pick a look for your display</h1>
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
+                Every look works in landscape and portrait. Colours and the line at the bottom can be changed later in the settings.
               </p>
             </div>
-            <Card>
-              <CardContent className="pt-6 space-y-4">
+            <div>
                 <ThemePicker
                   value={form.theme}
                   config={form.themeConfig}
@@ -204,69 +188,64 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
                     }));
                   }}
                 />
-                {themeDef && themeDef.fields.length > 0 && (
-                  <div className="pt-4 border-t">
-                    <ThemeSettingsForm
-                      fields={themeDef.fields}
-                      config={form.themeConfig}
-                      onChange={(config: ThemeConfigMap) =>
-                        setForm((prev) => ({ ...prev, themeConfig: config }))
-                      }
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            </div>
           </>
         )}
 
         {step === 'pin' && (
           <>
             <div>
-              <h1 className="text-2xl font-bold mb-1.5">Lock it with a PIN?</h1>
-              <p className="text-muted-foreground">
-                Optional. Anyone who scans the code on the TV can open these
-                settings; with a PIN they also need a number only you know.
-                Leave it empty to skip.
+              <span className="inline-block rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                Optional
+              </span>
+              <h1 className="mt-3 mb-2 font-heading text-[26px] leading-tight font-semibold tracking-[-0.025em] text-balance">
+                Lock the settings with a PIN?
+              </h1>
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
+                Anyone who scans the code on the TV can open these settings. With a PIN they also need a number only you know.
               </p>
             </div>
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <Label htmlFor="setup-pin">PIN (4 to 8 digits)</Label>
-                <Input
-                  id="setup-pin"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  pattern="[0-9]*"
-                  maxLength={8}
-                  value={pin}
-                  onChange={(e) => {
-                    setPin(e.target.value.replace(/\D/g, ''));
-                    setPinError(null);
-                  }}
-                  placeholder="Leave empty for no PIN"
-                  className="max-w-xs text-lg tracking-[0.3em] tabular-nums"
-                />
-                {pinError && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {pinError}
-                  </p>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  You can add, change or remove it later under Lock in the settings.
+
+            <PinArt />
+
+            <div className="space-y-2">
+              <Label htmlFor="setup-pin">PIN, 4 to 8 digits</Label>
+              <Input
+                id="setup-pin"
+                inputMode="numeric"
+                autoComplete="off"
+                pattern="[0-9]*"
+                maxLength={8}
+                value={pin}
+                onChange={(e) => {
+                  setPin(e.target.value.replace(/\D/g, ''));
+                  setPinError(null);
+                }}
+                placeholder="No PIN"
+                className="h-14 rounded-2xl bg-card text-center text-2xl tracking-[0.4em] tabular-nums placeholder:text-base placeholder:tracking-normal md:text-2xl"
+              />
+              {pinError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {pinError}
                 </p>
-              </CardContent>
-            </Card>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Not sure? Skip it. You can add a PIN any time in the settings.
+              </p>
+            </div>
           </>
         )}
 
+        </div>
+
         {/* Step navigation */}
-        {(sourceChosen || step !== 'times') && (
-          <div className="flex items-center justify-between pt-2">
+        {step !== 'times' && (
+          <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-2 bg-linear-to-t from-background via-background to-background/0 px-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {prevStep ? (
               <Button
                 variant="ghost"
-                onClick={() => setStep(prevStep.id)}
+                className="shrink-0 px-3"
+                onClick={() => go(prevStep.id, -1)}
               >
                 <ArrowLeft className="size-4 mr-1.5" /> Back
               </Button>
@@ -274,16 +253,16 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
               <span />
             )}
             {nextStep ? (
-              <Button size="lg" onClick={() => setStep(nextStep.id)}>
+              <Button size="lg" className="h-12 rounded-full px-7 text-[15px]" onClick={() => go(nextStep.id, 1)}>
                 Continue <ArrowRight className="size-4 ml-1.5" />
               </Button>
             ) : (
               /* Last step saves the screen. */
-              <Button size="lg" onClick={finish} disabled={saving}>
+              <Button size="lg" className="h-12 min-w-0 rounded-full px-5 text-[15px] sm:px-7" onClick={finish} disabled={saving}>
                 {saving ? (
                   <Loader2 className="size-4 mr-1.5 animate-spin" />
                 ) : null}
-                Turn on the display
+                <span className="truncate">{pin ? 'Lock and turn on the TV' : 'Skip and turn on the TV'}</span>
               </Button>
             )}
           </div>

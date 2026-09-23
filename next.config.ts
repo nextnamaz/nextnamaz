@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     // and "Deployment succeeded". A slower build is cheaper than a silent
     // one. Re-enable only with a check that the served CSS matches source.
     turbopackFileSystemCacheForBuild: false,
+    // app/global-not-found.tsx: the site has two root layouts, so an unmatched
+    // address needs a 404 that brings its own document.
+    globalNotFound: true,
   },
   async headers() {
     return [
