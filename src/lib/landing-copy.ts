@@ -294,6 +294,19 @@ export const LANDING_COPY = {
     license:
       'You may use, study, share and change it under the GNU Affero General Public License, version 3.',
     /** Small print. The providers are named on this page, so say plainly that we are not them. */
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'Send feedback',
+      heading: 'Tell us what you think',
+      intro: 'Something not working, or something missing? We read every message.',
+      message: 'Your message',
+      email: 'Email (optional, if you would like a reply)',
+      send: 'Send',
+      sending: 'Sending…',
+      sent: 'Thank you. Your message has arrived.',
+      error: 'That did not go through. Please try again.',
+      close: 'Close',
+    },
     timesNote:
       'Prayer times come from the source chosen for each screen, or are calculated for its location. NextNamaz is not affiliated with the timetable providers it can show.',
   },

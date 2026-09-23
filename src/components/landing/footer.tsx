@@ -3,6 +3,7 @@ import type { ComponentType, SVGProps } from 'react';
 import { Github, Linkedin } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { LogoLink } from './header-logo-link';
+import { FeedbackButton } from '@/components/feedback-button';
 import type { LandingCopy } from '@/lib/landing-copy';
 import { LANDING_LOCALES, LANDING_LOCALE_INFO, landingPath, pickLanguageHref } from '@/lib/landing-locales';
 import type { LandingLocale } from '@/lib/landing-locales';
@@ -125,6 +126,11 @@ export function Footer({ t, locale, languageLabel }: FooterProps) {
                 ))}
               </ul>
             </div>
+            <FeedbackButton
+              t={t.feedback}
+              locale={locale}
+              className="mt-6 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground/80 transition-colors hover:border-foreground hover:text-foreground"
+            />
           </div>
 
           {columns.map((col) => (

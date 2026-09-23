@@ -12,7 +12,7 @@ export const SITE_NAME = 'NextNamaz';
  * the only thing protecting that screen's settings, so an indexed URL is a
  * leaked password. Kept here so robots.ts and sitemap.ts can't drift apart.
  */
-export const PRIVATE_PATHS = ['/s/', '/tv/', '/api/'];
+export const PRIVATE_PATHS = ['/s/', '/tv/', '/api/', '/admin'];
 
 /**
  * Metadata for a page whose URL is itself the secret.

@@ -266,6 +266,19 @@ export const TR: LandingCopy = {
     copyright: 'Ismail Sacic. NextNamaz özgür yazılımdır.',
     license:
       "NextNamaz'ı GNU Affero Genel Kamu Lisansı'nın 3. sürümü kapsamında kullanabilir, inceleyebilir, paylaşabilir ve değiştirebilirsiniz.",
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'Görüş bildirin',
+      heading: 'Düşüncelerinizi bizimle paylaşın',
+      intro: 'Bir sorun mu var, yoksa eksik bir şey mi? Her mesajı okuyoruz.',
+      message: 'Mesajınız',
+      email: 'E-posta (isteğe bağlı, yanıt isterseniz)',
+      send: 'Gönder',
+      sending: 'Gönderiliyor…',
+      sent: 'Teşekkürler! Mesajınız bize ulaştı.',
+      error: 'Gönderilemedi. Lütfen tekrar deneyin.',
+      close: 'Kapat',
+    },
     timesNote:
       "Namaz vakitleri her ekran için seçilen kaynaktan alınır ya da ekranın konumuna göre hesaplanır. NextNamaz'ın, vakitlerini gösterebildiği kaynaklarla herhangi bir bağı\u00a0yoktur.",
   },

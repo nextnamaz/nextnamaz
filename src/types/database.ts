@@ -15,6 +15,8 @@ export type PrayerTimesMap = {
   isha: string;
 };
 
+export type ScreenEventKind = 'created' | 'configured' | 'saved';
+
 export type Database = {
   public: {
     Tables: {
@@ -34,6 +36,8 @@ export type Database = {
           pin: string | null;
           created_at: string;
           updated_at: string;
+          /** When the TV last loaded its display (migration 20260924). */
+          last_seen_at: string | null;
         };
         Insert: {
           id?: string;
@@ -49,6 +53,7 @@ export type Database = {
           pin?: string | null;
           created_at?: string;
           updated_at?: string;
+          last_seen_at?: string | null;
         };
         Update: {
           id?: string;
@@ -64,7 +69,37 @@ export type Database = {
           pin?: string | null;
           created_at?: string;
           updated_at?: string;
+          /** When the TV last loaded its display (migration 20260924). */
+          last_seen_at?: string | null;
         };
+        Relationships: [];
+      };
+      /** What happened to a screen and when (migration 20260924). */
+      screen_events: {
+        Row: { id: number; screen_id: string | null; kind: string; created_at: string };
+        Insert: { screen_id: string; kind: ScreenEventKind; created_at?: string };
+        Update: { kind?: ScreenEventKind };
+        Relationships: [];
+      };
+      /** Messages from the feedback form (migration 20260924). */
+      feedback: {
+        Row: {
+          id: number;
+          message: string;
+          email: string | null;
+          page: string | null;
+          locale: string | null;
+          screen_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          message: string;
+          email?: string | null;
+          page?: string | null;
+          locale?: string | null;
+          screen_id?: string | null;
+        };
+        Update: { message?: string };
         Relationships: [];
       };
     };

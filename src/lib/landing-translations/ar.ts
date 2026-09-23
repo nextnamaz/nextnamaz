@@ -273,6 +273,19 @@ export const AR: LandingCopy = {
     /** Non-breaking spaces keep the licence's name on one line. */
     license:
       'يحق لكم استخدامه ودراسته ومشاركته وتعديله بموجب ترخيص GNU\u00A0Affero\u00A0General\u00A0Public\u00A0License، الإصدار الثالث.',
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'أرسلوا ملاحظاتكم',
+      heading: 'شاركونا رأيكم',
+      intro: 'هل واجهتم مشكلة أو ينقصكم شيء؟ نقرأ كل رسالة تصلنا.',
+      message: 'رسالتكم',
+      email: 'البريد الإلكتروني (اختياري، إن أردتم ردًّا)',
+      send: 'إرسال',
+      sending: 'جارٍ الإرسال…',
+      sent: 'شكرًا لكم! وصلتنا رسالتكم.',
+      error: 'تعذّر الإرسال. حاولوا مرة أخرى.',
+      close: 'إغلاق',
+    },
     timesNote:
       'تأتي مواقيت الصلاة من المصدر المختار لكل شاشة، أو تُحسب لموقعها. ولا صلة لـ NextNamaz بالجهات التي يعرض جداولها.',
   },

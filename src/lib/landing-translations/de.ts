@@ -274,6 +274,19 @@ export const DE: LandingCopy = {
     copyright: 'Ismail Sacic. NextNamaz ist freie Software.',
     license:
       'Sie dürfen NextNamaz unter den Bedingungen der GNU Affero General Public License, Version 3, nutzen, untersuchen, weitergeben und verändern.',
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'Feedback senden',
+      heading: 'Sagen Sie uns Ihre Meinung',
+      intro: 'Hakt etwas, oder fehlt Ihnen etwas? Wir lesen jede Nachricht.',
+      message: 'Ihre Nachricht',
+      email: 'E-Mail (freiwillig, falls Sie eine Antwort möchten)',
+      send: 'Senden',
+      sending: 'Wird gesendet …',
+      sent: 'Danke! Ihre Nachricht ist angekommen.',
+      error: 'Das hat nicht geklappt. Bitte versuchen Sie es noch einmal.',
+      close: 'Schließen',
+    },
     timesNote:
       'Die Gebetszeiten stammen aus der für den jeweiligen Bildschirm gewählten Quelle oder werden für seinen Standort berechnet. NextNamaz steht in keiner Verbindung zu den Anbietern, deren Gebetszeiten es anzeigen kann.',
   },

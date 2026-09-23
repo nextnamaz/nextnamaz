@@ -266,6 +266,19 @@ export const SV: LandingCopy = {
     copyright: 'Ismail Sacic. NextNamaz är fri programvara.',
     license:
       'Du får använda, studera, dela och ändra den enligt GNU Affero General Public License, version\u00a03.',
+    /** The feedback form: what people write lands on /admin. */
+    feedback: {
+      button: 'Tyck till',
+      heading: 'Vad tycker du?',
+      intro: 'Har något krånglat, eller saknar du något? Vi läser varje meddelande.',
+      message: 'Ditt meddelande',
+      email: 'E-post (valfritt, om du vill ha svar)',
+      send: 'Skicka',
+      sending: 'Skickar…',
+      sent: 'Tack! Vi har fått ditt meddelande.',
+      error: 'Det gick inte att skicka. Försök igen.',
+      close: 'Stäng',
+    },
     timesNote:
       'Bönetiderna kommer från den källa som valts för varje skärm, eller räknas fram för skärmens plats. NextNamaz har ingen koppling till någon av källorna.',
   },
