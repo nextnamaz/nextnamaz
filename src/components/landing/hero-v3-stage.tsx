@@ -99,7 +99,7 @@ export function HeroStage({ children, className, stageClassName, labelledBy }: H
     if (!track || !stage || !tv || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const pin = window.matchMedia(PIN_QUERY);
 
-    /** Where the pinned set has to go to sit in the middle, nearly full width. Offsets ignore transforms. */
+    /** Where the pinned set has to go to sit in the middle, a little larger. Offsets ignore transforms. */
     const measure = () => {
       if (!pin.matches) {
         stage.style.setProperty('--hero-dx', '0px');
@@ -116,7 +116,8 @@ export function HeroStage({ children, className, stageClassName, labelledBy }: H
       const w = tv.offsetWidth;
       const h = tv.offsetHeight;
       if (!w) return;
-      const width = Math.min(window.innerWidth * 0.84, (window.innerHeight - NAV_PX - 64) / SET_RATIO);
+      // Forward and centred, but modest: a little larger than in the hero, never filling the window.
+      const width = Math.min(window.innerWidth * 0.6, (window.innerHeight - NAV_PX - 180) / SET_RATIO);
       const left = stage.getBoundingClientRect().left;
       stage.style.setProperty('--hero-dx', `${(window.innerWidth / 2 - (left + x + w / 2)).toFixed(1)}px`);
       stage.style.setProperty('--hero-dy', `${(NAV_PX + (window.innerHeight - NAV_PX) / 2 - (y + h / 2)).toFixed(1)}px`);

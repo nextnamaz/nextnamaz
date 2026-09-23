@@ -93,7 +93,7 @@ export function LandingPage({ locale }: { locale: LandingLocale }) {
       <Navbar t={t.nav} locale={locale} />
       <main>
         <Hero t={t.hero} display={info.display} />
-        <OldWay t={t.oldWay} toSteps={t.hero.secondary} />
+        <OldWay t={t.oldWay} toSteps={t.hero.secondary} display={info.display} />
         <HowItWorksSection t={t.howItWorks} display={info.display} />
         <ScreenAnatomy t={t.display} display={info.display} />
         <OrientationShowcase t={t.orientation} display={info.display} />

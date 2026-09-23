@@ -74,6 +74,7 @@ export function StepStage({ children, withPhone, label, className }: StepStagePr
         ].join(', '),
       }}
     >
+      <style>{ACT}</style>
       {/* The app's own screens, laid out as they are: never mirrored on a right-to-left page. */}
       <div aria-hidden dir="ltr" className="absolute inset-0">
         {children}
@@ -81,6 +82,30 @@ export function StepStage({ children, withPhone, label, className }: StepStagePr
     </div>
   );
 }
+
+/**
+ * Each scene acts out its step as it comes on (SceneLayer marks it data-on):
+ * the remote comes up and presses Start; the phone comes up to the TV, a line
+ * sweeps the code and the link it read pops up; the setup completes with a
+ * tick, and the times fill the TV from the top as the done note appears.
+ * Transform, opacity and clip-path only. Held still under reduced motion.
+ */
+const ACT = `
+@media (prefers-reduced-motion: no-preference) {
+  [data-on='true'] .sa-rise { animation: sa-rise 750ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  [data-on='true'] .sa-press { animation: sa-press 2.6s ease-in-out 900ms infinite; }
+  [data-on='true'] .sa-tap { animation: sa-tap 420ms ease-in-out 850ms both; }
+  [data-on='true'] .sa-pop { animation: sa-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--sa-delay, 1300ms) both; }
+  [data-on='true'] .sa-scan { animation: sa-scan 1.6s ease-in-out 600ms infinite; }
+  [data-on='true'] .sa-fill { animation: sa-fill 1100ms cubic-bezier(0.65, 0, 0.35, 1) 1150ms both; }
+}
+@keyframes sa-rise { from { transform: translateY(40%); opacity: 0; } }
+@keyframes sa-press { 0%, 62%, 100% { transform: scale(1); } 70% { transform: scale(0.9); } 80% { transform: scale(1); } }
+@keyframes sa-tap { 50% { transform: scale(0.9); } }
+@keyframes sa-pop { from { transform: scale(0.6); opacity: 0; } }
+@keyframes sa-scan { 0% { transform: translateY(-26cqw); opacity: 0; } 15%, 85% { opacity: 1; } 100% { transform: translateY(26cqw); opacity: 0; } }
+@keyframes sa-fill { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+`;
 
 /* ── Placement ────────────────────────────────────────────────────────── */
 
@@ -113,6 +138,7 @@ interface SceneLayerProps {
 export function SceneLayer({ on, hold = false, onFadedOut, children }: SceneLayerProps) {
   return (
     <div
+      data-on={on}
       onTransitionEnd={(e) => {
         if (!on && e.target === e.currentTarget && e.propertyName === 'opacity') onFadedOut?.();
       }}
@@ -154,7 +180,7 @@ function ScreenBrowser() {
         </p>
         {/* Selected with the remote: the TV's own focus ring, and a touch larger. */}
         <span
-          className="mt-[7cqh] flex h-[12.5cqh] scale-[1.04] items-center gap-[1.8cqh] rounded-full bg-primary px-[8.5cqh] text-[5.6cqh] font-semibold text-primary-foreground @max-[24rem]:mt-[9cqh] @max-[24rem]:h-[15cqh] @max-[24rem]:px-[9cqh] @max-[24rem]:text-[7cqh]"
+          className="sa-press mt-[7cqh] flex h-[12.5cqh] scale-[1.04] items-center gap-[1.8cqh] rounded-full bg-primary px-[8.5cqh] text-[5.6cqh] font-semibold text-primary-foreground @max-[24rem]:mt-[9cqh] @max-[24rem]:h-[15cqh] @max-[24rem]:px-[9cqh] @max-[24rem]:text-[7cqh]"
           style={{ boxShadow: '0 0 0 1cqh #FAFAF8, 0 0 0 1.9cqh #1A1A1A, 0 2.4cqh 5cqh -1cqh rgba(184,122,8,0.55)' }}
         >
           <MonitorUp className="size-[5.8cqh] @max-[24rem]:size-[7cqh]" strokeWidth={2.2} />
@@ -177,7 +203,7 @@ function Remote() {
     <div className="absolute top-[41cqw] left-[80%] w-[6.4%] rotate-[-16deg] sm:top-[40cqw] sm:left-[74.5%] sm:w-[5%] sm:rotate-[-28deg]">
       <svg
         viewBox="0 0 56 216"
-        className="block h-auto w-full"
+        className="sa-rise block h-auto w-full"
         style={{
           filter:
             'drop-shadow(0.8cqw 2.6cqw 2.4cqw rgba(38,24,10,0.32)) drop-shadow(0 0.4cqw 0.6cqw rgba(38,24,10,0.24))',
@@ -281,7 +307,7 @@ function HomeBar({ light = false }: { light?: boolean }) {
 function PhoneCamera() {
   return (
     <div className={cn(PHONE_BOX, 'top-[25cqw] left-[26.5%]')}>
-      <PhoneMock darkScreen className="w-full">
+      <PhoneMock darkScreen className="sa-rise w-full">
         <div className="absolute inset-x-0 top-[10%] bottom-[19%] overflow-hidden bg-[#C9C8C4]">
           <div className="absolute inset-0 scale-[1.06] rotate-[-2.5deg]">
             <CameraTv />
@@ -304,12 +330,16 @@ function PhoneCamera() {
             >
               <path d="M2 16 V7 a5 5 0 0 1 5 -5 H16 M84 2 H93 a5 5 0 0 1 5 5 V16 M98 84 V93 a5 5 0 0 1 -5 5 H84 M16 98 H7 a5 5 0 0 1 -5 -5 V84" />
             </svg>
+            {/* The camera reading the code: a line sweeping it. */}
+            <div className="absolute left-1/2 size-[52cqw] -translate-1/2 overflow-hidden" style={{ top: CAM_QR_Y }}>
+              <span className="sa-scan absolute inset-x-0 top-1/2 h-[1.2cqw] rounded-full bg-primary opacity-0 shadow-[0_0_3cqw_#E8A817]" />
+            </div>
           </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_75%_at_50%_45%,transparent_55%,rgba(24,14,4,0.35)_100%)]" />
 
           {/* The camera's offer to open what it read. */}
           <div className="absolute inset-x-0 flex justify-center" style={{ top: '110cqw' }}>
-            <span className="flex items-center gap-[1.8cqw] rounded-full bg-primary px-[4.6cqw] py-[2.8cqw] text-[7cqw] leading-none font-semibold text-primary-foreground shadow-[0_1cqw_3cqw_rgba(0,0,0,0.3)]">
+            <span className="sa-pop flex items-center gap-[1.8cqw] rounded-full bg-primary px-[4.6cqw] py-[2.8cqw] text-[7cqw] leading-none font-semibold text-primary-foreground shadow-[0_1cqw_3cqw_rgba(0,0,0,0.3)]">
               <Link2 className="size-[7cqw]" strokeWidth={2.4} />
               nextnamaz.com
             </span>
@@ -347,42 +377,53 @@ function ScreenBlank() {
  * phone layout both draw this scene; only the one on screen mounts a display.
  */
 function ScreenLive({ display }: { display: SupportedLocale }) {
-  return <DemoDisplay locale={resolveDisplayLocale(display)} />;
+  return (
+    <>
+      <ScreenBlank />
+      {/* Fills in from the top once the phone's button is tapped. */}
+      <div className="sa-fill absolute inset-0">
+        <DemoDisplay locale={resolveDisplayLocale(display)} />
+      </div>
+    </>
+  );
 }
 
+/** What the finished setup chose: the rows of its summary. */
+const DONE_ROWS: [string, string][] = [
+  ['City', 'Göteborg'],
+  ['Times', 'Islamiska Förbundet'],
+  ['Language', 'English'],
+  ['Look', 'Classic'],
+];
+
 /**
- * The setup's real last step, "Step 4 of 4 · PIN", its PIN left empty and
- * "Turn on the display" under the thumb.
+ * The setup, finished: a tick as the TV comes on, and what was chosen, the
+ * city, where the times come from, the language and the look.
  */
 function PhoneSettings({ rtl }: { rtl: boolean }) {
   return (
     <div className={cn(PHONE_BOX, 'top-[23cqw]', rtl ? 'left-[3.5%] sm:left-[2%]' : 'left-[49.5%]')}>
-      <PhoneMock className="w-full">
+      <PhoneMock className="sa-rise w-full">
         <div className="absolute inset-0 bg-[#F6F5F1]">
           <div className="flex items-center justify-between gap-[2cqw] border-b border-border bg-background px-[5cqw] pt-[14.5cqw] pb-[3.4cqw]">
             <Logo className="h-[4.8cqw] w-auto shrink-0" />
-            <span className="text-[6.6cqw] leading-none whitespace-nowrap text-muted-foreground">Step 4 of 4 · PIN</span>
+            <span className="text-[6.6cqw] leading-none whitespace-nowrap text-muted-foreground">Setup complete</span>
           </div>
 
-          <div className="px-[5cqw] pt-[6cqw]">
-            <p className="text-[8cqw] leading-[1.15] font-bold tracking-[-0.015em]">Lock it with a PIN?</p>
-            <p className="mt-[2.4cqw] text-[7cqw] leading-[1.35] text-muted-foreground">
-              Optional. Leave it empty to skip.
-            </p>
+          <div className="px-[5cqw] pt-[7cqw] text-center">
+            <span className="sa-pop [--sa-delay:1000ms] mx-auto flex size-[20cqw] items-center justify-center rounded-full bg-[#2F9E5B] text-white shadow-[0_1.4cqw_4cqw_-1cqw_rgba(47,158,91,0.7)]">
+              <Check className="size-[11cqw]" strokeWidth={3.2} />
+            </span>
+            <p className="mt-[4.5cqw] text-[8.4cqw] leading-[1.15] font-bold tracking-[-0.015em]">Your screen is set up</p>
+            <p className="mt-[2cqw] text-[6.6cqw] leading-[1.35] text-muted-foreground">The TV shows your times now.</p>
 
-            <div className="mt-[5cqw] rounded-[4cqw] border border-border bg-card p-[3.6cqw]">
-              <p className="text-[7cqw] leading-none font-medium">PIN (4 to 8 digits)</p>
-              <div className="mt-[3cqw] flex h-[14cqw] items-center rounded-[3cqw] border border-[#D6D1C6] px-[2.6cqw] text-[6.6cqw] whitespace-nowrap text-[#787364]">
-                Leave empty for no PIN
-              </div>
-              <p className="mt-[3cqw] text-[7cqw] leading-[1.35] text-muted-foreground">
-                You can add, change or remove it later.
-              </p>
-            </div>
-
-            {/* Mid-press: pushed in a touch, and ringed a shade darker. */}
-            <div className="mt-[6cqw] flex h-[15cqw] scale-[0.96] items-center justify-center rounded-full bg-primary text-[7.4cqw] font-semibold text-primary-foreground shadow-[0_0_0_0.8cqw_#B87A08]">
-              Turn on the display
+            <div className="mt-[5cqw] divide-y divide-border rounded-[4cqw] border border-border bg-card text-start">
+              {DONE_ROWS.map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-[2cqw] px-[3.6cqw] py-[2.6cqw] text-[6.4cqw] leading-none">
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="truncate font-semibold">{v}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -397,7 +438,7 @@ function SavedNote({ rtl }: { rtl: boolean }) {
   return (
     <div
       className={cn(
-        'absolute top-[62cqw] flex max-w-[41%] items-start gap-[1.8cqw] rounded-[3cqw] bg-card px-[3.2cqw] py-[2.6cqw] shadow-[0_1.2cqw_3cqw_-1cqw_rgba(38,24,10,0.3),0_0_0_1px_rgba(38,24,10,0.06)] sm:top-[55.5cqw] sm:max-w-none sm:items-center sm:gap-[1cqw] sm:rounded-[1.6cqw] sm:px-[1.8cqw] sm:py-[1.3cqw]',
+        'sa-pop [--sa-delay:2100ms] absolute top-[62cqw] flex max-w-[41%] items-start gap-[1.8cqw] rounded-[3cqw] bg-card px-[3.2cqw] py-[2.6cqw] shadow-[0_1.2cqw_3cqw_-1cqw_rgba(38,24,10,0.3),0_0_0_1px_rgba(38,24,10,0.06)] sm:top-[55.5cqw] sm:max-w-none sm:items-center sm:gap-[1cqw] sm:rounded-[1.6cqw] sm:px-[1.8cqw] sm:py-[1.3cqw]',
         rtl ? 'right-[5%] sm:right-[21.5%]' : 'left-[5%] sm:left-[4.5%]'
       )}
     >

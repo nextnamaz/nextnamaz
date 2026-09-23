@@ -1,9 +1,9 @@
-import Image from 'next/image';
 import type { ReactNode } from 'react';
 import type { LandingCopy } from '@/lib/landing-copy';
 import type { SupportedLocale } from '@/types/locale';
 import { cn } from '@/lib/utils';
 import { Reveal } from './reveal';
+import { FeaturesHall } from './features-hall';
 import { MotionStage } from './motion-stage';
 import { AnnouncementArt, DarkScreenArt, RemoteArt, SourcePickerArt } from './features-art';
 
@@ -100,16 +100,7 @@ export function Features({ t, display }: FeaturesProps) {
 
         <div className="mt-12 grid grid-cols-1 gap-12 sm:mt-14 md:grid-cols-2 md:gap-4 lg:grid-cols-12 lg:gap-5">
           <Reveal className="relative min-h-[26rem] overflow-hidden rounded-3xl border border-border bg-[#EDEAE4] sm:min-h-[34rem] md:col-start-1 md:row-start-3 md:min-h-0 lg:col-span-5 lg:row-start-1">
-            {/* Cover-cropped: on desktop the tile is taller than the photo's
-                4:5, so the image renders wider than the tile, about 680px. */}
-            {/* Cambridge Central Mosque. Unsplash, Rumman Amin (4NPXh6uGdaw), Unsplash License. */}
-            <Image
-              src="/landing/prayer-hall.jpg"
-              alt={t.imageAlt}
-              fill
-              sizes="(min-width: 1024px) 700px, (min-width: 768px) 50vw, 100vw"
-              className="object-cover object-[17%_50%]"
-            />
+            <FeaturesHall label={t.imageAlt} display={display} />
           </Reveal>
 
           <Tile

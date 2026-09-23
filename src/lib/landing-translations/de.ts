@@ -32,8 +32,10 @@ export const DE: LandingCopy = {
   oldWay: {
     title: 'Schluss mit dem Zettelwechsel',
     body: 'In vielen Moscheen hängt neben dem Mihrab ein ausgedruckter Gebetszeitenplan, dazu eine Wanduhr, und jeden Monat muss jemand den Zettel austauschen. NextNamaz lädt die neuen Zeiten jede Nacht. So stimmt die Anzeige jeden Morgen, ohne dass jemand Hand anlegen muss.',
-    imageAlt: 'Eine Wanduhr und ein ausgedruckter Monatsplan mit Gebetszeiten neben dem Mihrab einer kleinen Moschee',
+    imageAlt: 'Eine kurze Animation: Jeden Monat nimmt jemand den ausgedruckten Gebetszeitenplan ab und hängt einen neuen auf, bis aus dem Blatt ein Bildschirm wird, der sich selbst aktualisiert',
     before: 'Alltag in vielen Moscheen',
+    /** The caption once the sheet has become a screen. */
+    after: 'Mit NextNamaz',
   },
 
   howItWorks: {
@@ -106,11 +108,11 @@ export const DE: LandingCopy = {
     portrait: 'Hochformat, am Eingang',
   },
 
+
   features: {
     title: 'Gemacht für den Alltag in der Moschee',
     subtitle: 'Alles stellen Sie am Handy ein. Auf dem Fernseher wird nichts installiert.',
-    imageAlt:
-      'Der Gebetssaal der Cambridge Central Mosque mit Holzsäulen, die sich zur Decke hin verzweigen',
+    imageAlt: 'Eine gezeichnete Wand im Gebetssaal: der Mihrab mit einer Messinglampe darüber, daneben ein hochkant hängender Bildschirm mit den Gebetszeiten',
     rooms: { womens: 'Frauenbereich', main: 'Hauptsaal' },
     poster: {
       kicker: 'Jeden Samstag',
