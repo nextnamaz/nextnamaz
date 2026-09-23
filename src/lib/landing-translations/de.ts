@@ -118,8 +118,7 @@ export const DE: LandingCopy = {
   features: {
     title: 'Gemacht für den Alltag in der Moschee',
     subtitle: 'Alles stellen Sie am Handy ein. Auf dem Fernseher wird nichts installiert.',
-    imageAlt:
-      'Der Gebetssaal der Cambridge Central Mosque mit Holzsäulen, die sich zur Decke hin verzweigen',
+    imageAlt: 'Ein weißer Gebetssaal in Mekka, Betende auf dem Teppich unter einem großen Kronleuchter',
     rooms: { womens: 'Frauenbereich', main: 'Hauptsaal' },
     poster: {
       kicker: 'Jeden Samstag',

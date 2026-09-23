@@ -22,26 +22,73 @@ const SUNRISE = ROWS.find((r) => r.name === 'sunrise')?.at ?? 420;
 const SUNSET = ROWS.find((r) => r.name === 'maghrib')?.at ?? 1170;
 
 const DAY = 1440;
-/** Minutes a second at full speed; calibrated so a whole day, slowdowns included, takes about twelve seconds. */
-const SPEED = 182;
-/** How close to a prayer the clock starts to slow, in minutes. */
-const SLOW_WITHIN = 35;
-/** Where the loop begins: before dawn, so the first thing seen is Fajr arriving. */
-const START = 270;
+/** Minutes the clock counts up to each prayer, one a beat, and how long each beat lasts, in seconds. */
+const COUNT_IN = 3;
+const BEAT = 0.32;
+/** How long the screen holds on a prayer that has just begun, and how long the day takes to glide to the next, in seconds. */
+const HOLD = 0.6;
+const GLIDE = 0.9;
+/** The glide through the night, from Isha to Fajr, is longer: it is most of the day's hours. */
+const NIGHT_GLIDE = 1.3;
+
+interface Segment {
+  kind: 'count' | 'hold' | 'glide';
+  /** Minutes, unwrapped: a glide past midnight ends above 1440. */
+  from: number;
+  to: number;
+  start: number;
+  length: number;
+}
+
+/**
+ * The day as a film: count in to each prayer a minute a beat, hold as it
+ * begins, then glide to three minutes before the next. The clock only shows
+ * minutes that are counted or held; while the day glides it dims, so it never
+ * spins through the hours.
+ */
+const SEGMENTS: Segment[] = (() => {
+  const out: Segment[] = [];
+  let start = 0;
+  const push = (kind: Segment['kind'], from: number, to: number, length: number) => {
+    out.push({ kind, from, to, start, length });
+    start += length;
+  };
+  PRAYERS.forEach((p, i) => {
+    const next = PRAYERS[(i + 1) % PRAYERS.length] as Row;
+    push('count', p.at - COUNT_IN, p.at, COUNT_IN * BEAT);
+    push('hold', p.at, p.at, HOLD);
+    const to = next.at - COUNT_IN + (next.at < p.at ? DAY : 0);
+    push('glide', p.at, to, next.at < p.at ? NIGHT_GLIDE : GLIDE);
+  });
+  return out;
+})();
+const FILM = SEGMENTS.reduce((sum, s) => sum + s.length, 0);
+/** The still, before it plays or under reduced motion: a few minutes before Fajr. */
+const START = (PRAYERS[0]?.at ?? 330) - COUNT_IN;
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+/** Where the film is at a moment: the sky's minute, the clock's, and whether the day is gliding. */
+function frameAt(elapsed: number): { minute: number; shown: number; gliding: boolean } {
+  const e = ((elapsed % FILM) + FILM) % FILM;
+  const seg = SEGMENTS.find((s) => e < s.start + s.length) ?? (SEGMENTS.at(-1) as Segment);
+  const t = clamp01((e - seg.start) / seg.length);
+  if (seg.kind === 'glide') return { minute: wrap(seg.from + (seg.to - seg.from) * easeInOut(t)), shown: seg.from, gliding: true };
+  if (seg.kind === 'count') {
+    const m = Math.min(seg.to - 1, seg.from + Math.floor(t * COUNT_IN));
+    return { minute: seg.from + (seg.to - seg.from) * t, shown: m, gliding: false };
+  }
+  return { minute: seg.to, shown: seg.to, gliding: false };
+}
+
+/** Where to pick the film up after the slider moved it: the next count-in. */
+function elapsedFor(minute: number): number {
+  const seg = SEGMENTS.find((s) => s.kind === 'count' && s.from >= minute) ?? (SEGMENTS[0] as Segment);
+  return seg.start;
+}
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
-const smooth = (t: number) => t * t * (3 - 2 * t);
 const wrap = (m: number) => ((m % DAY) + DAY) % DAY;
-const gap = (a: number, b: number) => {
-  const d = Math.abs(a - b);
-  return Math.min(d, DAY - d);
-};
-
-/** The clock eases in to each prayer, so its minute can be seen to turn. */
-function speedAt(minute: number): number {
-  const near = Math.min(...PRAYERS.map((p) => gap(minute, p.at)));
-  return SPEED * (0.1 + 0.9 * smooth(clamp01(near / SLOW_WITHIN)));
-}
 
 type RGB = [number, number, number];
 /** The wall through the day, top and bottom: night blue, dawn violet, peach sunrise, warm white noon, gold afternoon, a red dusk. */
@@ -150,19 +197,24 @@ interface DayLoopProps {
  * the morning and home in the evening, and at night the stars and a crescent
  * come out and the windows light up. The display on the set keeps time on its own: the current prayer is
  * marked, the next one counts down, and as each begins it lights up. The clock
- * slows as a prayer comes, so its minute can be seen to turn.
+ * counts in to each prayer a minute at a time, then the day glides on.
  *
- * Drawn from a single minute, advanced once a frame while it is on screen.
+ * The sky is drawn from a continuous minute; the clock follows the film's
+ * counted and held minutes only (see SEGMENTS). Advanced once a frame while on screen.
  * Reduced motion does not start it; the slider still moves through the day.
  */
 export function DayLoop({ locale, t }: DayLoopProps) {
   const [minute, setMinute] = useState(START);
+  /** The minute on the screen's clock, and whether the day is gliding past it. */
+  const [shown, setShown] = useState(START);
+  const [gliding, setGliding] = useState(false);
   const [playing, setPlaying] = useState(false);
   /** Bumped as each prayer begins, to replay its flash. */
   const [arrival, setArrival] = useState<{ name: PrayerName; n: number } | null>(null);
   const visible = useRef(false);
   const userPaused = useRef(false);
   const minuteRef = useRef(START);
+  const elapsedRef = useRef(0);
 
   const watch = useCallback((el: HTMLDivElement | null) => {
     if (!el) return;
@@ -181,14 +233,17 @@ export function DayLoop({ locale, t }: DayLoopProps) {
     let frame = 0;
     let last = performance.now();
     const tick = (now: number) => {
-      const dt = Math.min(0.1, (now - last) / 1000);
+      elapsedRef.current += Math.min(0.1, (now - last) / 1000);
       last = now;
       const before = minuteRef.current;
-      const after = wrap(before + speedAt(before) * dt);
+      const f = frameAt(elapsedRef.current);
+      const after = f.minute;
       const begun = PRAYERS.find((p) => (after >= before ? p.at > before && p.at <= after : p.at > before || p.at <= after));
       if (begun) setArrival((a) => ({ name: begun.name, n: (a?.n ?? 0) + 1 }));
       minuteRef.current = after;
       setMinute(after);
+      setShown(f.shown);
+      setGliding(f.gliding);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -197,7 +252,10 @@ export function DayLoop({ locale, t }: DayLoopProps) {
 
   const scrub = (m: number) => {
     minuteRef.current = m;
+    elapsedRef.current = elapsedFor(m);
     setMinute(m);
+    setShown(m);
+    setGliding(false);
   };
   const toggle = () => {
     userPaused.current = playing;
@@ -210,9 +268,9 @@ export function DayLoop({ locale, t }: DayLoopProps) {
   const moon = clamp01(wrap(minute - SUNSET) / (DAY - SUNSET + SUNRISE));
   const flock = flockAt(minute);
   const skyline = mix([22, 24, 44], [120, 112, 124], daylight);
-  const current = currentAt(minute);
-  const next = nextAt(minute);
-  const left = wrap(next.at - minute);
+  const current = currentAt(shown);
+  const next = nextAt(shown);
+  const left = wrap(next.at - shown);
   const countdown = `${Math.floor(left / 60)}:${pad(Math.floor(left % 60))}`;
   const rtl = isRtlLocale(locale);
 
@@ -299,7 +357,7 @@ export function DayLoop({ locale, t }: DayLoopProps) {
         />
         <div className="relative mx-auto w-[58cqw] min-w-[17rem]">
           <TvFrame>
-            <Screen minute={minute} current={current} next={next} countdown={countdown} arrival={arrival} locale={locale} rtl={rtl} />
+            <Screen minute={shown} gliding={gliding} current={current} next={next} countdown={countdown} arrival={arrival} locale={locale} rtl={rtl} />
           </TvFrame>
         </div>
       </div>
@@ -355,6 +413,8 @@ export function DayLoop({ locale, t }: DayLoopProps) {
 
 interface ScreenProps {
   minute: number;
+  /** The day is gliding to the next prayer: the clock and countdown dim rather than spin. */
+  gliding: boolean;
   current: Row | null;
   next: Row;
   countdown: string;
@@ -368,12 +428,15 @@ interface ScreenProps {
  * top, the day's times with the passed ones ticked off, and the next prayer
  * counting down in the dark panel.
  */
-function Screen({ minute, current, next, countdown, arrival, locale, rtl }: ScreenProps) {
+function Screen({ minute, gliding, current, next, countdown, arrival, locale, rtl }: ScreenProps) {
   return (
     <div dir={rtl ? 'rtl' : 'ltr'} lang={locale.locale} className="absolute inset-0 flex flex-col bg-white text-[#1F2937]">
       <style>{FLASH}</style>
       <div className="flex flex-col items-center justify-center bg-linear-to-b from-[#E4EAF1] to-[#F4F6F9]" style={{ height: '29cqh' }}>
-        <p className="font-bold tabular-nums leading-none tracking-[-0.03em]" style={{ fontSize: '17cqh' }}>
+        <p
+          className="font-bold tabular-nums leading-none tracking-[-0.03em] transition-opacity duration-300"
+          style={{ fontSize: '17cqh', opacity: gliding ? 0.25 : 1 }}
+        >
           {clock(minute)}
         </p>
       </div>
@@ -414,7 +477,7 @@ function Screen({ minute, current, next, countdown, arrival, locale, rtl }: Scre
           <p className="font-bold tabular-nums leading-none" style={{ fontSize: '15cqh' }}>
             {next.time}
           </p>
-          <p className="mt-[1.5cqh] font-semibold tabular-nums" style={{ fontSize: '6cqh' }}>
+          <p className="mt-[1.5cqh] font-semibold tabular-nums transition-opacity duration-300" style={{ fontSize: '6cqh', opacity: gliding ? 0.3 : 1 }}>
             {countdown}
           </p>
         </div>

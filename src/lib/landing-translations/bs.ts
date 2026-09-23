@@ -113,7 +113,7 @@ export const BS: LandingCopy = {
   features: {
     title: 'Po mjeri džamije i džemata',
     subtitle: 'Sve podešavate s mobitela, a na televizor ne instalirate ništa.',
-    imageAlt: 'Prostor za namaz u Centralnoj džamiji u Cambridgeu, s drvenim stubovima koji se granaju prema plafonu',
+    imageAlt: 'Bijela sala za namaz u Mekki, s klanjačima na ćilimu ispod velikog lustera',
     rooms: { womens: 'Ženski dio', main: 'Glavni prostor' },
     poster: {
       kicker: 'Svake subote',

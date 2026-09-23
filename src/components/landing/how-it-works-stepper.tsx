@@ -31,8 +31,9 @@ const segment = (i: number, count: number) => `clamp(0, calc(var(--how-p, 0) * $
  * sideways, a very short window) it is a plain set of tabs.
  *
  * The scroll position reaches the page as a CSS variable, not React state,
- * so the progress bars move every frame without re-rendering anything. Only
- * a change of step renders.
+ * so the phone-width step bar moves every frame without re-rendering
+ * anything. Only a change of step renders. On wider screens the steps are
+ * plain words: the one in play stands out on a card, the others fade back.
  *
  * One stage serves every width: beside the list from lg, above the step's
  * words below it.
@@ -170,33 +171,23 @@ export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
                   aria-selected={on}
                   aria-controls={PANEL_ID}
                   aria-labelledby={`how-tab-${i}-title`}
-                  aria-describedby={`how-tab-${i}-text how-tab-${i}-detail`}
+                  aria-describedby={`how-tab-${i}-text`}
                   tabIndex={on ? 0 : -1}
                   onClick={() => pick(i)}
                   className={cn(
                     // Viewports 800px tall or less set the cards tighter, so all three fit the pinned panel in any language.
-                    'flex w-full gap-4 rounded-2xl px-5 pt-[18px] pb-6 text-start [@media(max-height:50rem)]:pt-3 [@media(max-height:50rem)]:pb-5 outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
+                    'flex w-full rounded-2xl px-6 py-5 text-start [@media(max-height:50rem)]:py-3.5 outline-none transition-[background-color,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
                     on
                       ? 'bg-card shadow-[0_1px_2px_rgba(38,24,10,0.05),0_12px_32px_-16px_rgba(38,24,10,0.22)] ring-1 ring-border/80'
                       : 'hover:bg-secondary/70'
                   )}
                 >
-                  <span
-                    aria-hidden
-                    className={cn(
-                      'mt-px flex size-8 shrink-0 items-center justify-center rounded-full text-[14px] font-bold tabular-nums transition-colors duration-300',
-                      on ? 'bg-primary text-primary-foreground' : 'border border-border text-muted-foreground'
-                    )}
-                  >
-                    {i + 1}
-                  </span>
-
                   <span className="relative min-w-0 flex-1">
                     <span
                       id={`how-tab-${i}-title`}
                       className={cn(
                         'block text-[20px] leading-snug font-semibold tracking-[-0.02em] text-pretty transition-colors duration-300 [@media(max-height:50rem)]:text-[18px]',
-                        on ? 'text-foreground' : 'text-foreground/80'
+                        on ? 'text-foreground' : 'text-foreground/55'
                       )}
                     >
                       {step.title}
@@ -207,31 +198,6 @@ export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
                     >
                       {step.description}
                     </span>
-                    <span
-                      id={`how-tab-${i}-detail`}
-                      className={cn(
-                        'mt-3 flex items-start gap-2 text-[14px] leading-normal font-medium text-pretty transition-colors duration-300 [@media(max-height:50rem)]:mt-2',
-                        on ? 'text-foreground' : 'text-muted-foreground'
-                      )}
-                    >
-                      <span
-                        aria-hidden
-                        className={cn(
-                          'mt-[7px] size-1.5 shrink-0 rounded-full transition-colors duration-300',
-                          on ? 'bg-primary' : 'bg-border'
-                        )}
-                      />
-                      {step.detail}
-                    </span>
-
-                    {pinned && (
-                      <span aria-hidden className="absolute inset-x-0 -bottom-3 h-[3px] overflow-hidden rounded-full bg-border/60">
-                        <span
-                          className="block h-full origin-left rounded-full rtl:origin-right bg-primary"
-                          style={{ transform: `scaleX(${segment(i, count)})` }}
-                        />
-                      </span>
-                    )}
                   </span>
                 </button>
               );
@@ -303,23 +269,13 @@ export function HowItWorksStepper({ steps, display }: HowItWorksStepperProps) {
                     key={step.title}
                     aria-hidden={!on}
                     className={cn(
-                      'flex gap-4 [grid-area:1/1] transition-opacity duration-300 motion-reduce:transition-none',
+                      'flex [grid-area:1/1] transition-opacity duration-300 motion-reduce:transition-none',
                       on ? 'opacity-100' : 'pointer-events-none opacity-0'
                     )}
                   >
-                    <span
-                      aria-hidden
-                      className="mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold tabular-nums text-primary-foreground"
-                    >
-                      {i + 1}
-                    </span>
                     <div className="min-w-0 max-w-[62ch]">
                       <h3 className="text-[20px] leading-snug font-semibold tracking-[-0.02em] text-pretty">{step.title}</h3>
                       <p className="mt-1.5 text-[15px] leading-relaxed text-pretty text-muted-foreground">{step.description}</p>
-                      <p className="mt-3 flex items-start gap-2 text-[14px] font-medium text-[#3E3A30]">
-                        <span aria-hidden className="mt-[7px] size-1.5 shrink-0 rounded-full bg-primary" />
-                        {step.detail}
-                      </p>
                     </div>
                   </div>
                 );

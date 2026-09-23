@@ -113,7 +113,7 @@ export const SV: LandingCopy = {
   features: {
     title: 'Byggd för moskéns vardag',
     subtitle: 'Allt sköts från mobilen. Inget installeras på tv:n.',
-    imageAlt: 'Bönesalen i Cambridge Central Mosque, där träpelarna grenar ut sig upp i taket',
+    imageAlt: 'En vit bönesal i Mecka, med bedjande på mattan under en stor ljuskrona',
     rooms: { womens: 'Kvinnoavdelningen', main: 'Stora salen' },
     poster: {
       kicker: 'Varje lördag',

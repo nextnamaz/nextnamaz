@@ -135,7 +135,7 @@ export const LANDING_COPY = {
   features: {
     title: 'Made for how a mosque runs',
     subtitle: 'Everything is set from a phone. Nothing is installed on the TV.',
-    imageAlt: 'The prayer hall of Cambridge Central Mosque, its timber columns branching into the ceiling',
+    imageAlt: 'A white prayer hall in Makkah, worshippers on the carpet beneath a great chandelier',
     /** Names under the two televisions in the 'Change it from your phone' drawing. */
     rooms: { womens: "Women's section", main: 'Main hall' },
     /** The sample poster in the announcements drawing. */

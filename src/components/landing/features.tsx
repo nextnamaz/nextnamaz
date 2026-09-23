@@ -102,13 +102,13 @@ export function Features({ t, display }: FeaturesProps) {
           <Reveal className="relative min-h-[26rem] overflow-hidden rounded-3xl border border-border bg-[#EDEAE4] sm:min-h-[34rem] md:col-start-1 md:row-start-3 md:min-h-0 lg:col-span-5 lg:row-start-1">
             {/* Cover-cropped: on desktop the tile is taller than the photo's
                 4:5, so the image renders wider than the tile, about 680px. */}
-            {/* Cambridge Central Mosque. Unsplash, Rumman Amin (4NPXh6uGdaw), Unsplash License. */}
+            {/* A prayer hall in Makkah. Unsplash, Imad Ud Khan (0d07Ng-C51Q), Unsplash License. */}
             <Image
-              src="/landing/prayer-hall.jpg"
+              src="/landing/makkah-hall.jpg"
               alt={t.imageAlt}
               fill
               sizes="(min-width: 1024px) 700px, (min-width: 768px) 50vw, 100vw"
-              className="object-cover object-[17%_50%]"
+              className="object-cover object-[50%_60%]"
             />
           </Reveal>
 

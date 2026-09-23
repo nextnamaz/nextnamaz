@@ -17,7 +17,7 @@ import { OldWayScreen } from './old-way-screen';
  * outgrows the photograph.
  *
  * The photograph is shown whole: the calligraphy medallion at its centre is
- * never cropped. As the reader scrolls through, it gives way to the same
+ * never cropped. On a loop, it gives way to the same
  * frame with a television on the wall, running the real display: a line
  * sweeps across from the timetable's side, and behind it is the screen (see
  * WIPE). The "before" label sits bottom left, the last of the photograph to
@@ -30,13 +30,12 @@ interface OldWayProps {
 }
 
 /**
- * Before and after. Where the browser has scroll-driven animations the wipe
- * follows the scroll: it waits until the reader has had the photograph for a
- * while, starting two fifths of the way through its passage, and is done as
- * the frame starts to leave the top, and runs back when scrolling up.
- * Elsewhere it plays once, as the frame comes into view (MotionStage). The
- * still, without JavaScript (whose screen would be blank), is the photograph;
- * with reduced motion it is the two halves, split at the line.
+ * Before and after, played on a loop like a short film while the frame is in
+ * view (MotionStage pauses it when it is not): the photograph holds for three
+ * seconds, a line sweeps slowly across from the timetable's side to show the
+ * television behind it, the screen holds for four, and the line sweeps back.
+ * The still, without JavaScript (whose screen would be blank), is the
+ * photograph; with reduced motion it is the two halves, split at the line.
  * Not mirrored for right-to-left pages: the photograph is not, so the line
  * still starts at the timetable, which is also where Arabic starts reading.
  */
@@ -44,40 +43,25 @@ const WIPE = `
 .ow-after { clip-path: inset(0 0 0 100%); }
 .ow-edge { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  .ow-after { animation-name: ow-wipe; }
-  .ow-edge { animation-name: ow-edge; }
-  @supports (animation-timeline: view()) {
-    /* The frame's own passage through the viewport. Named on the figure, not
-       view() on the layers: the figure clips, which makes it their scroller. */
-    .ow-frame { view-timeline: --ow-frame block; }
-    [data-live] :is(.ow-after, .ow-edge) {
-      animation-duration: auto;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: --ow-frame;
-      animation-range: contain 40% exit 15%;
-    }
-  }
-  @supports not (animation-timeline: view()) {
-    .ow-after, .ow-edge { animation-duration: 0s; }
-    [data-enter='play'] :is(.ow-after, .ow-edge) {
-      animation-duration: 1.8s;
-      animation-delay: 1400ms;
-      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-      animation-fill-mode: both;
-    }
-  }
+  [data-live] .ow-after { animation: ow-wipe 11s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+  [data-live] .ow-edge { animation: ow-edge 11s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
 }
 /* Reduced motion, once the screen can run: before and after side by side, held still at the line. */
 @media (prefers-reduced-motion: reduce) {
   [data-live] .ow-after { clip-path: inset(0 0 0 50%); }
   [data-live] .ow-edge { opacity: 1; transform: translateX(50%); }
 }
-@keyframes ow-wipe { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes ow-wipe {
+  0%, 27% { clip-path: inset(0 0 0 100%); }
+  45%, 82% { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 0 100%); }
+}
 @keyframes ow-edge {
-  0% { opacity: 0; transform: translateX(100%); }
-  6%, 92% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(0); }
+  0%, 27% { opacity: 0; transform: translateX(100%); }
+  29%, 43% { opacity: 1; }
+  45%, 82% { opacity: 0; transform: translateX(0); }
+  84%, 98% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); }
 }
 `;
 

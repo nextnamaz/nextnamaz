@@ -113,7 +113,7 @@ export const TR: LandingCopy = {
   features: {
     title: 'Caminin işleyişine göre tasarlandı',
     subtitle: 'Her şey telefondan ayarlanır. Televizyona hiçbir şey yüklenmez.',
-    imageAlt: "Cambridge Merkez Camii'nin namaz salonu ve tavana doğru dallanan ahşap sütunları",
+    imageAlt: "Mekke'de beyaz bir namaz salonu; büyük bir avizenin altında halıda namaz kılanlar",
     rooms: { womens: 'Kadınlar mahfili', main: 'Ana salon' },
     poster: {
       kicker: 'Her cumartesi',
