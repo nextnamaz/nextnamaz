@@ -4,11 +4,15 @@
 #
 # Usage:
 #   chmod +x kiosk-setup.sh
-#   NEXTNAMAZ_URL="https://nextnamaz.com/s" ./display-setup.sh
+#   NEXTNAMAZ_URL="https://www.nextnamaz.com/s" ./kiosk-setup.sh
+#
+# Once the screen exists, point the kiosk straight at it so it never depends
+# on the browser remembering the id:
+#   NEXTNAMAZ_URL="https://www.nextnamaz.com/tv/<id>" ./kiosk-setup.sh
 
 set -euo pipefail
 
-NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/s}"
+NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://www.nextnamaz.com/s}"
 AUTOSTART_DIR="$HOME/.config/autostart"
 AUTOSTART_FILE="$AUTOSTART_DIR/nextnamaz-kiosk.desktop"
 
@@ -29,7 +33,7 @@ cat > "$KIOSK_SCRIPT" << 'INNER'
 #!/usr/bin/env bash
 set -euo pipefail
 
-NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://nextnamaz.com/s}"
+NEXTNAMAZ_URL="${NEXTNAMAZ_URL:-https://www.nextnamaz.com/s}"
 
 # Disable screen blanking and power management
 xset s off
