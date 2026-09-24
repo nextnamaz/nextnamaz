@@ -118,6 +118,17 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     return () => clearTimeout(id);
   }, [todayTimes, router]);
 
+  // Remember this screen on the device, every load. A TV whose storage was
+  // lost (a crash, a cleared profile) then finds its way back here from /s
+  // after a reboot instead of waiting at the Start button.
+  useEffect(() => {
+    try {
+      localStorage.setItem(SCREEN_STORAGE_KEY, screen.id);
+    } catch {
+      // storage unavailable — nothing to remember into
+    }
+  }, [screen.id]);
+
   // Daily hard reload to pick up app updates — only when reachable, so a
   // flaky connection never strands the kiosk on an error page.
   useEffect(() => {
