@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, RefreshCw } from 'lucide-react';
-import { resolveDisplayLocale } from '@/lib/display-locale';
+import { formatMonthName, resolveDisplayLocale } from '@/lib/display-locale';
 import type { SupportedLocale } from '@/types/locale';
 import { TvFrame } from './tv-frame';
 import { ScreenPlaceholder } from './screen-placeholder';
@@ -82,8 +82,7 @@ export function OldWayFilm({ label, before, after, display }: OldWayFilmProps) {
   }, [running]);
 
   const locale = resolveDisplayLocale(display);
-  const monthName = (i: number) =>
-    new Intl.DateTimeFormat(locale.locale, { month: 'long' }).format(new Date(2026, 8 + i, 1));
+  const monthName = (i: number) => formatMonthName(new Date(2026, 8 + i, 1), locale);
   const flipsDone = T.flips.filter((f) => t >= f + 0.35).length;
   const flipping = T.flips.map((f) => span(t, [f, f + 0.35])).find((p) => p > 0 && p < 1) ?? 0;
   const month = flipsDone;

@@ -96,6 +96,40 @@ export function formatDisplayDate(date: Date, locale: DisplayLocale): string {
   }
 }
 
+/** The long date as each language writes it: "Friday, 2 October 2026", "petak, 2. oktobar 2026." */
+export function formatLongDate(date: Date, locale: DisplayLocale): string {
+  const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
+  try {
+    return format(date, 'PPPP', { locale: fnsLocale });
+  } catch {
+    return date.toLocaleDateString('en-GB');
+  }
+}
+
+/**
+ * A month's name as a calendar page shows it: "novembar", "November", "نوفمبر".
+ * From date-fns, not Intl: Chrome ships no Bosnian month names and prints
+ * "M11", which also differs from the server's render and breaks hydration.
+ */
+export function formatMonthName(date: Date, locale: DisplayLocale): string {
+  return format(date, 'LLLL', { locale: DATE_FNS_LOCALES[locale.locale] ?? enGB });
+}
+
+/** The date in two parts, for a theme that sets the weekday on its own line: "Petak" and "2. oktobar 2026." */
+export function formatDateParts(date: Date, locale: DisplayLocale): { weekday: string; date: string } {
+  const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
+  try {
+    const weekday = format(date, 'EEEE', { locale: fnsLocale });
+    return {
+      // A label on its own line takes a capital, though "petak" mid-sentence would not.
+      weekday: weekday.charAt(0).toLocaleUpperCase(locale.locale) + weekday.slice(1),
+      date: format(date, 'PPP', { locale: fnsLocale }),
+    };
+  } catch {
+    return { weekday: '', date: date.toLocaleDateString('en-GB') };
+  }
+}
+
 /** "Saturday, 25 July" in the given app locale — stable across browsers. */
 export function formatTodayDate(locale: string): string {
   const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;
