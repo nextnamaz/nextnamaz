@@ -29,8 +29,9 @@ export const TR: LandingCopy = {
   oldWay: {
     title: 'Vakit çizelgesini elle değiştirmeye son',
     body: 'Birçok camide mihrabın yanında basılı bir vakit çizelgesi, duvarda da bir saat asılıdır ve çizelgeyi her ay birinin değiştirmesi gerekir. NextNamaz yeni vakitleri her gece kendisi yükler; böylece ekran, kimse dokunmadan her sabah doğru vakitleri gösterir.',
-    imageAlt: 'Kısa bir animasyon: Her ay biri basılı vakit çizelgesini indirip yenisini asıyor, ta ki kâğıt kendi kendini güncelleyen bir ekrana dönüşene kadar',
+    imageAlt: 'Kısa bir film: Her ay biri basılı vakit çizelgesini indirip yenisini duvara yapıştırıyor; ta ki yerine kendi kendini güncelleyen bir ekran asılana dek',
     before: 'Birçok camide hâlâ böyle',
+    instead: 'Böylesi çok daha kolay',
     /** The caption once the sheet has become a screen. */
     after: 'NextNamaz ile',
   },
@@ -108,7 +109,7 @@ export const TR: LandingCopy = {
   features: {
     title: 'Caminin işleyişine göre tasarlandı',
     subtitle: 'Her şey telefondan ayarlanır. Televizyona hiçbir şey yüklenmez.',
-    imageAlt: 'Çizilmiş bir namaz salonu duvarı: üstünde pirinç bir kandil asılı mihrap ve yanında dikey asılmış, namaz vakitlerini gösteren bir ekran',
+    imageAlt: 'Sabah ışığında bir namaz salonu: üstünde pirinç bir kandil asılı mihrap ve yanında dikey asılmış, namaz vakitlerini gösteren bir ekran',
     rooms: { womens: 'Kadınlar mahfili', main: 'Ana salon' },
     poster: {
       kicker: 'Her cumartesi',

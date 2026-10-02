@@ -4,6 +4,7 @@ import { DATE_FORMAT_OPTIONS, DEFAULT_TRANSLATIONS, LANGUAGES } from '@/lib/loca
 import {
   formatClockTime,
   formatDisplayDate,
+  formatMonth,
   formatPrayerTime,
   formatTodayDate,
   isRtlLocale,
@@ -361,5 +362,25 @@ describe('resolveTimezone', () => {
 
   it('returns an explicit timezone untouched', () => {
     expect(resolveTimezone({ ...EN, timezone: 'Europe/Sarajevo' })).toBe('Europe/Sarajevo');
+  });
+});
+
+describe('formatMonth', () => {
+  const OCTOBER_FIRST = new Date(2026, 9, 1);
+
+  it('names the month in each landing language, in its own order', () => {
+    expect(formatMonth(OCTOBER_FIRST, 'en')).toEqual({ month: 'October', dayMonth: 'October 1' });
+    expect(formatMonth(OCTOBER_FIRST, 'sv')).toEqual({ month: 'oktober', dayMonth: '1 oktober' });
+    expect(formatMonth(OCTOBER_FIRST, 'de')).toEqual({ month: 'Oktober', dayMonth: '1. Oktober' });
+    expect(formatMonth(OCTOBER_FIRST, 'tr')).toEqual({ month: 'Ekim', dayMonth: '1 Ekim' });
+    expect(formatMonth(OCTOBER_FIRST, 'ar')).toEqual({ month: 'أكتوبر', dayMonth: '1 أكتوبر' });
+  });
+
+  it('spells Bosnian months out instead of the "M10" a browser without the data prints', () => {
+    expect(formatMonth(OCTOBER_FIRST, 'bs')).toEqual({ month: 'oktobar', dayMonth: '1. oktobar' });
+  });
+
+  it('falls back to English for an unknown code', () => {
+    expect(formatMonth(OCTOBER_FIRST, 'xx').month).toBe('October');
   });
 });

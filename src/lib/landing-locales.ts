@@ -1,8 +1,8 @@
 import type { SupportedLocale } from '@/types/locale';
 
 /**
- * The languages the homepage is written in. Only the homepage: the setup,
- * settings and TV pages stay as they are. English lives at /, the others
+ * The languages the homepage is written in, and the phone setup after it
+ * (src/lib/setup-copy.ts). The settings and TV pages stay in English. English lives at /, the others
  * under their code (/sv, /bs ...), so each can be indexed on its own.
  *
  * No imports of the copy here: the proxy reads this file, and should not

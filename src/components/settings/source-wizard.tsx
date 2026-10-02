@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Check, ChevronRight, LocateFixed, Search, Loader2 } from 'lucide-react';
 import { SourceLogo } from './setup-art';
@@ -11,6 +11,8 @@ import type { PrayerTimesMap } from '@/types/database';
 import type { AdhanCalculationMethod } from '@/types/prayer-config';
 import { PRAYER_NAMES } from '@/types/prayer';
 import type { DisplayTextConfig } from '@/types/locale';
+import { SETUP_COPY } from '@/lib/setup-copy';
+import type { SetupCopy } from '@/lib/setup-copy';
 import { VAKTIJA_LOCATIONS } from '@/lib/prayer-sources/vaktija-ba';
 import { VAKTIJA_EU_COUNTRIES } from '@/lib/prayer-sources/vaktija-eu';
 import { ISLAMISKA_CITIES } from '@/lib/prayer-sources/islamiska-forbundet';
@@ -49,27 +51,12 @@ function flagOf(code: string): string {
   return /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '';
 }
 
-const SOURCE_META: Record<WizardSource, { title: string; subtitle: string }> = {
-  vaktija_ba: {
-    title: 'Vaktija.ba',
-    subtitle: 'Official takvim of the Islamic Community in Bosnia',
-  },
-  vaktija_eu: {
-    title: 'Vaktija.eu',
-    subtitle: 'Bosnian takvim for cities across Europe',
-  },
-  islamiska_forbundet: {
-    title: 'Islamiska Förbundet',
-    subtitle: 'Official Swedish prayer timetable',
-  },
-  aladhan: {
-    title: 'AlAdhan',
-    subtitle: 'Worldwide service with the conventions of 20+ national authorities.',
-  },
-  adhan: {
-    title: 'Calculate the times',
-    subtitle: 'No external source. Computed astronomically for your exact location.',
-  },
+/** The sources' own names; the calculation has none, so the copy names it. */
+const SOURCE_NAMES: Record<Exclude<WizardSource, 'adhan'>, string> = {
+  vaktija_ba: 'Vaktija.ba',
+  vaktija_eu: 'Vaktija.eu',
+  islamiska_forbundet: 'Islamiska Förbundet',
+  aladhan: 'AlAdhan',
 };
 
 /** The part of a calculated source's config that comes from the place itself. */
@@ -84,6 +71,8 @@ function placeConfig(place: GeoPlace, madhab: Madhab) {
 }
 
 interface SourceWizardProps {
+  /** The words; English when left out, as in the settings. */
+  copy?: SetupCopy;
   translations: DisplayTextConfig;
   onApply: (
     source: PrayerSourceInput,
@@ -91,9 +80,14 @@ interface SourceWizardProps {
     times: PrayerTimesMap | null
   ) => void;
   onCancel?: () => void;
+  /** Ask for the device's location as soon as this opens, so most people never have to type. */
+  autoLocate?: boolean;
 }
 
-export function SourceWizard({ translations, onApply, onCancel }: SourceWizardProps) {
+export function SourceWizard({ copy = SETUP_COPY.en, translations, onApply, onCancel, autoLocate = false }: SourceWizardProps) {
+  const t = copy.source;
+  const l = copy.location;
+  const titleOf = (source: WizardSource) => (source === 'adhan' ? t.calculateTitle : SOURCE_NAMES[source]);
   const [step, setStep] = useState<'location' | 'source'>('location');
   const [place, setPlace] = useState<GeoPlace | null>(null);
   const [locating, setLocating] = useState(false);
@@ -104,6 +98,8 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
 
   const [ranked, setRanked] = useState<WizardSource[]>([]);
   const [selected, setSelected] = useState<WizardSource | null>(null);
+  /** The list of sources stays folded away until the recommended times are said not to match. */
+  const [choosing, setChoosing] = useState(false);
   const [baId, setBaId] = useState<number | null>(null);
   const [euSlug, setEuSlug] = useState<string | null>(null);
   const [ifCity, setIfCity] = useState<string>('Stockholm');
@@ -134,19 +130,34 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
     setRanked(order);
     // Preselect the recommended source; nothing to preselect if none fit.
     setSelected(order[0] ?? null);
+    setChoosing(false);
     setStep('source');
   };
 
-  const handleLocate = async () => {
+  /** Cleared once the person types or picks a city, so a late location answer can't overrule them. */
+  const autoPending = useRef(autoLocate);
+
+  const handleLocate = async (auto = false) => {
     setLocating(true);
     setGeoError(false);
     try {
-      choosePlace(await locateMe());
+      const found = await locateMe();
+      if (!auto || autoPending.current) choosePlace(found);
     } catch {
-      setGeoError(true);
+      // Declining the automatic ask is a fine answer: the page already says to type.
+      if (!auto) setGeoError(true);
     }
+    autoPending.current = false;
     setLocating(false);
   };
+
+  useEffect(() => {
+    if (!autoLocate) return;
+    const timer = setTimeout(() => void handleLocate(true), 0);
+    return () => clearTimeout(timer);
+    // Once, on opening.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Suggest cities while typing. Two characters is the geocoder's minimum.
   useEffect(() => {
@@ -171,6 +182,7 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
   }, [query]);
 
   const handleQueryChange = (value: string) => {
+    autoPending.current = false;
     setQuery(value);
     if (value.trim().length < 2) setResults([]);
   };
@@ -259,6 +271,30 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
 
   const noResults = !searching && !geoError && query.trim().length >= 3 && results.length === 0;
 
+  const timesPreview = (
+    <div className="min-h-[5.5rem]">
+      <p className="mb-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">{t.today}</p>
+      {previewLoading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> {t.fetching}
+        </div>
+      )}
+      {previewError && (
+        <p className="text-sm text-destructive">{t.fetchError}</p>
+      )}
+      {preview && (
+        <div className="grid grid-cols-3 gap-y-2.5 text-center">
+          {PRAYER_NAMES.map((p) => (
+            <div key={p}>
+              <div className="truncate text-xs text-muted-foreground">{translations.prayers[p]}</div>
+              <div className="text-[17px] font-semibold tabular-nums">{preview[p]}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const heading = 'font-heading text-[26px] leading-tight font-semibold tracking-[-0.025em] text-balance';
 
   return (
@@ -266,42 +302,17 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
       {step === 'location' && (
         <div key="location" className="wiz-step space-y-6" style={{ '--wiz-dir': -1 } as CSSProperties}>
           <div>
-            <h2 className={heading}>Where is this screen?</h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              We&apos;ll find the right prayer times for that place.
-            </p>
-          </div>
-
-          {/* The first match while typing, pinned; before that, Göteborg, where NextNamaz is made. */}
-          {results[0] ? (
-            <MapView lat={results[0].latitude} lon={results[0].longitude} zoom={12} pinned />
-          ) : (
-            <MapView lat={57.7089} lon={11.9746} zoom={11.5} pinned={false} />
-          )}
-
-          <div>
-            <Button size="lg" className="h-14 w-full rounded-full text-base" onClick={handleLocate} disabled={locating}>
-              {locating ? <Loader2 className="mr-2 size-5 animate-spin" /> : <LocateFixed className="mr-2 size-5" />}
-              Use my location
-            </Button>
-            <p className="mt-2 text-center text-sm text-muted-foreground">Best when you are at the mosque. Your phone asks first.</p>
-            {geoError && (
-              <p className="mt-2 text-center text-sm text-destructive">Couldn&apos;t get your location. Type the city below instead.</p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or type the city
-            <span className="h-px flex-1 bg-border" />
+            <h2 className={heading}>{l.title}</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{l.body}</p>
           </div>
 
           <div>
             <div className="relative">
-              <Search className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute top-1/2 start-4 size-5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="h-14 rounded-2xl bg-card pr-11 pl-12 text-[17px] md:text-[17px]"
-                placeholder="Göteborg, Sarajevo, Berlin…"
+                aria-label={l.cityLabel}
+                className="h-14 rounded-2xl border-2 border-primary/60 bg-card ps-12 pe-11 text-[17px] md:text-[17px]"
+                placeholder={l.placeholder}
                 // On a phone the keyboard takes half the screen: bring the field to the top so its results show.
                 onFocus={(e) => {
                   const el = e.currentTarget;
@@ -311,7 +322,7 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                 onChange={(e) => handleQueryChange(e.target.value)}
               />
               {searching && (
-                <Loader2 className="absolute top-1/2 right-4 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
+                <Loader2 className="absolute top-1/2 end-4 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
               )}
             </div>
 
@@ -322,21 +333,40 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                     <button
                       type="button"
                       onClick={() => choosePlace(r)}
-                      className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                      className="flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
                     >
                       <span className="text-2xl leading-none" aria-hidden>{flagOf(r.countryCode)}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-semibold">{r.name}</span>
                         <span className="block truncate text-sm text-muted-foreground">{r.region}</span>
                       </span>
-                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:rotate-180" />
                     </button>
                   </li>
                 ))}
               </ul>
             )}
 
-            {noResults && <p className="mt-3 px-1 text-sm text-muted-foreground">No city found. Try another spelling.</p>}
+            {noResults && <p className="mt-3 px-1 text-sm text-muted-foreground">{l.noResults}</p>}
+          </div>
+
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            {l.orAtMosque}
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <div>
+            <Button variant="outline" size="lg" className="h-12 w-full rounded-full text-[15px]" onClick={() => void handleLocate()} disabled={locating}>
+              {locating ? <Loader2 className="me-2 size-5 animate-spin" /> : <LocateFixed className="me-2 size-5" />}
+              {locating ? l.finding : l.useLocation}
+            </Button>
+            {locating && (
+              <p className="mt-2 text-center text-sm text-muted-foreground">{l.allowHint}</p>
+            )}
+            {geoError && (
+              <p className="mt-2 text-center text-sm text-destructive">{l.geoError}</p>
+            )}
           </div>
         </div>
       )}
@@ -344,19 +374,31 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
       {step === 'source' && place && (
         <div key="source" className="wiz-step space-y-6" style={{ '--wiz-dir': 1 } as CSSProperties}>
           <div>
-            <h2 className={heading}>Where should the times come from?</h2>
+            <h2 className={heading}>{choosing ? t.chooseTitle : t.confirmTitle}</h2>
             <p className="mt-2 flex items-center gap-1.5 text-[15px] text-muted-foreground">
               <span aria-hidden>{flagOf(place.countryCode)}</span>
               <span className="truncate">{place.name}{place.region ? `, ${place.region}` : ''}</span>
               <button type="button" className="shrink-0 font-medium text-foreground underline underline-offset-4" onClick={() => setStep('location')}>
-                Change
+                {t.change}
               </button>
             </p>
           </div>
 
-          <div role="radiogroup" aria-label="Prayer time source" className="space-y-2.5">
+          {!choosing && selected && (
+            <>
+              <MapView lat={place.latitude} lon={place.longitude} zoom={11} pinned />
+              <div className="rounded-2xl border border-border bg-card p-4">
+                {timesPreview}
+                <p className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-sm text-muted-foreground">
+                  {t.from(titleOf(selected))}
+                </p>
+              </div>
+            </>
+          )}
+
+          {choosing && (
+          <div role="radiogroup" aria-label={t.groupLabel} className="space-y-2.5">
             {shown.map((source, i) => {
-              const meta = SOURCE_META[source];
               const active = selected === source;
               const calculated = source === 'adhan' || source === 'aladhan';
               return (
@@ -372,19 +414,19 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                     role="radio"
                     aria-checked={active}
                     onClick={() => setSelected(source)}
-                    className="flex w-full items-center gap-3.5 p-4 text-left"
+                    className="flex w-full items-center gap-3.5 p-4 text-start"
                   >
                     <SourceLogo source={source} />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
-                        <span className="text-[17px] font-semibold">{meta.title}</span>
+                        <span className="text-[17px] font-semibold">{titleOf(source)}</span>
                         {i === 0 && (
                           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-[#8A6206]">
-                            Recommended
+                            {t.recommended}
                           </span>
                         )}
                       </span>
-                      <span className="mt-0.5 block text-sm text-muted-foreground">{meta.subtitle}</span>
+                      <span className="mt-0.5 block text-sm text-muted-foreground">{t.subtitles[source]}</span>
                     </span>
                     {active && (
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -453,46 +495,32 @@ export function SourceWizard({ translations, onApply, onCancel }: SourceWizardPr
                         <Select value={madhab} onValueChange={(v) => setMadhab(v as Madhab)}>
                           <SelectTrigger className="h-11 w-full rounded-xl" aria-label="Asr"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="shafi">Asr · Standard (Shafi&apos;i, Maliki, Hanbali)</SelectItem>
-                            <SelectItem value="hanafi">Asr · Hanafi (later)</SelectItem>
+                            <SelectItem value="shafi">{t.asrStandard}</SelectItem>
+                            <SelectItem value="hanafi">{t.asrHanafi}</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
 
                       {/* Today's times from this source, right where it's chosen. */}
-                      <div className="min-h-[5.5rem] rounded-xl bg-secondary/60 p-3">
-                        <p className="mb-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Today</p>
-                        {previewLoading && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Loader2 className="size-4 animate-spin" /> Fetching today&apos;s times…
-                          </div>
-                        )}
-                        {previewError && (
-                          <p className="text-sm text-destructive">Couldn&apos;t fetch times from this source right now.</p>
-                        )}
-                        {preview && (
-                          <div className="grid grid-cols-3 gap-y-2.5 text-center">
-                            {PRAYER_NAMES.map((p) => (
-                              <div key={p}>
-                                <div className="truncate text-xs text-muted-foreground">{translations.prayers[p]}</div>
-                                <div className="text-[17px] font-semibold tabular-nums">{preview[p]}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <div className="rounded-xl bg-secondary/60 p-3">{timesPreview}</div>
                     </div>
                   )}
                 </div>
               );
             })}
           </div>
+          )}
 
           {/* The one way on, kept at the bottom of the screen on a phone. */}
           <div className="sticky bottom-0 -mx-4 bg-linear-to-t from-background via-background to-background/0 px-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button size="lg" className="h-12 w-full rounded-full text-[15px]" onClick={apply} disabled={!preview}>
-              Use these times
+              {choosing ? t.use : t.yes}
             </Button>
+            {!choosing && (
+              <button type="button" className="mt-3 w-full text-center text-[15px] font-medium underline underline-offset-4" onClick={() => setChoosing(true)}>
+                {t.different}
+              </button>
+            )}
           </div>
         </div>
       )}

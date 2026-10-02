@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getScreen } from '@/lib/screens';
 import { isUnlocked } from '@/lib/pin';
 import { SettingsForm } from '@/components/settings/settings-form';
 import { PinGate } from '@/components/settings/pin-gate';
 import { NOINDEX_METADATA } from '@/lib/site';
+import { LANDING_LOCALE_COOKIE, detectLandingLocale, isLandingLocale } from '@/lib/landing-locales';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,13 @@ export default async function ScreenSettingsPage({ params }: SettingsPageProps) 
     return <PinGate id={id} />;
   }
 
+  // Setup speaks the homepage's language: the one picked there, else the browser's or the country's.
+  const picked = store.get(LANDING_LOCALE_COOKIE)?.value;
+  const head = await headers();
+  const uiLocale = picked && isLandingLocale(picked)
+    ? picked
+    : detectLandingLocale(head.get('accept-language'), head.get('x-vercel-ip-country'));
+
   // The hash stays on the server; the form only needs to know one exists.
-  return <SettingsForm screen={{ ...screen, pin: null }} hasPin={screen.pin !== null} />;
+  return <SettingsForm screen={{ ...screen, pin: null }} hasPin={screen.pin !== null} uiLocale={uiLocale} />;
 }

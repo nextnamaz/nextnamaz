@@ -43,7 +43,7 @@ export function LanguagePicker({ value, onChange }: LanguagePickerProps) {
             role="radio"
             aria-checked={on}
             onClick={() => onChange(lang.code)}
-            className={`relative flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+            className={`relative flex items-center gap-3 rounded-xl border px-3.5 py-3 text-start transition-colors ${
               on ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-card hover:border-primary/50'
             }`}
           >
@@ -58,7 +58,7 @@ export function LanguagePicker({ value, onChange }: LanguagePickerProps) {
                 <span className="block truncate text-xs text-muted-foreground">{lang.name}</span>
               )}
             </span>
-            {on && <Check className="absolute top-2 right-2 size-4 text-primary" aria-hidden />}
+            {on && <Check className="absolute top-2 end-2 size-4 text-primary" aria-hidden />}
           </button>
         );
       })}

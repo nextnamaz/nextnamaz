@@ -106,15 +106,6 @@ export function formatLongDate(date: Date, locale: DisplayLocale): string {
   }
 }
 
-/**
- * A month's name as a calendar page shows it: "novembar", "November", "نوفمبر".
- * From date-fns, not Intl: Chrome ships no Bosnian month names and prints
- * "M11", which also differs from the server's render and breaks hydration.
- */
-export function formatMonthName(date: Date, locale: DisplayLocale): string {
-  return format(date, 'LLLL', { locale: DATE_FNS_LOCALES[locale.locale] ?? enGB });
-}
-
 /** The date in two parts, for a theme that sets the weekday on its own line: "Petak" and "2. oktobar 2026." */
 export function formatDateParts(date: Date, locale: DisplayLocale): { weekday: string; date: string } {
   const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
@@ -138,6 +129,28 @@ export function formatTodayDate(locale: string): string {
   } catch {
     return new Date().toLocaleDateString('en-GB');
   }
+}
+
+/** Day and month in each language's own order; the rest are "1 October". */
+const DAY_MONTH_FORMATS: Record<string, string> = {
+  en: 'MMMM d',
+  ur: 'MMMM d',
+  bs: 'd. MMMM',
+  de: 'd. MMMM',
+  es: "d 'de' MMMM",
+};
+
+/**
+ * A month's name on its own ("oktobar") and the day with it ("1. oktobar"),
+ * from date-fns rather than Intl: Chrome's built-in data has no Bosnian
+ * month names and prints "M10".
+ */
+export function formatMonth(date: Date, locale: string): { month: string; dayMonth: string } {
+  const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;
+  return {
+    month: format(date, 'LLLL', { locale: fnsLocale }),
+    dayMonth: format(date, DAY_MONTH_FORMATS[locale] ?? 'd MMMM', { locale: fnsLocale }),
+  };
 }
 
 /** Get resolved timezone string (resolves 'auto' to device timezone) */

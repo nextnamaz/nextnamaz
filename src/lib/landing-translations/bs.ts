@@ -29,8 +29,9 @@ export const BS: LandingCopy = {
   oldWay: {
     title: 'Vaktiju više ne mijenjate ručno',
     body: 'U mnogim džamijama pored mihraba visi odštampana vaktija, a na zidu sat. Svakog mjeseca neko mora okačiti novu. NextNamaz svake noći sam preuzima nova vremena, pa je vaktija na ekranu svako jutro tačna, a niko je ne mora dirati.',
-    imageAlt: 'Kratka animacija: svakog mjeseca neko skine odštampanu vaktiju i okači novu, sve dok papir ne postane ekran koji se sam ažurira',
+    imageAlt: 'Kratki film: svakog mjeseca neko skine odštampanu vaktiju i zalijepi novu, sve dok umjesto nje ne okače ekran koji se sam ažurira',
     before: 'Danas u mnogim džamijama',
+    instead: 'Bolje ovako',
     /** The caption once the sheet has become a screen. */
     after: 'Uz NextNamaz',
   },
@@ -108,7 +109,7 @@ export const BS: LandingCopy = {
   features: {
     title: 'Po mjeri džamije i džemata',
     subtitle: 'Sve podešavate s mobitela, a na televizor ne instalirate ništa.',
-    imageAlt: 'Nacrtan zid sale za namaz: mihrab s mesinganom lampom iznad, a pored njega uspravno okačen ekran s vaktijom',
+    imageAlt: 'Sala za namaz u jutarnjem svjetlu: mihrab s mesinganom lampom iznad, a pored njega uspravno okačen ekran s vaktijom',
     rooms: { womens: 'Ženski dio', main: 'Glavni prostor' },
     poster: {
       kicker: 'Svake subote',

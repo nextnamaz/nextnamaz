@@ -45,7 +45,7 @@ export function OldWay({ t, toSteps, display }: OldWayProps) {
         </Reveal>
 
         <Reveal className="mt-8 lg:col-start-1 lg:row-span-4 lg:row-start-1 lg:mt-0 lg:self-center">
-          <OldWayFilm label={t.imageAlt} before={t.before} after={t.after} display={display} />
+          <OldWayFilm label={t.imageAlt} before={t.before} instead={t.instead} after={t.after} display={display} />
         </Reveal>
 
         <Reveal delay={80} className="mt-8 lg:col-start-2 lg:row-start-3 lg:mt-6">
