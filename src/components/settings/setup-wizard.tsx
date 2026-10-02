@@ -144,7 +144,7 @@ export function SetupWizard({ screenId, form, setForm, saving, onFinish, onExit 
       <style>{SLIDE}</style>
       <div className="mx-auto max-w-lg space-y-6 px-4 pt-4 pb-8">
         <div key={step} className="wiz-step space-y-6" style={{ '--wiz-dir': dir } as CSSProperties}>
-        {step === 'times' && <SourceWizard translations={form.displayText} onApply={applySource} />}
+        {step === 'times' && <SourceWizard translations={form.displayText} onApply={applySource} autoLocate />}
 
         {step === 'language' && (
           <>
