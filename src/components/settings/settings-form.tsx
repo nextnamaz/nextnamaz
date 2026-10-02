@@ -35,6 +35,10 @@ import type { FormState, Rotation, ThemeConfigMap } from './settings-shared';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { FeedbackButton } from '@/components/feedback-button';
 import { LANDING_COPY } from '@/lib/landing-copy';
+import { LANDING_LOCALE_INFO } from '@/lib/landing-locales';
+import type { LandingLocale } from '@/lib/landing-locales';
+import { SETUP_COPY } from '@/lib/setup-copy';
+import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
@@ -67,10 +71,16 @@ interface SettingsFormProps {
   screen: Screen;
   /** A PIN is set; the hash itself never reaches the client. */
   hasPin: boolean;
+  /** The language the setup is shown in. */
+  uiLocale: LandingLocale;
 }
 
-export function SettingsForm({ screen, hasPin }: SettingsFormProps) {
-  const initial = formFromScreen(screen);
+export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
+  const fromScreen = formFromScreen(screen);
+  // A new screen starts in the language of the person setting it up.
+  const initial = screen.configured
+    ? fromScreen
+    : { ...fromScreen, locale: LANDING_LOCALE_INFO[uiLocale].display, displayText: DEFAULT_TRANSLATIONS[LANDING_LOCALE_INFO[uiLocale].display] };
   const [form, setForm] = useState<FormState>(initial);
   const [saved, setSaved] = useState<FormState>(initial);
   const [saving, setSaving] = useState(false);
@@ -172,6 +182,8 @@ export function SettingsForm({ screen, hasPin }: SettingsFormProps) {
     return (
       <SetupWizard
         screenId={screen.id}
+        copy={SETUP_COPY[uiLocale]}
+        dir={LANDING_LOCALE_INFO[uiLocale].dir}
         form={form}
         setForm={setForm}
         saving={saving}
