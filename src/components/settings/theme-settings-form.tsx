@@ -99,9 +99,11 @@ interface ThemePickerProps {
   /** Live config of the selected theme, so its thumbnail tracks edits. */
   config: ThemeConfigMap;
   onChange: (themeId: string) => void;
+  /** Names and descriptions in another language, by theme id; the registry's English otherwise. */
+  labels?: Record<string, { name: string; description: string }>;
 }
 
-export function ThemePicker({ value, config, onChange }: ThemePickerProps) {
+export function ThemePicker({ value, config, onChange, labels }: ThemePickerProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {Object.values(THEME_REGISTRY).map((theme) => (
@@ -122,8 +124,8 @@ export function ThemePicker({ value, config, onChange }: ThemePickerProps) {
             config={value === theme.id ? config : theme.defaultConfig}
           />
           <div className="px-2.5 py-2 min-w-0">
-            <div className="text-sm font-medium truncate">{theme.name}</div>
-            <div className="text-xs text-muted-foreground truncate">{theme.description}</div>
+            <div className="text-sm font-medium truncate">{labels?.[theme.id]?.name ?? theme.name}</div>
+            <div className="text-xs text-muted-foreground truncate">{labels?.[theme.id]?.description ?? theme.description}</div>
           </div>
         </button>
       ))}
