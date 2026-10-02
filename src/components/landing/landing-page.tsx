@@ -7,6 +7,7 @@ import { ScreenAnatomy } from './screen-anatomy';
 import { OrientationShowcase } from './orientation-showcase';
 import { Features } from './features';
 import { Devices } from './devices';
+import { MosqueMosaic, PhotoPair } from './photo-band';
 import { Faq } from './faq';
 import { Cta } from './cta';
 import { Footer } from './footer';
@@ -95,10 +96,12 @@ export function LandingPage({ locale }: { locale: LandingLocale }) {
         <Hero t={t.hero} display={info.display} />
         <OldWay t={t.oldWay} toSteps={t.hero.secondary} display={info.display} />
         <HowItWorksSection t={t.howItWorks} display={info.display} />
+        <PhotoPair wide={{ src: '/landing/mosque-minaret.jpg', focus: '40% 50%' }} tall={{ src: '/landing/mosque-dawn.jpg', focus: '35% 50%' }} />
         <ScreenAnatomy t={t.display} display={info.display} />
         <OrientationShowcase t={t.orientation} display={info.display} />
         <Features t={t.features} display={info.display} />
         <Devices t={t.devices} />
+        <MosqueMosaic />
         <Faq t={t.faq} oss={t.openSource} />
         <Cta t={t.cta} />
       </main>

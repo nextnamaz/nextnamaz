@@ -106,6 +106,28 @@ export function formatTodayDate(locale: string): string {
   }
 }
 
+/** Day and month in each language's own order; the rest are "1 October". */
+const DAY_MONTH_FORMATS: Record<string, string> = {
+  en: 'MMMM d',
+  ur: 'MMMM d',
+  bs: 'd. MMMM',
+  de: 'd. MMMM',
+  es: "d 'de' MMMM",
+};
+
+/**
+ * A month's name on its own ("oktobar") and the day with it ("1. oktobar"),
+ * from date-fns rather than Intl: Chrome's built-in data has no Bosnian
+ * month names and prints "M10".
+ */
+export function formatMonth(date: Date, locale: string): { month: string; dayMonth: string } {
+  const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;
+  return {
+    month: format(date, 'LLLL', { locale: fnsLocale }),
+    dayMonth: format(date, DAY_MONTH_FORMATS[locale] ?? 'd MMMM', { locale: fnsLocale }),
+  };
+}
+
 /** Get resolved timezone string (resolves 'auto' to device timezone) */
 export function resolveTimezone(locale: DisplayLocale): string {
   if (locale.timezone === 'auto') {

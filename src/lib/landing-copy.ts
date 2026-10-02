@@ -46,9 +46,11 @@ export const LANDING_COPY = {
   oldWay: {
     title: 'No more swapping the timetable by hand',
     body: 'In many mosques the times live on a printed sheet by the mihrab and a clock on the wall, and someone has to change the sheet every month. NextNamaz loads the new times each night, so the screen is right every morning without anyone touching it.',
-    imageAlt: 'A short animation: each month someone takes down the printed timetable and pins up a new one, until the sheet becomes a screen that updates itself',
+    imageAlt: 'A short film: each month someone takes down the printed timetable and tapes up a new one, until a screen goes up in its place that updates itself',
     /** The caption on the photograph. */
     before: 'Today in many mosques',
+    /** The caption while the set goes up in place of the sheet. */
+    instead: 'Do this instead',
     /** The caption once the sheet has become a screen. */
     after: 'With NextNamaz',
   },
@@ -129,7 +131,7 @@ export const LANDING_COPY = {
   features: {
     title: 'Made for how a mosque runs',
     subtitle: 'Everything is set from a phone. Nothing is installed on the TV.',
-    imageAlt: 'A drawn prayer hall wall: the mihrab with a brass lamp above it, and beside it a screen on its side showing the prayer times',
+    imageAlt: 'A prayer hall in morning light: the mihrab with a brass lamp above it, and beside it a screen on its side showing the prayer times',
     /** Names under the two televisions in the 'Change it from your phone' drawing. */
     rooms: { womens: "Women's section", main: 'Main hall' },
     /** The sample poster in the announcements drawing. */
