@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import type { DisplayLocale } from '@/lib/display-locale';
+import type { ScreenPlace } from '@/lib/screen-place';
 
 export interface ThemeProps {
   prayers: PrayerTimeEntry[];
@@ -8,6 +9,8 @@ export interface ThemeProps {
   config: Record<string, unknown>;
   isPortrait: boolean;
   locale: DisplayLocale;
+  /** Where the screen is, when known. Only a theme that draws the Earth asks. */
+  place?: ScreenPlace | null;
 }
 
 // --- Theme registry types ---
@@ -41,13 +44,15 @@ import { DefaultTheme, defaultDefinition } from './default';
 import { SkyTheme, skyDefinition } from './sky';
 import { PaperTheme, paperDefinition } from './paper';
 import { IvoryTheme, ivoryDefinition } from './ivory';
+import { GlobeTheme, globeDefinition } from './globe';
 
-export { DefaultTheme, SkyTheme, PaperTheme, IvoryTheme };
+export { DefaultTheme, SkyTheme, PaperTheme, IvoryTheme, GlobeTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   sky: skyDefinition,
   paper: paperDefinition,
   ivory: ivoryDefinition,
+  globe: globeDefinition,
   default: defaultDefinition,
 };
 

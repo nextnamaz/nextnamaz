@@ -105,6 +105,7 @@ const en: SetupCopy = {
       sky: { name: 'Sky', description: 'Changes with the sky outside' },
       paper: { name: 'Paper', description: 'White space, one gold detail' },
       ivory: { name: 'Ivory', description: 'Ivory and gold, framed like a mihrab' },
+      globe: { name: 'Globe', description: 'The Earth right now, with your mosque on it' },
     },
   },
   pin: {
@@ -175,6 +176,7 @@ const sv: SetupCopy = {
       sky: { name: 'Himmel', description: 'Skiftar med himlen utanför' },
       paper: { name: 'Papper', description: 'Mycket luft och en guldig detalj' },
       ivory: { name: 'Elfenben', description: 'Elfenben och guld, inramat som en mihrab' },
+      globe: { name: 'Jordglob', description: 'Jorden just nu, med moskén utsatt' },
     },
   },
   pin: {
@@ -245,6 +247,7 @@ const bs: SetupCopy = {
       sky: { name: 'Nebeska', description: 'Mijenja boju s nebom, od zore do jacije' },
       paper: { name: 'Bijela', description: 'Puno bijelog prostora i jedan zlatni detalj' },
       ivory: { name: 'Zlatna', description: 'Mihrab, levhe i zlato na boji slonovače' },
+      globe: { name: 'Globus', description: 'Zemlja kakva je sada, s vašom džamijom na njoj' },
     },
   },
   pin: {
@@ -315,6 +318,7 @@ const de: SetupCopy = {
       sky: { name: 'Himmel', description: 'Folgt dem Himmel draußen' },
       paper: { name: 'Papier', description: 'Viel Weißraum, ein goldenes Detail' },
       ivory: { name: 'Elfenbein', description: 'Elfenbein und Gold, gerahmt wie ein Mihrab' },
+      globe: { name: 'Globus', description: 'Die Erde, wie sie gerade aussieht, mit Ihrer Moschee darauf' },
     },
   },
   pin: {
@@ -385,6 +389,7 @@ const ar: SetupCopy = {
       sky: { name: 'سماوي', description: 'يتغيّر مع لون السماء في الخارج' },
       paper: { name: 'ورقي', description: 'مساحة بيضاء وتفصيل ذهبي واحد' },
       ivory: { name: 'عاجي', description: 'عاج وذهب في إطار محراب' },
+      globe: { name: 'الكرة الأرضية', description: 'الأرض كما هي الآن، ومسجدك عليها' },
     },
   },
   pin: {
@@ -455,6 +460,7 @@ const tr: SetupCopy = {
       sky: { name: 'Gökyüzü', description: 'Dışarıdaki gökyüzüyle birlikte değişir' },
       paper: { name: 'Sade', description: 'Bol beyaz alan, tek bir altın ayrıntı' },
       ivory: { name: 'Fildişi', description: 'Fildişi ve altın, mihrap çerçevesinde' },
+      globe: { name: 'Yerküre', description: 'Dünyanın şu anki görünümü, caminiz üzerinde işaretli' },
     },
   },
   pin: {

@@ -20,6 +20,7 @@ import { SCREEN_STORAGE_KEY } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
 import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
+import type { ScreenPlace } from '@/lib/screen-place';
 
 /** How long the settings overlay stays after the last real activity. */
 const OVERLAY_HIDE_MS = 5_000;
@@ -77,9 +78,11 @@ interface TvDisplayProps {
   screen: Screen;
   todayTimes: PrayerTimesMap;
   settingsUrl: string;
+  /** Where the screen is, for a theme that draws it on the Earth. */
+  place: ScreenPlace | null;
 }
 
-export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
+export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayProps) {
   const router = useRouter();
   const isPortrait = useViewportPortrait();
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -244,6 +247,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl }: TvDisplayProps) {
     // Splitting halves the long axis, which flips the half's orientation.
     isPortrait: splitActive ? !displayPortrait : displayPortrait,
     locale: displayLocale,
+    place,
   };
 
   const slideMedia =

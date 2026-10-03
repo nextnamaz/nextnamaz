@@ -169,6 +169,7 @@ describe('screenSettingsSchema', () => {
     expect(ok({ theme: 'sky' })).toBe(true);
     expect(ok({ theme: 'paper' })).toBe(true);
     expect(ok({ theme: 'ivory' })).toBe(true);
+    expect(ok({ theme: 'globe' })).toBe(true);
     // Retired: still stored on screens saved before Sky replaced them.
     expect(ok({ theme: 'night' })).toBe(true);
     expect(ok({ theme: 'mihrab' })).toBe(true);

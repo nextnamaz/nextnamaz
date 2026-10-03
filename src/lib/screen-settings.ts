@@ -62,7 +62,7 @@ export const screenSettingsSchema = z.object({
   // 'night' and 'mihrab' are retired but still accepted: screens saved before
   // they were replaced must remain editable. Both resolve to 'sky' at render
   // time (see THEME_ALIASES in components/display/themes).
-  theme: z.enum(['default', 'sky', 'paper', 'ivory', 'night', 'mihrab']),
+  theme: z.enum(['default', 'sky', 'paper', 'ivory', 'globe', 'night', 'mihrab']),
   theme_config: z.record(
     z.string(),
     z.union([z.string().max(500), z.number(), z.boolean()])
