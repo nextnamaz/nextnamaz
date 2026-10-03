@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveScreenPlace } from '@/lib/screen-place';
+import { moments, zoomLevel } from '@/components/display/themes/globe';
+import type { PrayerTimeEntry } from '@/types/prayer';
 
 describe('resolveScreenPlace', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -49,5 +51,49 @@ describe('resolveScreenPlace', () => {
     expect(
       await resolveScreenPlace({ prayer_source: 'islamiska_forbundet', prayer_source_config: { city: 'Nowhere' } })
     ).toBeNull();
+  });
+});
+
+describe('the Globe theme on the clock', () => {
+  const prayers: PrayerTimeEntry[] = [
+    { name: 'fajr', displayName: 'Zora', time: '05:21' },
+    { name: 'sunrise', displayName: 'Izlazak sunca', time: '07:24' },
+    { name: 'dhuhr', displayName: 'Podne', time: '13:04' },
+    { name: 'asr', displayName: 'Ikindija', time: '15:52' },
+    { name: 'maghrib', displayName: 'Akšam', time: '18:41' },
+    { name: 'isha', displayName: 'Jacija', time: '20:29' },
+  ];
+  const at = (h: number, m: number, s = 0) => new Date(2026, 9, 3, h, m, s);
+
+  it.each([
+    [at(18, 39), 'maghrib', 'asr'],
+    [at(18, 41), 'isha', 'maghrib'],
+    [at(7, 0), 'sunrise', 'fajr'],
+    [at(23, 50), 'fajr', 'isha'],
+    [at(0, 10), 'fajr', 'isha'],
+  ])('at %s the next line is %s and the last %s', (now, next, last) => {
+    const found = moments(prayers, now);
+    expect(found.next?.prayer.name).toBe(next);
+    expect(found.last?.prayer.name).toBe(last);
+  });
+
+  it('puts the next Fajr on the morning after, not the one gone', () => {
+    const found = moments(prayers, at(23, 50));
+    expect(found.next?.at).toBe(new Date(2026, 9, 4, 5, 21).getTime());
+  });
+
+  it.each([
+    [45, 120, 0],
+    [30, 120, 1],
+    [10.5, 120, 1],
+    [10, 120, 2],
+    [3.5, 120, 2],
+    [3, 120, 3],
+    [0.2, 120, 3],
+    [100, 0, 3],
+    [100, 5, 3],
+    [100, 5.5, 0],
+  ])('%s minutes to the next prayer and %s since the last: zoom %s', (to, since, level) => {
+    expect(zoomLevel(to, since)).toBe(level);
   });
 });

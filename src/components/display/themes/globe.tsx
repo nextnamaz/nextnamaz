@@ -27,23 +27,36 @@ const PAST = 'rgb(245 247 251 / 0.34)';
 const GOLD = '#E8A817';
 const RULE = 'rgb(255 255 255 / 0.1)';
 
-/** Stable objects. Far: the whole Earth. Close: in on the mosque, which stays on its pin. */
-const LANDSCAPE: EarthFrame = { cx: 0.75, cy: 0.66, r: 0.62, pinX: 0.64, pinY: 0.44 };
-const LANDSCAPE_CLOSE: EarthFrame = { cx: 0.72, cy: 0.88, r: 2.6, pinX: 0.71, pinY: 0.5 };
-const PORTRAIT: EarthFrame = { cx: 0.22, cy: 0.89, r: 0.5, pinX: 0.33, pinY: 0.76 };
-const PORTRAIT_CLOSE: EarthFrame = { cx: 0.5, cy: 0.97, r: 2.1, pinX: 0.5, pinY: 0.8 };
+/**
+ * The views, from the whole Earth to closest in on the mosque, which stays on
+ * its pin. The nearer the next prayer, the closer the view: the first steps
+ * keep space and the Earth's curved edge in sight, the last comes down over
+ * the city to watch the line arrive.
+ */
+export const GLOBE_LEVELS: Record<'landscape' | 'portrait', EarthFrame[]> = {
+  landscape: [
+    { cx: 0.75, cy: 0.66, r: 0.62, pinX: 0.64, pinY: 0.44 },
+    { cx: 0.78, cy: 1.2, r: 1.15, pinX: 0.7, pinY: 0.62 },
+    { cx: 0.76, cy: 2.04, r: 2.0, pinX: 0.71, pinY: 0.62 },
+    { cx: 0.71, cy: 1.0, r: 3.6, pinX: 0.71, pinY: 0.62 },
+  ],
+  portrait: [
+    { cx: 0.22, cy: 0.89, r: 0.5, pinX: 0.33, pinY: 0.76 },
+    { cx: 0.55, cy: 1.15, r: 0.95, pinX: 0.6, pinY: 0.86 },
+    { cx: 0.55, cy: 1.54, r: 1.6, pinX: 0.6, pinY: 0.86 },
+    { cx: 0.6, cy: 1.1, r: 3.0, pinX: 0.6, pinY: 0.86 },
+  ],
+};
 
-/** Minutes either side of a prayer that the Earth spends close in. */
-const CLOSE_BEFORE = 15;
-const CLOSE_AFTER = 5;
+/** Minutes before a prayer that each closer view begins, and how long the closest holds after it. */
+const ZOOM_MINUTES = [30, 10, 3];
+const HOLD_AFTER = 5;
 
-/** A fixed scatter of faint stars. */
-const STARS = Array.from({ length: 110 }, (_, i) => ({
-  x: (i * 61.8 + (i % 7) * 13.1) % 100,
-  y: (i * 38.2 + (i % 11) * 7.7) % 100,
-  size: 0.08 + ((i * 7) % 5) * 0.04,
-  alpha: 0.15 + ((i * 13) % 7) * 0.06,
-}));
+/** Which view to show, 0 the whole Earth to 3 closest in, given the minutes to the next prayer and since the last. */
+export function zoomLevel(minutesTo: number, minutesSince: number): number {
+  if (minutesSince <= HOLD_AFTER) return ZOOM_MINUTES.length;
+  return ZOOM_MINUTES.filter((minutes) => minutesTo <= minutes).length;
+}
 
 /** "15:56:42" → ["15:56", "42"]. A 12-hour clock keeps its AM/PM with the seconds. */
 function splitClock(time: string): [string, string] {
@@ -84,93 +97,81 @@ export function moments(prayers: PrayerTimeEntry[], now: Date): { next: Moment |
   return { next: after[0] ?? null, last: before[0] ?? null };
 }
 
-/** A label riding on a prayer line where it crosses the mosque's latitude, its arrow pointing the way it moves. */
-function LineLabel({ id, moment, locale, strong }: { id: string; moment: Moment; locale: DisplayLocale; strong: boolean }) {
+interface LineLabelProps {
+  id: string;
+  moment: Moment;
+  locale: DisplayLocale;
+  strong: boolean;
+}
+
+/**
+ * A label riding on a prayer line a little north of the mosque: a dot on the
+ * line and the words beside it, lifted off the map by a dark halo, the arrow
+ * pointing the way the line moves.
+ */
+function LineLabel({ id, moment, locale, strong }: LineLabelProps) {
   return (
     <div data-pin={`line-${id}`} style={{ position: 'absolute', left: 0, top: 0, opacity: 0, willChange: 'transform', transition: 'opacity 0.6s' }}>
-      {/* Above the line on a stem, so when it reaches the mosque it stands over the dot, not on it. */}
       <span
         style={{
           position: 'absolute',
-          left: 0,
-          bottom: 0,
-          width: '0.25cqmin',
-          height: '2.2cqmin',
-          transform: 'translateX(-50%)',
-          background: strong ? GOLD : 'rgb(255 255 255 / 0.55)',
+          width: '0.9cqmin',
+          height: '0.9cqmin',
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
+          background: strong ? GOLD : 'rgb(255 255 255 / 0.75)',
         }}
       />
       <div
+        data-label-box
         style={{
           position: 'absolute',
-          left: 0,
-          bottom: '2.2cqmin',
-          transform: 'translateX(-50%)',
+          left: '1.2cqmin',
+          top: 0,
+          transform: 'translateY(-50%)',
           display: 'flex',
-          alignItems: 'center',
-          gap: '0.6em',
+          alignItems: 'baseline',
+          gap: '0.45em',
           whiteSpace: 'nowrap',
-          padding: '0.35em 0.8em',
-          borderRadius: '999px',
-          background: 'rgb(2 4 10 / 0.86)',
-          border: `1px solid ${strong ? GOLD : 'rgb(255 255 255 / 0.35)'}`,
-          boxShadow: strong ? '0 0 3cqmin rgb(232 168 23 / 0.4)' : undefined,
-          fontSize: strong ? '2.1cqmin' : '1.7cqmin',
-          fontWeight: 600,
-          color: strong ? INK : 'rgb(255 255 255 / 0.7)',
+          fontSize: strong ? '1.9cqmin' : '1.5cqmin',
+          fontWeight: 700,
+          color: strong ? GOLD : 'rgb(255 255 255 / 0.72)',
+          textShadow: '0 0 0.5cqmin rgb(2 4 10 / 0.95), 0 0 1.2cqmin rgb(2 4 10 / 0.85)',
         }}
       >
-        <span
-          aria-hidden
-          style={{
-            display: 'inline-block',
-            color: strong ? GOLD : 'inherit',
-            transform: 'rotate(calc(var(--west, 3.1416rad) - 3.1416rad))',
-          }}
-        >
+        <span aria-hidden style={{ display: 'inline-block', transform: 'rotate(calc(var(--west, 3.1416rad) - 3.1416rad))' }}>
           ←
         </span>
-        <span style={{ color: strong ? GOLD : 'inherit' }}>{moment.prayer.displayName}</span>
-        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatPrayerTime(moment.prayer.time, locale)}</span>
+        <span>{moment.prayer.displayName}</span>
+        <span style={{ color: strong ? INK : 'inherit', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+          {formatPrayerTime(moment.prayer.time, locale)}
+        </span>
       </div>
     </div>
   );
 }
 
-function Pin({ name }: { name: string }) {
+/** The city's name by its beam of light; the Earth view places it clear of the prayer labels. */
+function BeamLabel({ name }: { name: string }) {
   return (
-    <div data-pin="place" style={{ position: 'absolute', left: 0, top: 0, opacity: 0, willChange: 'transform' }}>
-      <span className="globe-pulse" />
+    <div data-beam-label style={{ position: 'absolute', left: 0, top: 0, opacity: 0, willChange: 'transform', transition: 'opacity 0.6s' }}>
       <span
         style={{
           position: 'absolute',
-          width: '2.2cqmin',
-          height: '2.2cqmin',
-          transform: 'translate(-50%, -50%)',
-          borderRadius: '50%',
-          background: GOLD,
-          boxShadow: '0 0 0 0.45cqmin #fff, 0 0 3.4cqmin rgb(232 168 23 / 0.95)',
+          left: 0,
+          top: 0,
+          whiteSpace: 'nowrap',
+          padding: '0.3cqmin 1cqmin',
+          borderRadius: '999px',
+          fontSize: '1.8cqmin',
+          fontWeight: 600,
+          color: INK,
+          background: 'rgb(2 4 10 / 0.72)',
+          border: '1px solid rgb(232 168 23 / 0.45)',
         }}
-      />
-      {name && (
-        <span
-          style={{
-            position: 'absolute',
-            right: '2.4cqmin',
-            top: 0,
-            transform: 'translateY(-50%)',
-            whiteSpace: 'nowrap',
-            padding: '0.6cqmin 1.6cqmin',
-            borderRadius: '999px',
-            fontSize: '2.8cqmin',
-            fontWeight: 600,
-            color: INK,
-            background: 'rgb(2 4 10 / 0.8)',
-          }}
-        >
-          {name}
-        </span>
-      )}
+      >
+        {name}
+      </span>
     </div>
   );
 }
@@ -219,7 +220,8 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style
         border: `1px solid ${RULE}`,
         borderRadius: '1.8cqmin',
         overflow: 'hidden',
-        background: 'rgb(255 255 255 / 0.035)',
+        // Near solid, so the stars stay round the table and out from behind the times.
+        background: 'rgb(8 11 19 / 0.86)',
         ...style,
       }}
     >
@@ -288,11 +290,12 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
     : prayers.map(() => 'upcoming');
   const [clock, seconds] = splitClock(timeStr);
 
-  // The lines on the Earth, and whether a prayer is near enough to go in close.
+  // The lines on the Earth, and how close in to be: the nearer the prayer, the closer.
   const { next, last } = moments(prayers, date);
   const now = date.getTime();
-  const close =
-    (next !== null && next.at - now <= CLOSE_BEFORE * 60_000) || (last !== null && now - last.at <= CLOSE_AFTER * 60_000);
+  const minutesTo = next ? (next.at - now) / 60_000 : Infinity;
+  const minutesSince = last ? (now - last.at) / 60_000 : Infinity;
+  const level = zoomLevel(minutesTo, minutesSince);
   const lines: EarthLine[] = [];
   if (next) lines.push({ id: 'next', at: next.at, meridian: next.prayer.name === 'dhuhr', strong: true });
   if (last) lines.push({ id: 'last', at: last.at, meridian: last.prayer.name === 'dhuhr', strong: false });
@@ -331,37 +334,16 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
       // A new place loads its own tiles.
       key={place ? `${place.latitude},${place.longitude}` : 'nowhere'}
       place={place ?? null}
-      frame={isPortrait ? PORTRAIT : LANDSCAPE}
-      closeFrame={isPortrait ? PORTRAIT_CLOSE : LANDSCAPE_CLOSE}
-      close={close}
+      levels={GLOBE_LEVELS[isPortrait ? 'portrait' : 'landscape']}
+      level={level}
       lines={lines}
       clear={isPortrait ? { left: 0, top: 0.6 } : { left: 0.42, top: 0 }}
     >
       <SunMark />
       {last && !isPortrait && <LineLabel id="last" moment={last} locale={locale} strong={false} />}
       {next && <LineLabel id="next" moment={next} locale={locale} strong />}
-      {place && <Pin name={place.name} />}
+      {place && <BeamLabel name={place.name} />}
     </EarthView>
-  );
-
-  const stars = (
-    <div aria-hidden style={{ position: 'absolute', inset: 0 }}>
-      {STARS.map((star, i) => (
-        <span
-          key={i}
-          style={{
-            position: 'absolute',
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}cqmin`,
-            height: `${star.size}cqmin`,
-            borderRadius: '50%',
-            background: '#fff',
-            opacity: star.alpha,
-          }}
-        />
-      ))}
-    </div>
   );
 
   const root: CSSProperties = {
@@ -378,16 +360,14 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
   if (isPortrait) {
     return (
       <div data-theme="globe" style={root}>
-        <style>{GLOBE_MOTION}</style>
-        {stars}
         {earth}
-        {/* The information sits on space-dark ground, so the Earth passes behind it when it comes close. */}
+        {/* A light veil for the text; the Earth itself gives way to the stars under it. */}
         <div
           style={{
             position: 'absolute',
             inset: '0 0 auto 0',
             height: '62cqh',
-            background: `linear-gradient(180deg, ${SPACE} 90%, rgb(2 4 10 / 0))`,
+            background: 'linear-gradient(180deg, rgb(2 4 10 / 0.45) 85%, rgb(2 4 10 / 0))',
           }}
         />
         <div style={{ position: 'absolute', top: '4cqh', left: '6cqw', right: '6cqw' }}>{clockBlock}</div>
@@ -406,15 +386,13 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
 
   return (
     <div data-theme="globe" style={root}>
-      <style>{GLOBE_MOTION}</style>
-      {stars}
       {earth}
       <div
         style={{
           position: 'absolute',
           inset: '0 auto 0 0',
           width: '46cqw',
-          background: `linear-gradient(90deg, ${SPACE} 82%, rgb(2 4 10 / 0))`,
+          background: 'linear-gradient(90deg, rgb(2 4 10 / 0.45) 75%, rgb(2 4 10 / 0))',
         }}
       />
       <div
@@ -442,14 +420,6 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
     </div>
   );
 }
-
-// A ring that widens and fades from the mosque. Transform and opacity only,
-// so the compositor runs it without the Earth being redrawn.
-const GLOBE_MOTION = `
-@keyframes globe-pulse { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; } to { transform: translate(-50%, -50%) scale(2.6); opacity: 0; } }
-.globe-pulse { position: absolute; width: 4cqmin; height: 4cqmin; border-radius: 50%; border: 0.35cqmin solid #E8A817; animation: globe-pulse 2.6s ease-out infinite; }
-@media (prefers-reduced-motion: reduce) { .globe-pulse { animation: none; opacity: 0; } }
-`;
 
 export const globeDefinition: ThemeDefinition = {
   id: 'globe',

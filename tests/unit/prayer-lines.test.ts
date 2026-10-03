@@ -25,6 +25,16 @@ describe('prayerLine', () => {
     expect(east).toBeLessThan(17);
   });
 
+  it('rides its label on the line six degrees north of the mosque, clear of the city', () => {
+    const at = local(18, 41);
+    const line = prayerLine(gothenburg, at, new Date(at.getTime() - 1_800_000), false);
+    expect(line.label?.latitude).toBeCloseTo(gothenburg.latitude + 6, 6);
+    expect(Math.abs((line.label?.longitude ?? 0) - (line.crossing?.longitude ?? 0))).toBeLessThan(10);
+    const noon = local(13, 4);
+    const meridian = prayerLine(gothenburg, noon, noon, true);
+    expect(meridian.label?.longitude).toBeCloseTo(meridian.crossing?.longitude ?? 0, 6);
+  });
+
   it('draws Dhuhr as the meridian that reaches the mosque at its time', () => {
     const at = local(13, 4);
     expect(prayerLine(gothenburg, at, at, true).crossing?.longitude).toBeCloseTo(gothenburg.longitude, 1);

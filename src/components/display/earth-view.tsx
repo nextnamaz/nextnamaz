@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import type { ReactNode } from 'react';
-import { subsolarPoint } from '@/lib/sun-position';
+import { useEffect, useId, useRef } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { siderealDegrees, subsolarPoint } from '@/lib/sun-position';
 import type { GeoPoint } from '@/lib/sun-position';
 import { prayerLine } from '@/lib/prayer-lines';
 
@@ -24,8 +24,16 @@ const DISTANCE = 3.6;
 const FRAME_MS = 1000 / 15;
 /** The drawing buffer's longest side. Past this a TV's GPU pays for detail nobody sees. */
 const MAX_BUFFER = 2560;
-/** Seconds to glide between the whole Earth and the close view. */
+/** Seconds to glide from one view to the next. */
 const ZOOM_SECONDS = 4;
+/** The mosque's beam of light: its height in Earth radii, the ring round its foot in pixels, a ripple's seconds. */
+const BEAM_HEIGHT = 0.1;
+const RING_PIXELS = 14;
+const RIPPLE_SECONDS = 2.6;
+/** How far above the mosque, in pixels, a prayer line's label rides, at any zoom. */
+const LABEL_PIXELS = 80;
+/** Where the Earth sits until the theme says otherwise. */
+const HOME_FRAME: EarthFrame = { cx: 0.5, cy: 0.5, r: 0.45, pinX: 0.5, pinY: 0.5 };
 /** How fast the clouds drift east, in degrees a second: slow enough to be weather, quick enough to see. */
 const CLOUD_DRIFT = 0.15;
 /**
@@ -79,27 +87,72 @@ uniform vec3 forward;
 uniform vec3 sun;
 uniform float time;
 uniform float cloudShift;
+uniform float cloudAmount;
+uniform float skyTurn;
+// Where the theme's text sits, in buffer pixels: the Earth gives way to the sky
+// left of x and above y (GL coordinates), over a fade of z and w pixels.
+uniform vec4 clearZone;
 uniform sampler2D dayMap;
 uniform sampler2D nightMap;
 uniform sampler2D cloudMap;
 uniform sampler2D reliefMap;
 uniform sampler2D detailMap;
+uniform sampler2D detailLights;
 // The sharp tiles round the mosque: west edge and north edge (radians), span, and 1 once loaded.
 uniform vec4 detail;
 const float PI = 3.14159265;
 
-// Smooth random values, one cell half a degree, wrapping round the globe so
-// the two longitude unwraps below agree.
-float hash(vec2 p) {
-  vec3 q = fract(vec3(mod(p, vec2(720.0, 360.0)).xyx) * 0.1031);
+// Random values that repeat every period cells, so a pattern can wrap round
+// the globe and the two longitude unwraps below agree.
+float hash(vec2 p, vec2 period) {
+  vec3 q = fract(vec3(mod(p, period).xyx) * 0.1031);
   q += dot(q, q.yzx + 33.33);
   return fract((q.x + q.y) * q.z);
 }
-float noise(vec2 p) {
+float noise(vec2 p, vec2 period) {
   vec2 i = floor(p);
   vec2 f = fract(p);
   f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  return mix(mix(hash(i, period), hash(i + vec2(1.0, 0.0), period), f.x), mix(hash(i + vec2(0.0, 1.0), period), hash(i + vec2(1.0, 1.0), period), f.x), f.y);
+}
+
+// The night sky behind the Earth, d a direction in the Earth's frame and px
+// the angle one pixel spans. The sky turns with the hour; the Milky Way lies
+// where it really is, brightest toward the galaxy's centre.
+vec3 sky(vec3 d, float px) {
+  float c = cos(skyTurn);
+  float s = sin(skyTurn);
+  vec3 q = vec3(c * d.x - s * d.y, s * d.x + c * d.y, d.z);
+  float band = dot(q, vec3(-0.8676, -0.1980, 0.4560));
+  float core = max(dot(q, vec3(-0.0550, -0.8734, -0.4839)), 0.0);
+  float wisps = 0.55 + 0.25 * sin(q.x * 9.0 + 1.3) * sin(q.y * 11.0 + 0.7) + 0.2 * sin(q.z * 13.0 + q.x * 5.0);
+  float milky = exp(-band * band / 0.018) * wisps * (0.5 + 0.8 * core * core);
+  vec3 color = vec3(0.36, 0.42, 0.62) * milky * 0.16;
+  // Stars, evenly spread: each face of a cube round the sky is a grid with at
+  // most one star a cell, more of them along the Milky Way.
+  vec3 a = abs(q);
+  vec3 f = a.x >= a.y && a.x >= a.z ? vec3(q.yz / a.x, q.x > 0.0 ? 0.0 : 1.0)
+    : a.y >= a.z ? vec3(q.xz / a.y, q.y > 0.0 ? 2.0 : 3.0)
+    : vec3(q.xy / a.z, q.z > 0.0 ? 4.0 : 5.0);
+  for (int layer = 0; layer < 2; layer++) {
+    float cells = layer == 0 ? 260.0 : 70.0;
+    vec2 p = (f.xy * 0.5 + 0.5) * cells;
+    vec2 cell = floor(p);
+    vec2 seed = cell + f.z * 977.0 + float(layer) * 53.0;
+    float h = hash(seed, vec2(8192.0));
+    float chance = layer == 0 ? 0.24 + 0.3 * milky : 0.12;
+    if (h < chance) {
+      vec2 spot = vec2(hash(seed + 11.0, vec2(8192.0)), hash(seed + 23.0, vec2(8192.0))) * 0.7 + 0.15;
+      // How far, in pixels: a cube face spans about two radians.
+      float dist = length(p - cell - spot) * 2.0 / cells / px;
+      float bright = layer == 0 ? 0.35 + 0.65 * h / chance : 0.8 + 0.6 * h / chance;
+      float twinkle = 0.8 + 0.2 * sin(time * 1.7 + h * 60.0);
+      vec3 tint = mix(vec3(0.72, 0.82, 1.0), vec3(1.0, 0.88, 0.72), hash(seed + 37.0, vec2(8192.0)));
+      float size = layer == 0 ? 0.75 : 1.15;
+      color += tint * bright * twinkle * exp(-dist * dist / (size * size));
+    }
+  }
+  return color;
 }
 
 void main() {
@@ -120,8 +173,13 @@ void main() {
   float halo = (exp(-beyond * 55.0) + 0.35 * exp(-beyond * 12.0)) * (0.12 + 0.88 * smoothstep(-0.35, 0.45, limbSun));
   vec3 tint = mix(vec3(1.0, 0.5, 0.22), vec3(0.4, 0.66, 1.0), smoothstep(-0.12, 0.3, limbSun));
   vec3 air = tint * halo;
-  if (cover <= 0.0) {
-    gl_FragColor = vec4(air, min(halo, 1.0));
+  // Under the clock and the table the Earth gives way to the night sky.
+  float shown = smoothstep(clearZone.x - clearZone.z * 0.5, clearZone.x + clearZone.z * 0.5, gl_FragCoord.x)
+    * (1.0 - smoothstep(clearZone.y - clearZone.w * 0.5, clearZone.y + clearZone.w * 0.5, gl_FragCoord.y));
+  if (cover <= 0.0 || shown <= 0.0) {
+    float glow = cover <= 0.0 ? min(halo, 1.0) * shown : 0.0;
+    vec3 stars = sky(dir, 1.0 / focal) * (1.0 - glow);
+    gl_FragColor = vec4((cover <= 0.0 ? air * shown : vec3(0.0)) + stars, max(glow, max(stars.r, max(stars.g, stars.b))));
     return;
   }
 
@@ -141,17 +199,18 @@ void main() {
   vec2 near = vec2(mod(lon - detail.x + 2.0 * PI, 2.0 * PI), detail.y - lat) / detail.z;
   vec3 sharp = texture2D(detailMap, clamp(near, 0.0, 1.0)).rgb;
   vec2 edge = smoothstep(0.0, 0.04, near) * smoothstep(0.0, 0.04, 1.0 - near);
-  land = mix(land, sharp, detail.w * edge.x * edge.y);
+  float sharpness = detail.w * edge.x * edge.y;
+  land = mix(land, sharp, sharpness);
   // The map is painted: land by height and climate, the sea by its depth.
   // Water is where blue outweighs red, which no colour of the land does.
   float water = clamp((land.b - land.r) * 4.0 - 0.4, 0.0, 1.0);
   float grey = dot(land, vec3(0.299, 0.587, 0.114));
   // Each patch of the map keeps its own beat: cities twinkle, the sea shimmers.
-  float phase = 6.2832 * noise(uv * vec2(720.0, 360.0));
+  float phase = 6.2832 * noise(uv * vec2(720.0, 360.0), vec2(720.0, 360.0));
   float ripple = 0.78 + 0.22 * sin(time * 0.9 + phase);
   // City lights, the faint ones fainter so each town reads as a point, and a
   // warm haze round them where they crowd together.
-  float glow = texture2D(nightMap, uv).r;
+  float glow = mix(texture2D(nightMap, uv).r, texture2D(detailLights, clamp(near, 0.0, 1.0)).r, sharpness);
   glow *= (0.55 + 0.45 * glow) * (0.85 + 0.15 * sin(time * 1.3 + phase));
   float haze = texture2D(nightMap, uv, 2.0).r;
 
@@ -195,7 +254,7 @@ void main() {
   float key = clamp((facing + 0.25) / 1.25, 0.0, 1.0);
   key = mix(key, clamp((s + 0.25) / 1.25, 0.0, 1.0) * (1.0 + 0.9 * (facing - s)), water);
   vec3 lit = land * (vec3(1.0, 0.94, 0.84) * key + vec3(0.14, 0.2, 0.32) * (0.55 + 0.45 * dot(bent, n)));
-  lit *= 1.0 - shade * 0.45 * day;
+  lit *= 1.0 - min(shade * 0.45 * cloudAmount, 0.9) * day;
   // The sun on the water: a broad warm glint that ripples, and the sky
   // reflected toward the Earth's edge.
   float glint = pow(max(dot(n, normalize(sun + view)), 0.0), 70.0) * water * ripple * (1.0 - cloud);
@@ -206,7 +265,10 @@ void main() {
   // shallow seas faintly teal, and the cities burning gold.
   float moonGround = clamp(mix(dot(bent, -sun), -s, water), 0.0, 1.0);
   float sheen = pow(max(dot(n, normalize(view - sun)), 0.0), 60.0) * water * ripple * (1.0 - cloud);
-  vec3 moonLand = mix(mix(vec3(grey), land, 0.35) * vec3(0.45, 0.6, 1.0), land * vec3(0.3, 0.45, 0.9), water);
+  // Under the moon only the big shapes of the ground show, from a softer copy
+  // of the map; the city lights are the detail.
+  vec3 dim = texture2D(dayMap, uv, 1.5).rgb;
+  vec3 moonLand = mix(mix(vec3(dot(dim, vec3(0.299, 0.587, 0.114))), dim, 0.35) * vec3(0.45, 0.6, 1.0), dim * vec3(0.3, 0.45, 0.9), water);
   vec3 night = moonLand * (0.12 + 0.5 * moon * pow(moonGround, 0.7));
   night += vec3(0.45, 0.58, 0.85) * sheen * moon * 0.25;
   night += (glow * vec3(1.0, 0.78, 0.45) * 1.6 + haze * vec3(1.0, 0.55, 0.2) * 0.9) * (1.0 - cloud * 0.75);
@@ -226,11 +288,13 @@ void main() {
   vec3 cloudNight = vec3(0.24, 0.29, 0.42) * (0.3 + 0.95 * moon * clamp(dot(puff, -sun), 0.0, 1.0));
   cloudNight += haze * vec3(1.0, 0.55, 0.22) * 1.2;
   vec3 cloudColor = mix(cloudNight, cloudDay, day) + vec3(1.0, 0.48, 0.22) * sunset * 0.45;
-  color = mix(color, cloudColor, cloud * 0.92);
+  color = mix(color, cloudColor, clamp(cloud * 0.92 * cloudAmount, 0.0, 1.0));
 
   float rim = pow(1.0 - max(dot(n, view), 0.0), 3.0);
   color = mix(color, tint, rim * (0.12 + 0.5 * day));
-  gl_FragColor = vec4(mix(air, color, cover), max(cover, min(halo, 1.0)));
+  float alpha = max(cover, min(halo, 1.0)) * shown;
+  vec3 back = alpha < 1.0 ? sky(dir, 1.0 / focal) * (1.0 - alpha) : vec3(0.0);
+  gl_FragColor = vec4(mix(air, color, cover) * shown + back, alpha + max(back.r, max(back.g, back.b)));
 }
 `;
 
@@ -257,16 +321,17 @@ export interface EarthLine {
 
 export interface EarthViewProps {
   place: (GeoPoint & { name: string }) | null;
-  frame: EarthFrame;
-  /** The view near a prayer: closer in on the mosque. */
-  closeFrame: EarthFrame;
-  close: boolean;
+  /** The views, from the whole Earth to closest in on the mosque. */
+  levels: EarthFrame[];
+  /** Which of them to show; the Earth glides from one to the next. */
+  level: number;
   lines: EarthLine[];
   /** Where the theme's text sits, as fractions of the box: pins there are hidden. */
   clear: { left: number; top: number };
   /**
    * HTML markers: an element with data-pin="place", "sun" or "line-<id>"
    * rides on that point, with --west set to the screen direction of west.
+   * One with data-beam-label rides on the top of the beam.
    */
   children?: ReactNode;
 }
@@ -275,40 +340,54 @@ interface View {
   cx: number;
   cy: number;
   focal: number;
+  distance: number;
   forward: Vec;
   up: Vec;
   right: Vec;
 }
 
 /** Where the camera looks, so the mosque lands on its pin; in CSS pixels. */
-function viewFor(place: GeoPoint | null, frame: EarthFrame, width: number, height: number): View {
+function viewFor(place: GeoPoint | null, frame: EarthFrame, width: number, height: number, distance: number): View {
   const radius = frame.r * Math.min(width, height);
   const cx = frame.cx * width;
   const cy = frame.cy * height;
   const home = place ?? { latitude: 35, longitude: 15 };
-  // From the mosque, step back the way the pin lies from the Earth's centre.
+  const focal = radius * Math.sqrt(distance * distance - 1);
+  // From the mosque, step back the way the pin lies from the Earth's centre,
+  // by the angle that perspective puts at that distance on the screen:
+  // focal * sin(a) / (distance - cos(a)) = the pin's distance from the centre.
   const dx = frame.pinX * width - cx;
   const dy = frame.pinY * height - cy;
-  const reach = Math.min(0.9, Math.hypot(dx, dy) / radius);
-  const centre = place ? destination(home, Math.atan2(dx, -dy) / DEG + 180, Math.asin(reach) / DEG) : home;
+  const k = Math.hypot(dx, dy) / focal;
+  const angle = Math.asin(Math.min(1, (k * distance) / Math.sqrt(1 + k * k))) - Math.atan(k);
+  const away = Math.min(angle, Math.acos(1 / distance) - 0.08);
+  const centre = place ? destination(home, Math.atan2(dx, -dy) / DEG + 180, away / DEG) : home;
   const forward = toVec(centre);
   const north: Vec = Math.abs(forward[2]) > 0.999 ? [1, 0, 0] : [0, 0, 1];
   const along = dot(north, forward);
   const up = unit([north[0] - along * forward[0], north[1] - along * forward[1], north[2] - along * forward[2]]);
-  return { cx, cy, focal: radius * Math.sqrt(DISTANCE * DISTANCE - 1), forward, up, right: cross(up, forward) };
+  return { cx, cy, focal, distance, forward, up, right: cross(up, forward) };
 }
 
-function project(view: View, point: GeoPoint): { x: number; y: number; visible: boolean } {
-  const p = toVec(point);
+/** A point in space, in Earth radii, onto the screen; z is how far it lies toward the camera. */
+function projectVec(view: View, p: Vec): { x: number; y: number; z: number } {
   const z = dot(p, view.forward);
-  const depth = DISTANCE - z;
+  const depth = view.distance - z;
   return {
     x: view.cx + (view.focal * dot(p, view.right)) / depth,
     y: view.cy - (view.focal * dot(p, view.up)) / depth,
-    // In front of the cone that grazes the Earth, and clear of the very edge.
-    visible: z > 1 / DISTANCE + 0.06,
+    z,
   };
 }
+
+function project(view: View, point: GeoPoint): { x: number; y: number; visible: boolean } {
+  const at = projectVec(view, toVec(point));
+  // In front of the cone that grazes the Earth, and clear of the very edge.
+  return { x: at.x, y: at.y, visible: at.z > 1 / view.distance + 0.06 };
+}
+
+const levelAt = (levels: EarthFrame[], index: number): EarthFrame =>
+  levels[Math.max(0, Math.min(levels.length - 1, index))] ?? HOME_FRAME;
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const mixFrames = (a: EarthFrame, b: EarthFrame, t: number): EarthFrame => ({
@@ -327,14 +406,15 @@ function compile(gl: WebGLRenderingContext, type: number, source: string): WebGL
   return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
 }
 
-export function EarthView({ place, frame, closeFrame, close, lines, clear, children }: EarthViewProps) {
+export function EarthView({ place, levels, level, lines, clear, children }: EarthViewProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const latest = useRef({ place, frame, closeFrame, close, lines, clear });
+  const latest = useRef({ place, levels, level, lines, clear });
+  const beamFade = `beam-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   useEffect(() => {
-    latest.current = { place, frame, closeFrame, close, lines, clear };
+    latest.current = { place, levels, level, lines, clear };
   });
 
   useEffect(() => {
@@ -406,55 +486,76 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
     const size = most >= 4096 && span > 1100 ? 4096 : 2048;
     load(0, 'dayMap', `/globe/earth-day-${size}.jpg`, gl.RGB);
     load(1, 'nightMap', `/globe/earth-night-${size}.jpg`, gl.LUMINANCE);
-    load(2, 'cloudMap', `/globe/earth-clouds-${size}.jpg`, gl.LUMINANCE);
+    // The clouds drift round the whole globe, so they cannot come in tiles:
+    // a screen and GPU that can take it get them at twice the detail.
+    const cloudSize = size === 4096 && most >= 8192 ? 8192 : size;
+    load(2, 'cloudMap', `/globe/earth-clouds-${cloudSize}.jpg`, gl.LUMINANCE);
     load(3, 'reliefMap', `/globe/earth-relief-${size}.jpg`, gl.RGB);
 
-    // The nine 30-degree tiles round the mosque, at the full NASA detail,
-    // stitched into one texture: sharp where the camera goes close.
+    // The nine 30-degree tiles round the mosque, map and city lights, each
+    // stitched into one texture: sharp where the camera goes close. Both go
+    // to the GPU together once all eighteen have arrived.
     gl.uniform4f(uniform('detail'), 0, 0, 1, 0);
     gl.uniform1i(uniform('detailMap'), 4);
+    gl.uniform1i(uniform('detailLights'), 5);
     const home = latest.current.place;
     if (home) {
       const col = Math.floor((home.longitude + 180) / 30);
       const row = Math.min(4, Math.max(1, Math.floor((90 - home.latitude) / 30)));
-      const sheet = document.createElement('canvas');
-      sheet.width = size;
-      sheet.height = size;
-      const paint = sheet.getContext('2d');
-      let waiting = 9;
-      const detailTexture = gl.createTexture();
-      if (detailTexture) textures.push(detailTexture);
-      for (let dy = 0; dy < 3; dy++) {
-        for (let dx = 0; dx < 3; dx++) {
-          const image = new Image();
-          const tileRow = row - 1 + dy;
-          const tileCol = (((col - 1 + dx) % 12) + 12) % 12;
-          image.onload = () => {
-            if (!alive) return;
-            paint?.drawImage(image, (dx * size) / 3, (dy * size) / 3, size / 3, size / 3);
-            waiting -= 1;
-            if (waiting > 0 || !detailTexture) return;
-            gl.activeTexture(gl.TEXTURE4);
-            gl.bindTexture(gl.TEXTURE_2D, detailTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, sheet);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            const west = ((col - 1) * 30 - 180) * DEG;
-            const north = (90 - (row - 1) * 30) * DEG;
-            gl.uniform4f(uniform('detail'), west, north, 90 * DEG, 1);
-            sheet.width = 0;
-          };
-          image.src = `/globe/tiles/${tileRow}-${tileCol}.jpg`;
+      const sheets = [
+        { folder: 'tiles', unit: 4, format: gl.RGB },
+        { folder: 'lights', unit: 5, format: gl.LUMINANCE },
+      ].map((spec) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const texture = gl.createTexture();
+        if (texture) textures.push(texture);
+        return { ...spec, canvas, paint: canvas.getContext('2d'), texture };
+      });
+      let waiting = 18;
+      const upload = () => {
+        for (const sheet of sheets) {
+          if (!sheet.texture) return;
+          gl.activeTexture(gl.TEXTURE0 + sheet.unit);
+          gl.bindTexture(gl.TEXTURE_2D, sheet.texture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, sheet.format, sheet.format, gl.UNSIGNED_BYTE, sheet.canvas);
+          gl.generateMipmap(gl.TEXTURE_2D);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          sheet.canvas.width = 0;
+        }
+        const west = ((col - 1) * 30 - 180) * DEG;
+        const north = (90 - (row - 1) * 30) * DEG;
+        gl.uniform4f(uniform('detail'), west, north, 90 * DEG, 1);
+      };
+      for (const sheet of sheets) {
+        for (let dy = 0; dy < 3; dy++) {
+          for (let dx = 0; dx < 3; dx++) {
+            const image = new Image();
+            const tileRow = row - 1 + dy;
+            const tileCol = (((col - 1 + dx) % 12) + 12) % 12;
+            image.onload = () => {
+              if (!alive) return;
+              sheet.paint?.drawImage(image, (dx * size) / 3, (dy * size) / 3, size / 3, size / 3);
+              waiting -= 1;
+              if (waiting === 0) upload();
+            };
+            image.src = `/globe/${sheet.folder}/${tileRow}-${tileCol}.jpg`;
+          }
         }
       }
     }
 
     const stillness = window.matchMedia('(prefers-reduced-motion: reduce)');
     const started = performance.now();
-    let zoom = latest.current.close ? 1 : 0;
+    // The level the view is heading for, where it set off from, and how far along.
+    let heading = latest.current.level;
+    let framed = levelAt(latest.current.levels, heading);
+    let glideFrom: EarthFrame | null = null;
+    let glide = 1;
     let last = -Infinity;
     let frameId = 0;
 
@@ -478,12 +579,25 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
         canvas.height = bh;
       }
 
-      const { place: here, frame: far, closeFrame: near, close: wantClose, lines: wanted, clear: keepOut } = latest.current;
+      const { place: here, levels, level: levelWanted, lines: wanted, clear: keepOut } = latest.current;
       const still = stillness.matches;
-      // Glide toward the view the theme wants; a still screen just cuts.
-      const target = wantClose ? 1 : 0;
-      zoom = still ? target : zoom + Math.sign(target - zoom) * Math.min(Math.abs(target - zoom), step / ZOOM_SECONDS);
-      const view = viewFor(here, mixFrames(far, near, ease(zoom)), width, height);
+      // A new level: glide there from wherever the view is now; a still screen just cuts.
+      const target = Math.round(levelWanted);
+      if (target !== heading) {
+        glideFrom = framed;
+        heading = target;
+        glide = 0;
+      }
+      glide = still ? 1 : Math.min(1, glide + step / ZOOM_SECONDS);
+      const goal = levelAt(levels, heading);
+      framed = glideFrom && glide < 1 ? mixFrames(glideFrom, goal, ease(glide)) : goal;
+      const view = viewFor(here, framed, width, height, DISTANCE);
+      // How many pixels a degree of the Earth spans here, so marks keep their size at any zoom.
+      const perDegree = framed.r * Math.min(width, height) * DEG;
+      // Closest in, the clouds thin out so the city and its line show plainly.
+      const deepest = levelAt(levels, levels.length - 1).r;
+      const nextDeepest = levelAt(levels, levels.length - 2).r;
+      const thin = deepest > nextDeepest ? Math.min(1, Math.max(0, (framed.r - nextDeepest) / (deepest - nextDeepest))) : 0;
       const date = new Date();
       const sunPoint = subsolarPoint(date);
       const seconds = still ? 0 : (now - started) / 1000;
@@ -494,7 +608,16 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniform2f(uniform('centre'), view.cx * ratio, bh - view.cy * ratio);
         gl.uniform1f(uniform('focal'), view.focal * ratio);
-        gl.uniform1f(uniform('distance'), DISTANCE);
+        gl.uniform1f(uniform('distance'), view.distance);
+        gl.uniform1f(uniform('cloudAmount'), 1 - 0.6 * thin);
+        gl.uniform1f(uniform('skyTurn'), siderealDegrees(date) * DEG);
+        gl.uniform4f(
+          uniform('clearZone'),
+          keepOut.left > 0 ? keepOut.left * bw : -1e4,
+          keepOut.top > 0 ? bh - keepOut.top * bh : 1e5,
+          0.08 * bw,
+          0.08 * bh
+        );
         gl.uniform3fv(uniform('right'), view.right);
         gl.uniform3fv(uniform('up'), view.up);
         gl.uniform3fv(uniform('forward'), view.forward);
@@ -513,7 +636,7 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
           path.setAttribute('d', '');
           continue;
         }
-        const line = prayerLine(here, new Date(spec.at), date, spec.meridian);
+        const line = prayerLine(here, new Date(spec.at), date, spec.meridian, Math.min(6, Math.max(0.5, LABEL_PIXELS / perDegree)));
         let d = '';
         for (const piece of line.pieces) {
           let open = false;
@@ -528,7 +651,54 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
           }
         }
         path.setAttribute('d', d);
-        points[`line-${spec.id}`] = line.crossing;
+        points[`line-${spec.id}`] = line.label;
+      }
+
+      // The mosque's beam: a ring on the ground with a ripple, and a light rising from it.
+      const beamGroup = svg.querySelector<SVGGElement>('[data-beam]');
+      const beamLabel = box.querySelector<HTMLElement>('[data-beam-label]');
+      let beamTop: { x: number; y: number } | null = null;
+      let beamFoot: { x: number; y: number } | null = null;
+      if (beamGroup) {
+        const foot = here ? project(view, here) : null;
+        const on = !!foot && foot.visible && pending === 0 && foot.x >= keepOut.left * width && foot.y >= keepOut.top * height;
+        beamGroup.style.opacity = on ? '1' : '0';
+        if (beamLabel) beamLabel.style.opacity = on ? '1' : '0';
+        if (here && foot && on) {
+          const v = toVec(here);
+          const lift = 1 + BEAM_HEIGHT;
+          const top = projectVec(view, [v[0] * lift, v[1] * lift, v[2] * lift]);
+          for (const ray of beamGroup.querySelectorAll<SVGLineElement>('line')) {
+            ray.setAttribute('x1', foot.x.toFixed(1));
+            ray.setAttribute('y1', foot.y.toFixed(1));
+            ray.setAttribute('x2', top.x.toFixed(1));
+            ray.setAttribute('y2', top.y.toFixed(1));
+          }
+          const fade = beamGroup.querySelector('linearGradient');
+          fade?.setAttribute('x1', foot.x.toFixed(1));
+          fade?.setAttribute('y1', foot.y.toFixed(1));
+          fade?.setAttribute('x2', top.x.toFixed(1));
+          fade?.setAttribute('y2', top.y.toFixed(1));
+          const ring = (radius: number) => {
+            let d = '';
+            for (let bearing = 0; bearing < 360; bearing += 15) {
+              const at = project(view, destination(here, bearing, radius));
+              d += `${d ? 'L' : 'M'}${at.x.toFixed(1)} ${at.y.toFixed(1)}`;
+            }
+            return `${d}Z`;
+          };
+          const ripple = (seconds % RIPPLE_SECONDS) / RIPPLE_SECONDS;
+          const ringDegrees = RING_PIXELS / perDegree;
+          beamGroup.querySelector('[data-beam-ring]')?.setAttribute('d', ring(ringDegrees));
+          const pulse = beamGroup.querySelector<SVGPathElement>('[data-beam-pulse]');
+          pulse?.setAttribute('d', still ? '' : ring(ringDegrees * (1 + 1.8 * ripple)));
+          pulse?.setAttribute('opacity', (0.9 * (1 - ripple)).toFixed(2));
+          const dot = beamGroup.querySelector('[data-beam-dot]');
+          dot?.setAttribute('cx', foot.x.toFixed(1));
+          dot?.setAttribute('cy', foot.y.toFixed(1));
+          beamTop = top;
+          beamFoot = foot;
+        }
       }
 
       for (const element of box.querySelectorAll<HTMLElement>('[data-pin]')) {
@@ -545,6 +715,43 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
         const behindText = at.x < keepOut.left * width || at.y < keepOut.top * height;
         element.style.opacity = at.visible && !behindText ? '1' : '0';
       }
+
+      // The city's name never sits on a prayer line's label: it takes the first
+      // free spot round its beam, left or right of the top, else below the ring.
+      if (beamLabel && beamTop && beamFoot) {
+        const frame = box.getBoundingClientRect();
+        const zoomed = frame.width / width || 1;
+        const taken = Array.from(box.querySelectorAll<HTMLElement>('[data-pin^="line-"]'))
+          .filter((element) => element.style.opacity === '1')
+          .map((element) => element.querySelector<HTMLElement>('[data-label-box]')?.getBoundingClientRect())
+          .filter((rect): rect is DOMRect => rect !== undefined)
+          .map((rect) => ({
+            left: (rect.left - frame.left) / zoomed,
+            top: (rect.top - frame.top) / zoomed,
+            right: (rect.right - frame.left) / zoomed,
+            bottom: (rect.bottom - frame.top) / zoomed,
+          }));
+        const tag = beamLabel.firstElementChild;
+        const w = tag instanceof HTMLElement ? tag.offsetWidth : 0;
+        const h = tag instanceof HTMLElement ? tag.offsetHeight : 0;
+        const spots = [
+          { x: beamTop.x - 10 - w, y: beamTop.y - h / 2 },
+          { x: beamTop.x + 10, y: beamTop.y - h / 2 },
+          { x: beamFoot.x - 16 - w, y: beamFoot.y + 12 },
+          { x: beamFoot.x + 16, y: beamFoot.y + 12 },
+        ];
+        const clash = (spot: { x: number; y: number }) =>
+          taken.reduce(
+            (sum, rect) =>
+              sum +
+              Math.max(0, Math.min(spot.x + w + 8, rect.right) - Math.max(spot.x - 8, rect.left)) *
+                Math.max(0, Math.min(spot.y + h + 8, rect.bottom) - Math.max(spot.y - 8, rect.top)),
+            0
+          );
+        const free = spots.find((spot) => clash(spot) === 0);
+        const best = free ?? spots.reduce((a, b) => (clash(b) < clash(a) ? b : a));
+        beamLabel.style.transform = `translate(${best.x}px, ${best.y}px)`;
+      }
     };
     frameId = requestAnimationFrame(draw);
 
@@ -559,6 +766,15 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
     };
   }, []);
 
+  // The lines fade out under the theme's text, as the Earth does.
+  const fade =
+    clear.left > 0
+      ? `linear-gradient(90deg, transparent ${(clear.left - 0.04) * 100}%, #000 ${(clear.left + 0.04) * 100}%)`
+      : clear.top > 0
+        ? `linear-gradient(180deg, transparent ${(clear.top - 0.04) * 100}%, #000 ${(clear.top + 0.04) * 100}%)`
+        : undefined;
+  const underText: CSSProperties = fade ? { maskImage: fade, WebkitMaskImage: fade } : {};
+
   return (
     <div ref={boxRef} aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
       <canvas
@@ -566,7 +782,7 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', opacity: 0, transition: 'opacity 1.2s ease' }}
       />
       <style>{EARTH_MOTION}</style>
-      <svg ref={svgRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+      <svg ref={svgRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', ...underText }}>
         {lines.map((line) => (
           <g key={line.id}>
             {line.strong && (
@@ -591,6 +807,21 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
             />
           </g>
         ))}
+        {place && (
+          <g data-beam style={{ opacity: 0, transition: 'opacity 0.6s' }}>
+            <defs>
+              <linearGradient id={beamFade} gradientUnits="userSpaceOnUse">
+                <stop offset="0" stopColor="#E8A817" stopOpacity={1} />
+                <stop offset="1" stopColor="#FFE9B0" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path data-beam-ring fill="rgb(232 168 23 / 0.18)" stroke="#E8A817" strokeWidth={1.4} />
+            <path data-beam-pulse fill="none" stroke="#E8A817" strokeWidth={1.2} />
+            <line stroke={`url(#${beamFade})`} strokeWidth={9} strokeLinecap="round" opacity={0.35} />
+            <line stroke={`url(#${beamFade})`} strokeWidth={2.6} strokeLinecap="round" />
+            <circle data-beam-dot r={3.6} fill="#FFF3D1" stroke="#E8A817" strokeWidth={2} />
+          </g>
+        )}
       </svg>
       {children}
     </div>

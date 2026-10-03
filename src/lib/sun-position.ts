@@ -9,6 +9,12 @@ function wrap180(degrees: number): number {
   return ((((degrees + 180) % 360) + 360) % 360) - 180;
 }
 
+/** How far the sky has turned about the Earth's axis: Greenwich sidereal time, in degrees. */
+export function siderealDegrees(date: Date): number {
+  const days = (date.getTime() - Date.UTC(2000, 0, 1, 12)) / 86_400_000;
+  return ((18.697374558 + 24.06570982441908 * days) * 15) % 360;
+}
+
 /**
  * Where on Earth the sun is straight overhead at a moment. The low-precision
  * solar formulas (Astronomical Almanac), good to about a hundredth of a degree
@@ -26,11 +32,10 @@ export function subsolarPoint(date: Date): GeoPoint {
     Math.cos(eclipticLongitude)
   );
   const declination = Math.asin(Math.sin(obliquity) * Math.sin(eclipticLongitude));
-  const siderealHours = 18.697374558 + 24.06570982441908 * days;
   // Overhead where the local sidereal time equals the sun's right ascension.
   return {
     latitude: declination / DEG,
-    longitude: wrap180(rightAscension / DEG - siderealHours * 15),
+    longitude: wrap180(rightAscension / DEG - siderealDegrees(date)),
   };
 }
 
