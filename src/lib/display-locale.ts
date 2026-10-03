@@ -96,6 +96,16 @@ export function formatDisplayDate(date: Date, locale: DisplayLocale): string {
   }
 }
 
+/** The long date as each language writes it: "Friday, 2 October 2026", "petak, 2. oktobar 2026." */
+export function formatLongDate(date: Date, locale: DisplayLocale): string {
+  const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
+  try {
+    return format(date, 'PPPP', { locale: fnsLocale });
+  } catch {
+    return date.toLocaleDateString('en-GB');
+  }
+}
+
 /** "Saturday, 25 July" in the given app locale — stable across browsers. */
 export function formatTodayDate(locale: string): string {
   const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;

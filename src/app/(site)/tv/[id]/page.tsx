@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { after } from 'next/server';
 import { getScreen } from '@/lib/screens';
 import { resolveTodayTimes } from '@/lib/prayer-times';
+import { resolveScreenPlace } from '@/lib/screen-place';
 import { TvDisplay } from '@/components/display/tv-display';
 import { NOINDEX_METADATA } from '@/lib/site';
 import { touchLastSeen } from '@/lib/stats';
@@ -29,7 +30,11 @@ export default async function TvPage({ params }: TvPageProps) {
   // For the owner's count of screens on air; after the response, so the TV never waits on it.
   after(() => touchLastSeen(screen.id));
 
-  const todayTimes = await resolveTodayTimes(screen);
+  // Only the Globe theme draws the screen's place, so only it pays for the lookup.
+  const [todayTimes, place] = await Promise.all([
+    resolveTodayTimes(screen),
+    screen.theme === 'globe' ? resolveScreenPlace(screen) : null,
+  ]);
   const hdrs = await headers();
   const host = hdrs.get('x-forwarded-host') ?? hdrs.get('host') ?? 'localhost:3000';
   const proto = hdrs.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
@@ -37,6 +42,7 @@ export default async function TvPage({ params }: TvPageProps) {
     <TvDisplay
       screen={screen}
       todayTimes={todayTimes}
+      place={place}
       settingsUrl={`${proto}://${host}/s/${screen.id}`}
     />
   );

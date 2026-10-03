@@ -71,9 +71,10 @@ export function pad(value: number): string {
 export type PrayerState = 'past' | 'current' | 'next' | 'upcoming';
 
 /**
- * Classify each prayer for display. "current" is the most recent prayer that
- * has already begun; everything before it is "past". Sunrise is never a
- * target, so it is only ever past or upcoming.
+ * Classify each prayer for display. "current" is the prayer whose time it is:
+ * the latest to have begun, except that sunrise ends Fajr's time without
+ * starting a prayer of its own. Everything before it is "past". Sunrise is
+ * never a target, so it is only ever past or upcoming.
  */
 export function prayerStates(
   times: { name: string; time: string }[],
@@ -83,8 +84,8 @@ export function prayerStates(
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   let currentIndex = -1;
   times.forEach((entry, index) => {
-    if (entry.name !== 'sunrise' && minutesOf(entry.time) <= nowMinutes) {
-      currentIndex = index;
+    if (minutesOf(entry.time) <= nowMinutes) {
+      currentIndex = entry.name === 'sunrise' ? -1 : index;
     }
   });
 

@@ -62,7 +62,7 @@ export const screenSettingsSchema = z.object({
   // 'mihrab' is retired but still accepted: screens saved before it was
   // replaced must remain editable. It resolves to 'night' at render time
   // (see THEME_ALIASES in components/display/themes).
-  theme: z.enum(['default', 'night', 'mihrab']),
+  theme: z.enum(['default', 'night', 'globe', 'mihrab']),
   theme_config: z.record(
     z.string(),
     z.union([z.string().max(500), z.number(), z.boolean()])

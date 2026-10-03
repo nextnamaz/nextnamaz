@@ -167,6 +167,7 @@ describe('screenSettingsSchema', () => {
   it('accepts the registered themes, plus retired ids that screens may still hold', () => {
     expect(ok({ theme: 'default' })).toBe(true);
     expect(ok({ theme: 'night' })).toBe(true);
+    expect(ok({ theme: 'globe' })).toBe(true);
     // Retired: still stored on screens saved before Night replaced it.
     expect(ok({ theme: 'mihrab' })).toBe(true);
     expect(ok({ theme: 'minimal' })).toBe(false);

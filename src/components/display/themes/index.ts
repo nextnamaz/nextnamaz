@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import type { DisplayLocale } from '@/lib/display-locale';
+import type { ScreenPlace } from '@/lib/screen-place';
 
 export interface ThemeProps {
   prayers: PrayerTimeEntry[];
@@ -8,6 +9,8 @@ export interface ThemeProps {
   config: Record<string, unknown>;
   isPortrait: boolean;
   locale: DisplayLocale;
+  /** Where the screen is, when known. Only a theme that draws the Earth asks. */
+  place?: ScreenPlace | null;
 }
 
 // --- Theme registry types ---
@@ -39,10 +42,12 @@ export interface ThemeDefinition {
 
 import { DefaultTheme, defaultDefinition } from './default';
 import { NightTheme, nightDefinition } from './night';
+import { GlobeTheme, globeDefinition } from './globe';
 
-export { DefaultTheme, NightTheme };
+export { DefaultTheme, NightTheme, GlobeTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
+  globe: globeDefinition,
   night: nightDefinition,
   default: defaultDefinition,
 };
