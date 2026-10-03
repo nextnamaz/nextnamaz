@@ -1,0 +1,28 @@
+Artwork of the Ivory display theme
+
+basmala.svg
+  The Basmala in Ottoman thuluth, by Abdelghani Azzi. Public domain.
+  https://commons.wikimedia.org/wiki/File:Basmalah-1wm.svg
+
+roundels/*.svg
+  Recreations of the calligraphy of Masjid an-Nabawi, by OatCookies, licensed
+  CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/):
+  allah.svg     https://commons.wikimedia.org/wiki/File:Allah_Masjid_an-Nabawi_Calligraphy.svg
+  muhammad.svg  https://commons.wikimedia.org/wiki/File:Muhammad_Masjid_an-Nabawi_Calligraphy.svg
+  abu-bakr.svg  https://commons.wikimedia.org/wiki/File:Abu_Bakr_Masjid_an-Nabawi_Calligraphy.svg
+  umar.svg      https://commons.wikimedia.org/wiki/File:Umar_al-Farooq_Masjid_an-Nabawi_Calligraphy.svg
+  uthman.svg    https://commons.wikimedia.org/wiki/File:Uthman_Dhul-nurayn_Masjid_an-Nabawi_Calligraphy.svg
+  ali.svg       https://commons.wikimedia.org/wiki/File:Ali_Murtaza_Masjid_an-Nabawi_Calligraphy.svg
+  hasan.svg     https://commons.wikimedia.org/wiki/File:Hasan_Masjid_an-Nabawi_Calligraphy.svg
+  husayn.svg    https://commons.wikimedia.org/wiki/File:Husayn_Masjid_an-Nabawi_Calligraphy.svg
+  Changed: each kept as its gilding alone (the ring and the lettering, as
+  drawn), with the colours, the gradients and the disc taken out, so the theme
+  can lay it in gold over a disc of the screen's colour. Coordinates rounded to
+  a tenth of a unit. These adapted files are shared under CC BY-SA 4.0.
+
+wall.webp
+  Carved plaster relief, photo by KC Shum, Unsplash License
+  (https://unsplash.com/license).
+  https://unsplash.com/photos/PE7PiuPkBt8
+  Changed: one repeat of the carving cut from the photo, straightened, its
+  lighting evened out and its edges blended so it tiles; toned to ivory.

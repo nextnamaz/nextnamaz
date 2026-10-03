@@ -7,12 +7,12 @@ test.describe('settings dashboard', () => {
     await page.goto(`/s/${id}`);
 
     await page.getByRole('button', { name: 'Theme' }).click();
-    await page.getByRole('button', { name: /^Night/ }).click();
+    await page.getByRole('button', { name: /^Sky/ }).click();
     await saveSettings(page);
 
     await page.reload();
     await page.getByRole('button', { name: 'Theme' }).click();
-    await expect(page.getByRole('button', { name: /^Night/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Sky/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('screen fit and during-prayer settings live on the theme tab and persist', async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe('settings dashboard', () => {
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Language' }).click();
-    await page.getByRole('button', { name: /svenska/i }).click();
+    await page.getByRole('radio', { name: /svenska/i }).click();
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: /discard/i }).click();
@@ -53,7 +53,7 @@ test.describe('settings dashboard', () => {
     await page.goto(`/s/${id}`);
 
     await page.getByRole('button', { name: 'Language' }).click();
-    await page.getByRole('button', { name: /svenska/i }).click();
+    await page.getByRole('radio', { name: /svenska/i }).click();
     await saveSettings(page);
 
     await page.goto(`/tv/${id}`);

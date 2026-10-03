@@ -55,26 +55,24 @@ export async function completeSetupWizard(page: Page, screenId: string): Promise
   await stubGeocoder(page);
   await page.goto(`/s/${screenId}`);
 
-  await expect(page.getByRole('heading', { name: /where should the times come from/i })).toBeVisible();
-  await page.getByPlaceholder(/type your city/i).fill('Testville');
-  await page.getByPlaceholder(/type your city/i).press('Enter');
+  // The city first: typing suggests places, as the stubbed geocoder answers.
+  await expect(page.getByRole('heading', { name: /which city is the mosque in/i })).toBeVisible();
+  await page.getByRole('textbox', { name: 'City' }).fill('Testville');
   await page.getByRole('button', { name: new RegExp(STUB_CITY.name) }).first().click();
 
-  // The astronomical calculation is preselected for this country.
-  await page.getByRole('button', { name: /use this source/i }).click();
+  // The astronomical calculation is recommended for this country: confirm today's times.
+  await expect(page.getByRole('heading', { name: /are these your mosque.s times/i })).toBeVisible();
+  await page.getByRole('button', { name: /yes, use these times/i }).click();
 
-  await expect(page.getByRole('heading', { name: /check the times/i })).toBeVisible();
-  await page.getByRole('button', { name: /continue/i }).click();
-
-  await expect(page.getByRole('heading', { name: /what language/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /which language/i })).toBeVisible();
   await page.getByRole('button', { name: /continue/i }).click();
 
   await expect(page.getByRole('heading', { name: /pick a look/i })).toBeVisible();
   await page.getByRole('button', { name: /continue/i }).click();
 
   // The PIN is optional; the default flow skips it.
-  await expect(page.getByRole('heading', { name: /lock it with a pin/i })).toBeVisible();
-  await page.getByRole('button', { name: /turn on the display/i }).click();
+  await expect(page.getByRole('heading', { name: /lock the settings with a pin/i })).toBeVisible();
+  await page.getByRole('button', { name: /skip and turn on the tv/i }).click();
 
   await expect(page.getByRole('heading', { name: /your screen is live/i })).toBeVisible();
 }

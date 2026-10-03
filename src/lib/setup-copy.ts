@@ -102,7 +102,9 @@ const en: SetupCopy = {
     body: 'Every look works in landscape and portrait. Colours and the line at the bottom can be changed later in the settings.',
     names: {
       default: { name: 'Default', description: 'Clean table layout with next prayer panel' },
-      night: { name: 'Night', description: 'Dark board, one accent on the next prayer, nothing else' },
+      sky: { name: 'Sky', description: 'Changes with the sky outside' },
+      paper: { name: 'Paper', description: 'White space, one gold detail' },
+      ivory: { name: 'Ivory', description: 'Ivory and gold, framed like a mihrab' },
     },
   },
   pin: {
@@ -170,7 +172,9 @@ const sv: SetupCopy = {
     body: 'Alla utseenden fungerar både liggande och stående. Färger och raden längst ner kan du ändra senare i inställningarna.',
     names: {
       default: { name: 'Standard', description: 'Tydlig tabell med en ruta för nästa bön' },
-      night: { name: 'Natt', description: 'Mörk tavla, en accent på nästa bön, inget mer' },
+      sky: { name: 'Himmel', description: 'Skiftar med himlen utanför' },
+      paper: { name: 'Papper', description: 'Mycket luft och en guldig detalj' },
+      ivory: { name: 'Elfenben', description: 'Elfenben och guld, inramat som en mihrab' },
     },
   },
   pin: {
@@ -238,7 +242,9 @@ const bs: SetupCopy = {
     body: 'Svaki izgled radi i kad je TV položen i kad je uspravan. Boje i red na dnu možete kasnije promijeniti u postavkama.',
     names: {
       default: { name: 'Klasični', description: 'Pregledna tabela s poljem za sljedeći namaz' },
-      night: { name: 'Noć', description: 'Tamna tabla, sljedeći namaz istaknut, ništa više' },
+      sky: { name: 'Nebeska', description: 'Mijenja boju s nebom, od zore do jacije' },
+      paper: { name: 'Bijela', description: 'Puno bijelog prostora i jedan zlatni detalj' },
+      ivory: { name: 'Zlatna', description: 'Mihrab, levhe i zlato na boji slonovače' },
     },
   },
   pin: {
@@ -306,7 +312,9 @@ const de: SetupCopy = {
     body: 'Jedes Design funktioniert im Quer- und im Hochformat. Farben und die Zeile unten lassen sich später in den Einstellungen ändern.',
     names: {
       default: { name: 'Standard', description: 'Übersichtliche Tabelle mit Feld für das nächste Gebet' },
-      night: { name: 'Nacht', description: 'Dunkle Tafel, das nächste Gebet hervorgehoben, sonst nichts' },
+      sky: { name: 'Himmel', description: 'Folgt dem Himmel draußen' },
+      paper: { name: 'Papier', description: 'Viel Weißraum, ein goldenes Detail' },
+      ivory: { name: 'Elfenbein', description: 'Elfenbein und Gold, gerahmt wie ein Mihrab' },
     },
   },
   pin: {
@@ -374,7 +382,9 @@ const ar: SetupCopy = {
     body: 'كل مظهر يعمل أفقيًا وعموديًا. يمكنك تغيير الألوان والسطر السفلي لاحقًا من الإعدادات.',
     names: {
       default: { name: 'الافتراضي', description: 'جدول واضح مع خانة للصلاة القادمة' },
-      night: { name: 'الليل', description: 'لوحة داكنة، والصلاة القادمة بارزة، لا أكثر' },
+      sky: { name: 'سماوي', description: 'يتغيّر مع لون السماء في الخارج' },
+      paper: { name: 'ورقي', description: 'مساحة بيضاء وتفصيل ذهبي واحد' },
+      ivory: { name: 'عاجي', description: 'عاج وذهب في إطار محراب' },
     },
   },
   pin: {
@@ -442,7 +452,9 @@ const tr: SetupCopy = {
     body: 'Her görünüm hem yatay hem dikey ekranda çalışır. Renkleri ve alttaki satırı daha sonra ayarlardan değiştirebilirsiniz.',
     names: {
       default: { name: 'Standart', description: 'Sıradaki namaz için ayrı alanı olan sade bir tablo' },
-      night: { name: 'Gece', description: 'Koyu pano, sıradaki namaz öne çıkar, fazlası yok' },
+      sky: { name: 'Gökyüzü', description: 'Dışarıdaki gökyüzüyle birlikte değişir' },
+      paper: { name: 'Sade', description: 'Bol beyaz alan, tek bir altın ayrıntı' },
+      ivory: { name: 'Fildişi', description: 'Fildişi ve altın, mihrap çerçevesinde' },
     },
   },
   pin: {

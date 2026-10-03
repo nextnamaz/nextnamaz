@@ -38,12 +38,16 @@ export interface ThemeDefinition {
 // --- Theme imports ---
 
 import { DefaultTheme, defaultDefinition } from './default';
-import { NightTheme, nightDefinition } from './night';
+import { SkyTheme, skyDefinition } from './sky';
+import { PaperTheme, paperDefinition } from './paper';
+import { IvoryTheme, ivoryDefinition } from './ivory';
 
-export { DefaultTheme, NightTheme };
+export { DefaultTheme, SkyTheme, PaperTheme, IvoryTheme };
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
-  night: nightDefinition,
+  sky: skyDefinition,
+  paper: paperDefinition,
+  ivory: ivoryDefinition,
   default: defaultDefinition,
 };
 
@@ -53,10 +57,14 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
  * silently dropping back to Default.
  */
 const THEME_ALIASES: Record<string, string> = {
-  mihrab: 'night',
+  mihrab: 'sky',
+  night: 'sky',
 };
 
 /** Resolve a saved theme id, following aliases. Returns undefined if unknown. */
 export function resolveTheme(id: string): ThemeDefinition | undefined {
-  return THEME_REGISTRY[id] ?? THEME_REGISTRY[THEME_ALIASES[id] ?? ''];
+  // Own keys only: the id comes from the database, and an inherited name like
+  // 'constructor' would otherwise resolve to a function and blank the TV.
+  const own = (key: string) => (Object.hasOwn(THEME_REGISTRY, key) ? THEME_REGISTRY[key] : undefined);
+  return own(id) ?? (Object.hasOwn(THEME_ALIASES, id) ? own(THEME_ALIASES[id] ?? '') : undefined);
 }

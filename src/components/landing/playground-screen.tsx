@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { DefaultTheme, NightTheme } from '@/components/display/themes';
+import type { ComponentType } from 'react';
+import { DefaultTheme, IvoryTheme, PaperTheme, SkyTheme } from '@/components/display/themes';
+import type { ThemeProps } from '@/components/display/themes';
 import { PREVIEW_PRAYERS } from '@/lib/theme-preview';
 import { isRtlLocale, resolveDisplayLocale } from '@/lib/display-locale';
 import type { DisplayLocale } from '@/lib/display-locale';
@@ -9,7 +11,7 @@ import { minutesOf } from '@/lib/display-schedule';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { ScreenPlaceholder } from './screen-placeholder';
-import type { PlaygroundSettings } from './playground-panel';
+import type { PlaygroundSettings, ThemeChoice } from './playground-panel';
 
 /** The sample day without iqamah times, as demo-display.tsx draws it: the table a mosque gets. */
 const DEMO_PRAYERS: PrayerTimeEntry[] = PREVIEW_PRAYERS.map(({ name, displayName, time }) => ({
@@ -42,6 +44,13 @@ function nextPrayerAt(prayers: PrayerTimeEntry[], minute: number): PrayerTimeEnt
 }
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+const THEMES: Record<ThemeChoice, ComponentType<ThemeProps>> = {
+  default: DefaultTheme,
+  sky: SkyTheme,
+  paper: PaperTheme,
+  ivory: IvoryTheme,
+};
 
 /** The theme's pulses hold still for reduced motion. Unlayered, like the theme's own rule. */
 const HOLD_STILL =
@@ -84,7 +93,7 @@ function useFadeInAfterFirst() {
 }
 
 /**
- * The playground's picture: the real Default or Night theme with the chosen
+ * The playground's picture: the real Default, Sky, Paper or Ivory theme with the chosen
  * settings, on the visitor's clock. One theme is mounted at a time. Out of
  * sight it swaps to its placeholder, so its clocks stop.
  */
@@ -111,11 +120,13 @@ export function PlaygroundScreen({ settings }: { settings: PlaygroundSettings })
     return () => io.disconnect();
   }, []);
 
-  const night = settings.theme === 'night';
-  const Theme = night ? NightTheme : DefaultTheme;
-  const config: Record<string, string | boolean> = night
-    ? { accent: settings.accent, verse: settings.line, showSeconds: false }
-    : { mode: settings.mode, colorScheme: settings.scheme, displayText: settings.line };
+  const Theme = THEMES[settings.theme];
+  const config: Record<string, string | boolean> =
+    settings.theme === 'default'
+      ? { mode: settings.mode, colorScheme: settings.scheme, displayText: settings.line }
+      : settings.theme === 'ivory'
+        ? { color: settings.ink, roundels: settings.roundels }
+        : { verse: settings.line };
 
   return (
     <div ref={watch} aria-hidden className="playground-screen absolute inset-0">
