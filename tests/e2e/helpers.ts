@@ -56,13 +56,13 @@ export async function completeSetupWizard(page: Page, screenId: string): Promise
   await page.goto(`/s/${screenId}`);
 
   // The city first: typing suggests places, as the stubbed geocoder answers.
-  await expect(page.getByRole('heading', { name: /where is this screen/i })).toBeVisible();
-  await page.getByPlaceholder(/göteborg, sarajevo, berlin/i).fill('Testville');
+  await expect(page.getByRole('heading', { name: /which city is the mosque in/i })).toBeVisible();
+  await page.getByRole('textbox', { name: 'City' }).fill('Testville');
   await page.getByRole('button', { name: new RegExp(STUB_CITY.name) }).first().click();
 
-  // The astronomical calculation is preselected for this country, with today's times shown.
-  await expect(page.getByRole('heading', { name: /where should the times come from/i })).toBeVisible();
-  await page.getByRole('button', { name: /use these times/i }).click();
+  // The astronomical calculation is recommended for this country: confirm today's times.
+  await expect(page.getByRole('heading', { name: /are these your mosque.s times/i })).toBeVisible();
+  await page.getByRole('button', { name: /yes, use these times/i }).click();
 
   await expect(page.getByRole('heading', { name: /which language/i })).toBeVisible();
   await page.getByRole('button', { name: /continue/i }).click();
