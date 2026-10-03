@@ -398,9 +398,11 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
       };
       image.src = url;
     };
-    // As sharp as the GPU can hold and the screen can show; a small TV gets the light set.
+    // As sharp as the GPU can hold and the screen can show; a small TV, or a
+    // thumbnail in the settings, gets the light set.
     const most = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
-    const span = Math.max(box.clientWidth, box.clientHeight) * Math.min(window.devicePixelRatio || 1, 2);
+    const shown = box.getBoundingClientRect();
+    const span = Math.max(shown.width, shown.height) * Math.min(window.devicePixelRatio || 1, 2);
     const size = most >= 4096 && span > 1100 ? 4096 : 2048;
     load(0, 'dayMap', `/globe/earth-day-${size}.jpg`, gl.RGB);
     load(1, 'nightMap', `/globe/earth-night-${size}.jpg`, gl.LUMINANCE);
@@ -465,7 +467,10 @@ export function EarthView({ place, frame, closeFrame, close, lines, clear, child
       const width = box.clientWidth;
       const height = box.clientHeight;
       if (!width || !height) return;
-      const ratio = Math.min(window.devicePixelRatio || 1, MAX_BUFFER / Math.max(width, height));
+      // Drawn at the size it shows: a thumbnail scaled down in the settings
+      // needs a small canvas, not a TV-sized one.
+      const scale = Math.min(1, box.getBoundingClientRect().width / width);
+      const ratio = Math.min((window.devicePixelRatio || 1) * scale, MAX_BUFFER / Math.max(width, height));
       const bw = Math.round(width * ratio);
       const bh = Math.round(height * ratio);
       if (canvas.width !== bw || canvas.height !== bh) {

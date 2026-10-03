@@ -103,6 +103,7 @@ const en: SetupCopy = {
     names: {
       default: { name: 'Default', description: 'Clean table layout with next prayer panel' },
       night: { name: 'Night', description: 'Dark board, one accent on the next prayer, nothing else' },
+      globe: { name: 'Globe', description: 'The Earth right now, with your mosque on it' },
     },
   },
   pin: {
@@ -171,6 +172,7 @@ const sv: SetupCopy = {
     names: {
       default: { name: 'Standard', description: 'Tydlig tabell med en ruta för nästa bön' },
       night: { name: 'Natt', description: 'Mörk tavla, en accent på nästa bön, inget mer' },
+      globe: { name: 'Jordglob', description: 'Jorden just nu, med moskén utsatt' },
     },
   },
   pin: {
@@ -239,6 +241,7 @@ const bs: SetupCopy = {
     names: {
       default: { name: 'Klasični', description: 'Pregledna tabela s poljem za sljedeći namaz' },
       night: { name: 'Noć', description: 'Tamna tabla, sljedeći namaz istaknut, ništa više' },
+      globe: { name: 'Globus', description: 'Zemlja kakva je sada, s vašom džamijom na njoj' },
     },
   },
   pin: {
@@ -307,6 +310,7 @@ const de: SetupCopy = {
     names: {
       default: { name: 'Standard', description: 'Übersichtliche Tabelle mit Feld für das nächste Gebet' },
       night: { name: 'Nacht', description: 'Dunkle Tafel, das nächste Gebet hervorgehoben, sonst nichts' },
+      globe: { name: 'Globus', description: 'Die Erde, wie sie gerade aussieht, mit Ihrer Moschee darauf' },
     },
   },
   pin: {
@@ -375,6 +379,7 @@ const ar: SetupCopy = {
     names: {
       default: { name: 'الافتراضي', description: 'جدول واضح مع خانة للصلاة القادمة' },
       night: { name: 'الليل', description: 'لوحة داكنة، والصلاة القادمة بارزة، لا أكثر' },
+      globe: { name: 'الكرة الأرضية', description: 'الأرض كما هي الآن، ومسجدك عليها' },
     },
   },
   pin: {
@@ -443,6 +448,7 @@ const tr: SetupCopy = {
     names: {
       default: { name: 'Standart', description: 'Sıradaki namaz için ayrı alanı olan sade bir tablo' },
       night: { name: 'Gece', description: 'Koyu pano, sıradaki namaz öne çıkar, fazlası yok' },
+      globe: { name: 'Yerküre', description: 'Dünyanın şu anki görünümü, caminiz üzerinde işaretli' },
     },
   },
   pin: {
