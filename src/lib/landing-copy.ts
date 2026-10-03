@@ -97,7 +97,6 @@ export const LANDING_COPY = {
       theme: 'Theme',
       mode: 'Mode',
       colours: 'Colours',
-      roundels: 'Roundels',
       line: 'Your line at the bottom',
       linePlaceholder: "A verse, a greeting or your mosque's name",
       prayer: 'During prayer',
@@ -106,7 +105,6 @@ export const LANDING_COPY = {
     },
     themes: { default: 'Default', sky: 'Sky', paper: 'Paper', ivory: 'Ivory' },
     inks: { navy: 'Navy', green: 'Green', burgundy: 'Burgundy', teal: 'Teal', black: 'Black' },
-    roundels: { allah: 'Allah · Muhammad ﷺ', caliphs: 'The four caliphs', hasanayn: 'Hasan · Husayn', none: 'None' },
     modes: { light: 'Light', dark: 'Dark' },
     schemes: {
       classic: 'Classic',

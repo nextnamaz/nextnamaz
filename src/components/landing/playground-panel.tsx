@@ -13,7 +13,6 @@ export type ThemeChoice = keyof DisplayCopy['themes'];
 export type ModeChoice = keyof DisplayCopy['modes'];
 export type SchemeChoice = keyof DisplayCopy['schemes'];
 export type InkChoice = keyof DisplayCopy['inks'];
-export type RoundelChoice = keyof DisplayCopy['roundels'];
 
 /** Everything the playground's screen shows, as the phone's settings would save it. */
 export interface PlaygroundSettings {
@@ -21,9 +20,8 @@ export interface PlaygroundSettings {
   theme: ThemeChoice;
   mode: ModeChoice;
   scheme: SchemeChoice;
-  /** Ivory's colour, and what hangs either side of its mihrab. */
+  /** Ivory's colour. */
   ink: InkChoice;
-  roundels: RoundelChoice;
   /** Default's footer text, the bottom line on Sky and Paper. */
   line: string;
   blackout: boolean;
@@ -59,7 +57,6 @@ const INK_SWATCH: Record<InkChoice, string> = {
 };
 
 const INKS = Object.keys(INK_SWATCH) as InkChoice[];
-const ROUNDELS: RoundelChoice[] = ['allah', 'caliphs', 'hasanayn', 'none'];
 
 /** A soft gold halo behind a control while the ghost demo changes it. Opacity only. */
 const GHOST_HALO =
@@ -348,13 +345,6 @@ export function PlaygroundPanel({ t, settings, onChange, onReset, ghost, onInter
                 names={t.inks}
                 value={settings.ink}
                 onChange={(ink) => onChange({ ink })}
-              />
-              <ChoiceGroup
-                label={c.roundels}
-                choices={ROUNDELS.map((value) => ({ value, label: t.roundels[value] }))}
-                value={settings.roundels}
-                onChange={(roundels) => onChange({ roundels })}
-                columns={2}
               />
             </div>
           </div>

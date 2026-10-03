@@ -28,7 +28,6 @@ function startingSettings(language: SupportedLocale): PlaygroundSettings {
     mode: 'light',
     scheme: 'classic',
     ink: 'navy',
-    roundels: 'allah',
     line: BISMILLAH,
     blackout: false,
   };

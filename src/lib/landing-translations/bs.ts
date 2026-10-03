@@ -76,7 +76,6 @@ export const BS: LandingCopy = {
       theme: 'Tema',
       mode: 'Režim',
       colours: 'Paleta boja',
-      roundels: 'Levhe',
       line: 'Tekst na dnu ekrana',
       linePlaceholder: 'Ajet, selam ili naziv džamije',
       prayer: 'Za vrijeme namaza',
@@ -85,7 +84,6 @@ export const BS: LandingCopy = {
     },
     themes: { default: 'Osnovna', sky: 'Nebeska', paper: 'Bijela', ivory: 'Zlatna' },
     inks: { navy: 'Teget', green: 'Zelena', burgundy: 'Bordo', teal: 'Petrolej', black: 'Crna' },
-    roundels: { allah: 'Allah · Muhammed a.s.', caliphs: 'Četiri halife', hasanayn: 'Hasan · Husejn', none: 'Bez levhi' },
     modes: { light: 'Svijetli', dark: 'Tamni' },
     schemes: {
       classic: 'Klasična',
