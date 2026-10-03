@@ -76,7 +76,6 @@ export const SV: LandingCopy = {
       theme: 'Tema',
       mode: 'Läge',
       colours: 'Färger',
-      roundels: 'Medaljonger',
       line: 'Egen text längst ner',
       linePlaceholder: 'En vers, en hälsning eller moskéns namn',
       prayer: 'Under bönen',
@@ -85,7 +84,6 @@ export const SV: LandingCopy = {
     },
     themes: { default: 'Standard', sky: 'Himmel', paper: 'Papper', ivory: 'Elfenben' },
     inks: { navy: 'Marinblå', green: 'Grön', burgundy: 'Vinröd', teal: 'Petrol', black: 'Svart' },
-    roundels: { allah: 'Allah · Muhammad ﷺ', caliphs: 'De fyra kaliferna', hasanayn: 'Hasan · Husayn', none: 'Inga' },
     modes: { light: 'Ljust', dark: 'Mörkt' },
     schemes: {
       classic: 'Klassisk',

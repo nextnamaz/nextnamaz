@@ -125,7 +125,7 @@ export function PlaygroundScreen({ settings }: { settings: PlaygroundSettings })
     settings.theme === 'default'
       ? { mode: settings.mode, colorScheme: settings.scheme, displayText: settings.line }
       : settings.theme === 'ivory'
-        ? { color: settings.ink, roundels: settings.roundels }
+        ? { color: settings.ink }
         : { verse: settings.line };
 
   return (

@@ -81,7 +81,6 @@ export const DE: LandingCopy = {
       theme: 'Design',
       mode: 'Modus',
       colours: 'Farben',
-      roundels: 'Medaillons',
       line: 'Eigene Fußzeile',
       linePlaceholder: 'Ein Vers, ein Gruß oder der Name Ihrer Moschee',
       prayer: 'Während des Gebets',
@@ -90,7 +89,6 @@ export const DE: LandingCopy = {
     },
     themes: { default: 'Standard', sky: 'Himmel', paper: 'Papier', ivory: 'Elfenbein' },
     inks: { navy: 'Marineblau', green: 'Grün', burgundy: 'Bordeaux', teal: 'Petrol', black: 'Schwarz' },
-    roundels: { allah: 'Allah · Muhammad ﷺ', caliphs: 'Die vier Kalifen', hasanayn: 'Hasan · Husain', none: 'Keine' },
     modes: { light: 'Hell', dark: 'Dunkel' },
     schemes: {
       classic: 'Klassisch',

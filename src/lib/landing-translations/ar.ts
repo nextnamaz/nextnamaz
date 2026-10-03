@@ -76,7 +76,6 @@ export const AR: LandingCopy = {
       theme: 'التصميم',
       mode: 'الوضع',
       colours: 'الألوان',
-      roundels: 'اللوحات',
       line: 'عبارتكم أسفل الشاشة',
       linePlaceholder: 'آية أو تحية أو اسم مسجدكم',
       prayer: 'وقت الصلاة',
@@ -85,7 +84,6 @@ export const AR: LandingCopy = {
     },
     themes: { default: 'افتراضي', sky: 'سماوي', paper: 'ورقي', ivory: 'عاجي' },
     inks: { navy: 'كحلي', green: 'أخضر', burgundy: 'عنابي', teal: 'بترولي', black: 'أسود' },
-    roundels: { allah: 'الله · محمد ﷺ', caliphs: 'الخلفاء الأربعة', hasanayn: 'الحسن · الحسين', none: 'بدون' },
     modes: { light: 'فاتح', dark: 'داكن' },
     schemes: {
       classic: 'كلاسيكي',

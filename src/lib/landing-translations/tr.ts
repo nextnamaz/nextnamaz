@@ -76,7 +76,6 @@ export const TR: LandingCopy = {
       theme: 'Tema',
       mode: 'Mod',
       colours: 'Renkler',
-      roundels: 'Levhalar',
       line: 'Alttaki yazınız',
       linePlaceholder: 'Bir ayet, bir selam ya da caminizin adı',
       prayer: 'Namaz sırasında',
@@ -85,7 +84,6 @@ export const TR: LandingCopy = {
     },
     themes: { default: 'Varsayılan', sky: 'Gökyüzü', paper: 'Sade', ivory: 'Fildişi' },
     inks: { navy: 'Lacivert', green: 'Yeşil', burgundy: 'Bordo', teal: 'Petrol', black: 'Siyah' },
-    roundels: { allah: 'Allah · Hz. Muhammed', caliphs: 'Dört halife', hasanayn: 'Hz. Hasan · Hz. Hüseyin', none: 'Yok' },
     modes: { light: 'Açık', dark: 'Koyu' },
     schemes: {
       classic: 'Klasik',

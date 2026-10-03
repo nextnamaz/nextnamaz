@@ -11,8 +11,8 @@ import { countdownTo, prayerStates, readChoice } from './config';
 import { countdownPhrase, formatCountdown, shrinkToFit, splitClock } from '../parts';
 
 // A mosque's qibla wall in ivory and gold: carved plaster, the clock standing
-// in the mihrab under the Basmala, and roundels hanging to either side as in
-// Ottoman mosques: Allah and the Prophet, or the caliphs, or Hasan and Husayn.
+// in the mihrab under the Basmala, and roundels of Allah and the Prophet
+// hanging to either side as in Ottoman mosques.
 //
 // All the artwork is real and self-hosted under public/themes/ivory, credited
 // in CREDITS.txt there: the Basmala in Ottoman thuluth (public domain), the
@@ -94,57 +94,24 @@ interface Roundel {
   label: string;
 }
 
-const ALLAH: Roundel = { file: 'allah', label: 'الله' };
-const MUHAMMAD: Roundel = { file: 'muhammad', label: 'محمد ﷺ' };
-const ABU_BAKR: Roundel = { file: 'abu-bakr', label: 'أبو بكر' };
-const UMAR: Roundel = { file: 'umar', label: 'عمر' };
-const UTHMAN: Roundel = { file: 'uthman', label: 'عثمان' };
-const ALI: Roundel = { file: 'ali', label: 'علي' };
-const HASAN: Roundel = { file: 'hasan', label: 'الحسن' };
-const HUSAYN: Roundel = { file: 'husayn', label: 'الحسين' };
-
-/** A pair as it hangs either side of the mihrab: the first on the right as you face it. */
-type Pair = readonly [Roundel, Roundel];
-
-/** Each choice is the pairs it shows in turn; one pair stays put. */
-const ROUNDELS: Record<string, readonly Pair[]> = {
-  allah: [[ALLAH, MUHAMMAD]],
-  caliphs: [
-    [ABU_BAKR, UMAR],
-    [UTHMAN, ALI],
-  ],
-  hasanayn: [[HASAN, HUSAYN]],
-  none: [],
-};
-
-/** How long each pair hangs before the next takes its place. */
-const TURN_MS = 30_000;
+/** As they hang either side of the mihrab: the first on the right as you face it. */
+const ROUNDELS: readonly [Roundel, Roundel] = [
+  { file: 'allah', label: 'الله' },
+  { file: 'muhammad', label: 'محمد ﷺ' },
+];
 
 /**
  * A roundel: a disc in the screen's ink, gilded with the original
  * calligraphy, which is kept as a mask so the gold matches the rest of the
- * theme whatever the ink. Several can share a slot and take turns, fading
- * from one to the next.
+ * theme whatever the ink.
  */
-function Medallion({ roundels, shown, size, ink }: { roundels: readonly Roundel[]; shown: number; size: string; ink: string }) {
+function Medallion({ roundel, size, ink }: { roundel: Roundel; size: string; ink: string }) {
+  const gilding = `url(${ASSETS}/roundels/${roundel.file}.svg) center / contain no-repeat`;
   return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      {roundels.map((roundel, i) => {
-        const gilding = `url(${ASSETS}/roundels/${roundel.file}.svg) center / contain no-repeat`;
-        return (
-          <div
-            key={roundel.file}
-            role="img"
-            aria-label={roundel.label}
-            aria-hidden={i !== shown}
-            style={{ position: 'absolute', inset: 0, opacity: i === shown ? 1 : 0, transition: 'opacity 1.5s ease' }}
-          >
-            {/* The artwork's disc: radius 1089 about the centre of a 2274 square. */}
-            <div style={{ position: 'absolute', inset: '2.11%', borderRadius: '50%', background: ink }} />
-            <div style={{ position: 'absolute', inset: 0, background: GOLD, WebkitMask: gilding, mask: gilding }} />
-          </div>
-        );
-      })}
+    <div role="img" aria-label={roundel.label} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      {/* The artwork's disc: radius 1089 about the centre of a 2274 square. */}
+      <div style={{ position: 'absolute', inset: '2.11%', borderRadius: '50%', background: ink }} />
+      <div style={{ position: 'absolute', inset: 0, background: GOLD, WebkitMask: gilding, mask: gilding }} />
     </div>
   );
 }
@@ -155,8 +122,6 @@ export function IvoryTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
   const live = useHydrated();
   const rtl = isRtlLocale(locale);
   const { ink, faded } = readChoice(SCHEMES, config.color, 'navy');
-  const pairs = readChoice(ROUNDELS, config.roundels, 'allah');
-  const turn = live && pairs.length > 1 ? Math.floor(date.getTime() / TURN_MS) % pairs.length : 0;
 
   const states: PrayerState[] = live
     ? prayerStates(prayers, nextPrayer?.name ?? null, date)
@@ -334,9 +299,8 @@ export function IvoryTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
     padding: t('min(7cqw, 4cqh) 6cqw min(6cqw, 3.4cqh)', '4.5cqmin 6cqmin 5cqmin'),
   };
 
-  /** The roundels on one side, as you face the mihrab; nothing when the screen has none. */
-  const side = (which: 0 | 1, size: string) =>
-    pairs.length > 0 && <Medallion roundels={pairs.map((pair) => pair[which])} shown={turn} size={size} ink={ink} />;
+  /** The roundel on one side, as you face the mihrab. */
+  const side = (which: 0 | 1, size: string) => <Medallion roundel={ROUNDELS[which]} size={size} ink={ink} />;
 
   // In both orientations the mihrab stands on the band, as a niche stands on
   // the floor; whatever room is left goes above it, as wall.
@@ -390,22 +354,8 @@ export const ivoryDefinition: ThemeDefinition = {
         { value: 'black', label: 'Black' },
       ],
     },
-    {
-      key: 'roundels',
-      label: 'Roundels',
-      type: 'select',
-      defaultValue: 'allah',
-      description: 'The names that hang either side of the mihrab',
-      options: [
-        { value: 'allah', label: 'Allah and Muhammad ﷺ' },
-        { value: 'caliphs', label: 'The four caliphs, two at a time' },
-        { value: 'hasanayn', label: 'Hasan and Husayn' },
-        { value: 'none', label: 'None' },
-      ],
-    },
   ],
   defaultConfig: {
     color: 'navy',
-    roundels: 'allah',
   },
 };
