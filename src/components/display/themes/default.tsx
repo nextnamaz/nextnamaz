@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatPrayerTime } from '@/lib/display-locale';
 import { minutesOf } from '@/lib/display-schedule';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
+import { useHydrated } from '@/hooks/display/use-hydrated';
 import { Check, Sunrise } from 'lucide-react';
 
 type UrgencyLevel = 'normal' | 'approaching' | 'imminent';
@@ -271,6 +272,9 @@ function nameScale(name: string): string | undefined {
 
 export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
   const { timeStr, dateStr, date } = useDisplayClock(locale);
+  // The clock corrects itself within a second; the date would keep the
+  // server's (UTC) day until the next midnight, so it waits for the TV's clock.
+  const live = useHydrated();
   const prayerStates = usePrayerStates(prayers, nextPrayer, date.getHours() * 60 + date.getMinutes());
   const hasIqamah = prayers.some((p) => p.iqamahTime);
   const countdown = useCountdown(nextPrayer?.time ?? '00:00');
@@ -304,8 +308,8 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
         <p className={cn('default-clock font-extrabold leading-[90%] m-0', m.clockText)} suppressHydrationWarning>
           {timeStr}
         </p>
-        <p className={cn('default-date font-semibold m-0', m.dateText)} suppressHydrationWarning>
-          {dateStr}
+        <p className={cn('default-date font-semibold m-0', m.dateText)}>
+          {live ? dateStr : '\u00a0'}
         </p>
       </header>
 

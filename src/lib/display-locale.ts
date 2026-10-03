@@ -106,6 +106,21 @@ export function formatLongDate(date: Date, locale: DisplayLocale): string {
   }
 }
 
+/** The date in two parts, for a theme that sets the weekday on its own line: "Petak" and "2. oktobar 2026." */
+export function formatDateParts(date: Date, locale: DisplayLocale): { weekday: string; date: string } {
+  const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;
+  try {
+    const weekday = format(date, 'EEEE', { locale: fnsLocale });
+    return {
+      // A label on its own line takes a capital, though "petak" mid-sentence would not.
+      weekday: weekday.charAt(0).toLocaleUpperCase(locale.locale) + weekday.slice(1),
+      date: format(date, 'PPP', { locale: fnsLocale }),
+    };
+  } catch {
+    return { weekday: '', date: date.toLocaleDateString('en-GB') };
+  }
+}
+
 /** "Saturday, 25 July" in the given app locale — stable across browsers. */
 export function formatTodayDate(locale: string): string {
   const fnsLocale = DATE_FNS_LOCALES[locale] ?? enGB;

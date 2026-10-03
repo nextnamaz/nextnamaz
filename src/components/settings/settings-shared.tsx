@@ -9,7 +9,7 @@ import type { PrayerName } from '@/types/prayer';
 import { parseDisplayText } from '@/lib/locale/helpers';
 import type { SupportedLocale, DisplayTextConfig } from '@/types/locale';
 import type { PrayerSourceInput } from '@/lib/actions';
-import { THEME_REGISTRY } from '@/components/display/themes';
+import { resolveTheme } from '@/components/display/themes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -37,7 +37,8 @@ export function formFromScreen(screen: Screen): FormState {
     sourceConfig: asRecord(screen.prayer_source_config),
     locale: (screen.locale || 'en') as SupportedLocale,
     displayText: parseDisplayText(asStringRecord(screen.display_text), screen.locale),
-    theme: screen.theme in THEME_REGISTRY ? screen.theme : 'default',
+    // A retired theme opens as what the TV shows in its place.
+    theme: resolveTheme(screen.theme)?.id ?? 'default',
     themeConfig: asRecord(screen.theme_config) as ThemeConfigMap,
     displayConfig: asDisplayConfig(screen.display_config),
   };

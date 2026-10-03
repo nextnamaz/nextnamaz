@@ -27,7 +27,8 @@ function startingSettings(language: SupportedLocale): PlaygroundSettings {
     theme: 'default',
     mode: 'light',
     scheme: 'classic',
-    accent: 'amber',
+    ink: 'navy',
+    roundels: 'allah',
     line: BISMILLAH,
     blackout: false,
   };
@@ -42,15 +43,15 @@ interface GhostStep {
 
 /**
  * The demo that plays once for a visitor who has not touched anything:
- * another language, then Dark, then the Night theme, then back to the start.
- * Mode comes before theme because Mode belongs to Default: under Night it has
+ * another language, then Dark, then the Sky theme, then back to the start.
+ * Mode comes before theme because Mode belongs to Default: under Sky it has
  * nothing to change.
  */
 function ghostSteps(start: PlaygroundSettings): GhostStep[] {
   return [
     { wait: 1100, field: 'language', change: { language: start.language === 'ar' ? 'en' : 'ar' } },
     { wait: 2600, field: 'mode', change: { mode: 'dark' } },
-    { wait: 2600, field: 'theme', change: { theme: 'night' } },
+    { wait: 2600, field: 'theme', change: { theme: 'sky' } },
     { wait: 3000, field: 'reset', change: start },
   ];
 }
@@ -129,7 +130,7 @@ export function PlaygroundStage({ t, display }: PlaygroundStageProps) {
       if (phase === 'over') return;
       // Put back what the demo changed first. This runs on the first pointer, key or focus
       // in the panel, before the control's own change, so the visitor's choice lands on the
-      // page's own settings and not on the demo's Arabic, Dark or Night.
+      // page's own settings and not on the demo's Arabic, Dark or Sky.
       if (phase === 'playing') setSettings(start);
       finish();
     };

@@ -3,13 +3,9 @@
  * JSONB), so every read goes through a typed guard with a fallback.
  */
 
-export function readString(value: unknown, fallback: string): string {
-  return typeof value === 'string' && value.length > 0 ? value : fallback;
-}
-
 /**
- * Like readString but keeps an empty string, so a user can clear a text field
- * to hide the element it drives.
+ * A text value, keeping an empty string, so a user can clear a text field to
+ * hide the element it drives.
  */
 export function readText(value: unknown, fallback: string): string {
   return typeof value === 'string' ? value : fallback;
@@ -19,19 +15,14 @@ export function readBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
 }
 
-/** Pick a palette entry by key, falling back to a known-good one. */
-export function readPalette<T, K extends string>(
-  palettes: Record<K, T>,
-  value: unknown,
-  fallback: K
-): T {
-  const key = readString(value, fallback);
-  // Matched against own keys only: the key comes from saved config, and an
-  // inherited name like 'constructor' is not a palette.
-  for (const [name, palette] of Object.entries<T>(palettes)) {
-    if (name === key) return palette;
+/** Pick an entry by its key, falling back to a known-good one. */
+export function readChoice<T, K extends string>(choices: Record<K, T>, value: unknown, fallback: K): T {
+  // Own keys only: the key comes from saved config, and an inherited name
+  // like 'constructor' is not a choice.
+  for (const [key, choice] of Object.entries<T>(choices)) {
+    if (key === value) return choice;
   }
-  return palettes[fallback];
+  return choices[fallback];
 }
 
 export interface Countdown {

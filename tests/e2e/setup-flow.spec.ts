@@ -5,7 +5,7 @@ test.describe('first-run onboarding', () => {
   test('the setup page offers to claim this TV', async ({ page }) => {
     await page.goto('/s');
     await expect(page.getByRole('heading', { name: 'Set up this screen' })).toBeVisible();
-    await expect(page.getByText(/step 1 of 2/i)).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: /press start/i })).toBeVisible();
     // The device hints tell a mosque what hardware works.
     await expect(page.getByText(/a smart tv/i)).toBeVisible();
     await expect(page.getByText(/raspberry pi/i)).toBeVisible();

@@ -12,7 +12,8 @@ type DisplayCopy = LandingCopy['display'];
 export type ThemeChoice = keyof DisplayCopy['themes'];
 export type ModeChoice = keyof DisplayCopy['modes'];
 export type SchemeChoice = keyof DisplayCopy['schemes'];
-export type AccentChoice = keyof DisplayCopy['accents'];
+export type InkChoice = keyof DisplayCopy['inks'];
+export type RoundelChoice = keyof DisplayCopy['roundels'];
 
 /** Everything the playground's screen shows, as the phone's settings would save it. */
 export interface PlaygroundSettings {
@@ -20,8 +21,10 @@ export interface PlaygroundSettings {
   theme: ThemeChoice;
   mode: ModeChoice;
   scheme: SchemeChoice;
-  accent: AccentChoice;
-  /** Default's footer text, Night's verse. */
+  /** Ivory's colour, and what hangs either side of its mihrab. */
+  ink: InkChoice;
+  roundels: RoundelChoice;
+  /** Default's footer text, the bottom line on Sky and Paper. */
   line: string;
   blackout: boolean;
 }
@@ -31,7 +34,7 @@ export type GhostField = 'language' | 'theme' | 'mode' | 'reset';
 
 export const LINE_MAX = 80;
 
-const THEMES: ThemeChoice[] = ['default', 'night'];
+const THEMES: ThemeChoice[] = ['default', 'sky', 'paper', 'ivory'];
 const MODES: ModeChoice[] = ['light', 'dark'];
 
 /** Each scheme's next-prayer panel, the biggest block of it on the screen (themes/default.tsx PALETTES). */
@@ -44,15 +47,19 @@ const SCHEME_SWATCH: Record<SchemeChoice, string> = {
   midnight: '#1e3a5f',
 };
 
-/** Night's accent lines (themes/night.tsx ACCENTS). */
-const ACCENT_SWATCH: Record<AccentChoice, string> = {
-  amber: '#E8A817',
-  mint: '#3FE0A2',
-  azure: '#4EA8FF',
+const SCHEMES = Object.keys(SCHEME_SWATCH) as SchemeChoice[];
+
+/** Ivory's inks (themes/ivory.tsx SCHEMES). */
+const INK_SWATCH: Record<InkChoice, string> = {
+  navy: '#18223A',
+  green: '#173F31',
+  burgundy: '#5B1F2B',
+  teal: '#0F3F4A',
+  black: '#1C1A17',
 };
 
-const SCHEMES = Object.keys(SCHEME_SWATCH) as SchemeChoice[];
-const ACCENTS = Object.keys(ACCENT_SWATCH) as AccentChoice[];
+const INKS = Object.keys(INK_SWATCH) as InkChoice[];
+const ROUNDELS: RoundelChoice[] = ['allah', 'caliphs', 'hasanayn', 'none'];
 
 /** A soft gold halo behind a control while the ghost demo changes it. Opacity only. */
 const GHOST_HALO =
@@ -184,6 +191,7 @@ export function PlaygroundPanel({ t, settings, onChange, onReset, ghost, onInter
   const id = useId();
   const c = t.controls;
   const isDefault = settings.theme === 'default';
+  const isIvory = settings.theme === 'ivory';
 
   const languages: Choice<SupportedLocale>[] = LANGUAGES.map((lang) => ({
     value: lang.code,
@@ -300,7 +308,7 @@ export function PlaygroundPanel({ t, settings, onChange, onReset, ghost, onInter
             ghost={ghost === 'theme'}
           />
 
-          {/* Each theme's own options share one cell, the taller one sizing it, so the
+          {/* Each theme's own options share one cell, the taller set sizing it, so the
               panel keeps its height when the theme changes. The hidden set is invisible,
               which also takes it out of the tab order and the accessibility tree. */}
           <div className="grid">
@@ -329,17 +337,24 @@ export function PlaygroundPanel({ t, settings, onChange, onReset, ghost, onInter
             </div>
             <div
               className={cn(
-                'col-start-1 row-start-1 transition-[opacity,visibility] duration-200 motion-reduce:transition-none',
-                isDefault ? 'invisible opacity-0' : 'visible opacity-100'
+                'col-start-1 row-start-1 grid content-start gap-5 transition-[opacity,visibility] duration-200 motion-reduce:transition-none',
+                isIvory ? 'visible opacity-100' : 'invisible opacity-0'
               )}
             >
               <SwatchGroup
-                label={c.accent}
-                swatches={ACCENTS}
-                colours={ACCENT_SWATCH}
-                names={t.accents}
-                value={settings.accent}
-                onChange={(accent) => onChange({ accent })}
+                label={c.colours}
+                swatches={INKS}
+                colours={INK_SWATCH}
+                names={t.inks}
+                value={settings.ink}
+                onChange={(ink) => onChange({ ink })}
+              />
+              <ChoiceGroup
+                label={c.roundels}
+                choices={ROUNDELS.map((value) => ({ value, label: t.roundels[value] }))}
+                value={settings.roundels}
+                onChange={(roundels) => onChange({ roundels })}
+                columns={2}
               />
             </div>
           </div>
