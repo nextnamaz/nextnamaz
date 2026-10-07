@@ -8,7 +8,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readChoice } from './config';
-import { countdownPhrase, formatCountdown, shrinkToFit, splitClock } from '../parts';
+import { countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
 
 // A mosque's qibla wall in ivory and gold: carved plaster, the clock standing
 // in the mihrab under the Basmala, and roundels of Allah and the Prophet
@@ -116,7 +116,10 @@ function Medallion({ roundel, size, ink }: { roundel: Roundel; size: string; ink
   );
 }
 
-export function IvoryTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
+export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first minute.
+  const nextPrayer = startingPrayer ?? upcoming;
+  const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
   const live = useHydrated();
@@ -179,7 +182,9 @@ export function IvoryTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
             visibility: live ? undefined : 'hidden',
           }}
         >
-          {countdown && nextPrayer ? (
+          {starting && nextPrayer ? (
+            <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
+          ) : countdown && nextPrayer ? (
             <>
               {countdownPhrase(nextPrayer, locale)}{' '}
               <b>{formatCountdown(countdown, { showSeconds: true })}</b>

@@ -9,6 +9,11 @@ export interface ThemeProps {
   config: Record<string, unknown>;
   isPortrait: boolean;
   locale: DisplayLocale;
+  /**
+   * The prayer that began moments ago, if any. A theme shows it as started
+   * where it would otherwise count down to `nextPrayer`.
+   */
+  startingPrayer?: PrayerTimeEntry | null;
   /** Where the screen is, when known. Only a theme that draws the Earth asks. */
   place?: ScreenPlace | null;
 }

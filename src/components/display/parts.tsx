@@ -36,6 +36,11 @@ export function countdownPhrase(prayer: PrayerTimeEntry, locale: DisplayLocale):
   return join ? `${prayer.displayName} ${join}` : prayer.displayName;
 }
 
+/** The screen's "prayer is starting", or the prayer's name if blanked. */
+export function startingPhrase(prayer: PrayerTimeEntry, locale: DisplayLocale): string {
+  return locale.labels.starting.trim() || prayer.displayName;
+}
+
 // --- Clock and names ---
 
 /** "15:56:42" → ["15:56", "42"]. A 12-hour clock keeps its AM/PM with the seconds. */

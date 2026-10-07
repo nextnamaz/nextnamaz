@@ -10,7 +10,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readBoolean, readText } from './config';
-import { Moon, Verse, countdownPhrase, formatCountdown, shrinkToFit, splitClock } from '../parts';
+import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
 
 // White space, black type, and one small gold thing that moves: a dot
 // travelling along a line across the foot of the screen, the day from
@@ -139,7 +139,10 @@ function DayLine({ prayers, nextPrayer, minute, rtl, labelSize }: DayLineProps) 
   );
 }
 
-export function PaperTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
+export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first minute.
+  const nextPrayer = startingPrayer ?? upcoming;
+  const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
   const live = useHydrated();
@@ -211,7 +214,9 @@ export function PaperTheme({ prayers, nextPrayer, config, isPortrait, locale }: 
         }}
       >
         <span aria-hidden style={{ width: '0.4em', height: '0.4em', borderRadius: '50%', background: GOLD, flexShrink: 0 }} />
-        {countdown && nextPrayer ? (
+        {starting && nextPrayer ? (
+          <span className="prayer-starting" style={{ fontWeight: 600 }}>{startingPhrase(nextPrayer, locale)}</span>
+        ) : countdown && nextPrayer ? (
           <span>
             {countdownPhrase(nextPrayer, locale)}{' '}
             <span style={{ fontWeight: 600 }}>{formatCountdown(countdown, { showSeconds: true })}</span>

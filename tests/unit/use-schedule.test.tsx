@@ -476,28 +476,30 @@ describe('useBlackout', () => {
   });
 
   it('turns on within one tick of a window opening under it', () => {
-    vi.setSystemTime(new Date(2026, 6, 30, 13, 23, 50));
+    // Dhuhr 13:24; its starting minute ends and the dark window opens at 13:25.
+    vi.setSystemTime(new Date(2026, 6, 30, 13, 24, 50));
     const { result } = renderBlackout({ prayers: DAY, enabled: true, minutes: 15 });
 
     tick(1);
-    expect(result.current).toBe(false); // dhuhr has not started yet
-    // 13:24:00 — dhuhr has started, but the 15s tick has not come round, so the
-    // screen is still lit. This is the documented worst-case latency.
+    expect(result.current).toBe(false); // still dhuhr's starting minute
+    // 13:25:00 — the window has opened, but the 15s tick has not come round, so
+    // the screen is still lit. This is the documented worst-case latency.
     tick(9_999);
     expect(result.current).toBe(false);
-    tick(5_000); // 13:24:05, the first tick after the window opened
+    tick(5_000); // 13:25:05, the first tick after the window opened
     expect(result.current).toBe(true);
   });
 
   it('turns itself back off when the window passes, without any prop change', () => {
-    vi.setSystemTime(new Date(2026, 6, 30, 13, 38, 30));
+    // Dark from 13:25 for 15 minutes, so until 13:40.
+    vi.setSystemTime(new Date(2026, 6, 30, 13, 39, 30));
     const { result } = renderBlackout({ prayers: DAY, enabled: true, minutes: 15 });
 
     tick(1);
     expect(result.current).toBe(true);
-    tick(15_000); // 13:38:45 — still within dhuhr + 15
+    tick(15_000); // 13:39:45 — still dark
     expect(result.current).toBe(true);
-    tick(15_000); // 13:39:00 — window closed
+    tick(15_000); // 13:40:00 — window closed
     expect(result.current).toBe(false);
   });
 

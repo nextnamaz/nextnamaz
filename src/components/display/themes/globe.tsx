@@ -200,11 +200,13 @@ interface TableProps {
   nameSize: string;
   timeSize: string;
   rowPad: string;
+  /** The gold row has just begun rather than being next: it blinks. */
+  starting: boolean;
   style?: CSSProperties;
 }
 
 /** The six times as a table: a header, one row each, the next filled gold, the past faded. */
-function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style }: TableProps) {
+function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, starting, style }: TableProps) {
   const iqamah = prayers.some((p) => p.iqamahTime);
   const columns = iqamah ? 'minmax(0, 1fr) auto auto' : 'minmax(0, 1fr) auto';
   const cell: CSSProperties = { padding: `${rowPad} 2.6cqmin`, display: 'flex', alignItems: 'center' };
@@ -242,6 +244,8 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style
         const state = states[i];
         const isNext = state === 'next';
         const color = isNext ? GOLD : state === 'past' ? PAST : INK;
+        // The row is display: contents, so its cells carry the animation.
+        const pulse = isNext && starting ? 'prayer-starting' : undefined;
         const row: CSSProperties = {
           ...cell,
           borderTop: `1px solid ${RULE}`,
@@ -252,6 +256,7 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style
           <div key={prayer.name} role="row" style={{ display: 'contents' }}>
             <div
               role="cell"
+              className={pulse}
               style={{
                 ...row,
                 boxShadow: isNext ? `inset 0.5cqmin 0 0 ${GOLD}` : undefined,
@@ -264,11 +269,11 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style
             >
               {prayer.displayName}
             </div>
-            <div role="cell" style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            <div role="cell" className={pulse} style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
               {formatPrayerTime(prayer.time, locale)}
             </div>
             {iqamah && (
-              <div role="cell" style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              <div role="cell" className={pulse} style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                 {prayer.iqamahTime ? formatPrayerTime(prayer.iqamahTime, locale) : ''}
               </div>
             )}
@@ -279,7 +284,10 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, style
   );
 }
 
-export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: ThemeProps) {
+export function GlobeTheme({ prayers, nextPrayer: upcoming, isPortrait, locale, place, startingPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first minute.
+  const nextPrayer = startingPrayer ?? upcoming;
+  const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
   const live = useHydrated();
@@ -373,6 +381,7 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
         <div style={{ position: 'absolute', top: '4cqh', left: '6cqw', right: '6cqw' }}>{clockBlock}</div>
         <TimesTable
           prayers={prayers}
+          starting={starting}
           states={states}
           locale={locale}
           nameSize="min(4.8cqw, 2.7cqh)"
@@ -409,6 +418,7 @@ export function GlobeTheme({ prayers, nextPrayer, isPortrait, locale, place }: T
         {clockBlock}
         <TimesTable
           prayers={prayers}
+          starting={starting}
           states={states}
           locale={locale}
           nameSize="4cqmin"

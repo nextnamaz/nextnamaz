@@ -18,8 +18,7 @@ export const PRAYER_DISPLAY_NAMES: Record<PrayerName, string> = {
   isha: 'Isha',
 };
 
-export function getNextPrayer(prayers: PrayerTimeEntry[]): PrayerTimeEntry | null {
-  const now = new Date();
+export function getNextPrayer(prayers: PrayerTimeEntry[], now: Date = new Date()): PrayerTimeEntry | null {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   for (const prayer of prayers) {

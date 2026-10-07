@@ -44,7 +44,9 @@ export function countdownTo(time: string, now: Date): Countdown {
   const [hours = NaN, minutes = NaN] = time.split(':').map(Number);
   const target = new Date(now);
   target.setHours(hours, minutes, 0, 0);
-  if (target.getTime() <= now.getTime()) {
+  // Within its first minute a target is "now", not tomorrow: a countdown that
+  // is a tick behind must read 00:00:00, never 23:59:59.
+  if (target.getTime() <= now.getTime() - 60_000) {
     target.setDate(target.getDate() + 1);
   }
   const total = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));

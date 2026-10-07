@@ -32,6 +32,8 @@ export interface UILabelTranslations {
   today: string;
   jumuah: string;
   adhan: string;
+  /** Under the prayer's name on the screen shown as it begins. */
+  starting: string;
 }
 
 export interface DisplayTextConfig {
