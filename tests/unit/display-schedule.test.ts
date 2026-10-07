@@ -5,6 +5,8 @@ import {
   isBlackoutNow,
   isControlQrNow,
   minutesOf,
+  PRAYER_STARTING_MINUTES,
+  startingPrayer,
 } from '@/lib/display-schedule';
 import type { PrayerTimeEntry } from '@/types/prayer';
 
@@ -46,28 +48,33 @@ describe('minutesOf', () => {
 });
 
 describe('isBlackoutNow', () => {
-  it('is dark from the prayer time until the window closes', () => {
+  it('is dark for the full window once the starting minute is over', () => {
     expect(isBlackoutNow(DAY, 15, at(13, 23))).toBe(false);
-    expect(isBlackoutNow(DAY, 15, at(13, 24))).toBe(true);
-    expect(isBlackoutNow(DAY, 15, at(13, 38))).toBe(true);
-    expect(isBlackoutNow(DAY, 15, at(13, 39))).toBe(false);
+    expect(isBlackoutNow(DAY, 15, at(13, 24))).toBe(false);
+    expect(isBlackoutNow(DAY, 15, at(13, 24 + PRAYER_STARTING_MINUTES))).toBe(true);
+    expect(isBlackoutNow(DAY, 15, at(13, 38 + PRAYER_STARTING_MINUTES))).toBe(true);
+    expect(isBlackoutNow(DAY, 15, at(13, 39 + PRAYER_STARTING_MINUTES))).toBe(false);
+  });
+
+  it('still goes dark for a one-minute window', () => {
+    expect(isBlackoutNow(DAY, 1, at(13, 24 + PRAYER_STARTING_MINUTES))).toBe(true);
   });
 
   it('stays dark across midnight for a late Isha', () => {
-    // Isha 23:50 + 45 min runs to 00:35 the next day.
+    // Isha 23:50, dark from 23:51 for 45 min, to 00:36 the next day.
     expect(isBlackoutNow(DAY, 45, at(23, 55))).toBe(true);
     expect(isBlackoutNow(DAY, 45, at(0, 20))).toBe(true);
-    expect(isBlackoutNow(DAY, 45, at(0, 34))).toBe(true);
-    expect(isBlackoutNow(DAY, 45, at(0, 35))).toBe(false);
+    expect(isBlackoutNow(DAY, 45, at(0, 35))).toBe(true);
+    expect(isBlackoutNow(DAY, 45, at(0, 36))).toBe(false);
   });
 
   it('ignores sunrise, which is not a congregational prayer', () => {
-    expect(isBlackoutNow(DAY, 15, at(4, 56))).toBe(false);
+    expect(isBlackoutNow(DAY, 15, at(4, 57))).toBe(false);
   });
 
   it('never blacks out for a non-positive window', () => {
-    expect(isBlackoutNow(DAY, 0, at(13, 24))).toBe(false);
-    expect(isBlackoutNow(DAY, -5, at(13, 24))).toBe(false);
+    expect(isBlackoutNow(DAY, 0, at(13, 25))).toBe(false);
+    expect(isBlackoutNow(DAY, -5, at(13, 25))).toBe(false);
   });
 
   it('skips prayers with unparseable times instead of throwing', () => {
@@ -112,5 +119,18 @@ describe('isControlQrNow', () => {
     const broken = [entry('dhuhr', ''), entry('asr', 'null')];
     expect(() => isControlQrNow(broken, at(13, 40))).not.toThrow();
     expect(isControlQrNow(broken, at(13, 40))).toBe(false);
+  });
+});
+
+describe('startingPrayer', () => {
+  it('names the prayer for its first minutes, then lets go', () => {
+    expect(startingPrayer(DAY, at(13, 23))).toBeNull();
+    expect(startingPrayer(DAY, at(13, 24))?.name).toBe('dhuhr');
+    expect(startingPrayer(DAY, at(13, 24 + PRAYER_STARTING_MINUTES - 1))?.name).toBe('dhuhr');
+    expect(startingPrayer(DAY, at(13, 24 + PRAYER_STARTING_MINUTES))).toBeNull();
+  });
+
+  it('never announces sunrise', () => {
+    expect(startingPrayer(DAY, at(4, 55))).toBeNull();
   });
 });

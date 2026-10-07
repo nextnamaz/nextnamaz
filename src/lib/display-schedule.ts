@@ -13,7 +13,15 @@ export function minutesOf(time: string): number | null {
 }
 
 /**
- * True while any congregational prayer began less than `minutes` ago.
+ * How long a theme shows a prayer as started, before the blackout (if any)
+ * takes over. Long enough to read from the back of the hall.
+ */
+export const PRAYER_STARTING_MINUTES = 1;
+
+/**
+ * True for `minutes` once a congregational prayer's starting minute is over:
+ * the theme first shows the prayer beginning, then the screen goes dark for
+ * the full time the mosque set.
  *
  * The window is measured modulo the day, so a late Isha blackout keeps the
  * screen dark across midnight instead of snapping back on at 00:00.
@@ -30,7 +38,7 @@ export function isBlackoutNow(
     const start = minutesOf(prayer.time);
     if (start === null) return false;
     const elapsed = (nowMin - start + MINUTES_PER_DAY) % MINUTES_PER_DAY;
-    return elapsed < minutes;
+    return elapsed >= PRAYER_STARTING_MINUTES && elapsed < PRAYER_STARTING_MINUTES + minutes;
   });
 }
 
@@ -67,4 +75,22 @@ export function isControlQrNow(prayers: PrayerTimeEntry[], now: Date): boolean {
       elapsed < CONTROL_QR_DELAY_MINUTES + CONTROL_QR_DURATION_MINUTES
     );
   });
+}
+
+
+/**
+ * The congregational prayer that began less than PRAYER_STARTING_MINUTES
+ * ago, or null. Modulo the day like the blackout, for an Isha near midnight.
+ */
+export function startingPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTimeEntry | null {
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return (
+    prayers.find((prayer) => {
+      if (prayer.name === 'sunrise') return false;
+      const start = minutesOf(prayer.time);
+      if (start === null) return false;
+      const elapsed = (nowMin - start + MINUTES_PER_DAY) % MINUTES_PER_DAY;
+      return elapsed < PRAYER_STARTING_MINUTES;
+    }) ?? null
+  );
 }

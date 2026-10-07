@@ -23,6 +23,7 @@ const LABEL_KEYS: { key: keyof DisplayTextConfig['labels']; label: string }[] = 
   { key: 'today', label: 'Today' },
   { key: 'jumuah', label: "Jumu'ah" },
   { key: 'adhan', label: 'Adhan' },
+  { key: 'starting', label: 'Prayer has begun' },
 ];
 
 interface LanguagePickerProps {

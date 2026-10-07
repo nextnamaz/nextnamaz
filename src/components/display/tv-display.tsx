@@ -20,6 +20,7 @@ import { SCREEN_STORAGE_KEY } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
 import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
+import { startingPrayer } from '@/lib/display-schedule';
 import type { ScreenPlace } from '@/lib/screen-place';
 
 /** How long the settings overlay stays after the last real activity. */
@@ -63,15 +64,32 @@ function useViewportPortrait(): boolean {
   return portrait;
 }
 
-function useNextPrayer(prayers: PrayerTimeEntry[]): PrayerTimeEntry | null {
+interface PrayerNow {
+  next: PrayerTimeEntry | null;
+  /** The prayer that began moments ago, if any. */
+  starting: PrayerTimeEntry | null;
+}
+
+/**
+ * The next prayer and the one just beginning, read off one clock every
+ * second. A slower tick left the countdown aimed at the prayer that had just
+ * begun, which wrapped it round to "23:59"; two separate timers would let the
+ * two values disagree for a moment at the turn of the minute.
+ */
+function usePrayerNow(prayers: PrayerTimeEntry[]): PrayerNow {
   const [next, setNext] = useState<PrayerTimeEntry | null>(null);
+  const [starting, setStarting] = useState<PrayerTimeEntry | null>(null);
   useEffect(() => {
-    const update = () => setNext(getNextPrayer(prayers));
+    const update = () => {
+      const now = new Date();
+      setNext(getNextPrayer(prayers, now));
+      setStarting(startingPrayer(prayers, now));
+    };
     update();
-    const id = setInterval(update, 30_000);
+    const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [prayers]);
-  return next;
+  return { next, starting };
 }
 
 interface TvDisplayProps {
@@ -194,7 +212,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
     () => prayerTimesMapToEntries(todayTimes, displayLocale.prayerNames),
     [todayTimes, displayLocale]
   );
-  const nextPrayer = useNextPrayer(prayers);
+  const { next: nextPrayer, starting } = usePrayerNow(prayers);
   const fitConfig = useMemo(() => asDisplayConfig(screen.display_config), [screen.display_config]);
   const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
   const controlQrVisible = useControlQr(prayers, fitConfig.controlQr.enabled);
@@ -238,11 +256,12 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
   const sideways = fit.rotation === 90 || fit.rotation === 270;
   // A physically rotated TV reports the opposite viewport orientation.
   const displayPortrait = sideways ? !isPortrait : isPortrait;
-  const slideVisible = !!slide && !blackout;
+  const slideVisible = !!slide && !blackout && !starting;
   const splitActive = slideVisible && fit.announcements.layout === 'split';
   const themeProps: ThemeProps = {
     prayers,
     nextPrayer,
+    startingPrayer: starting,
     config: { ...themeDef.defaultConfig, ...asRecord(screen.theme_config) },
     // Splitting halves the long axis, which flips the half's orientation.
     isPortrait: splitActive ? !displayPortrait : displayPortrait,
@@ -344,11 +363,14 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
             )}
 
             {/* Dark screen while the congregation prays: black, the time in
-                white, and nothing else. The clock stays mounted so it is
-                still there while the layer fades out. */}
+                white, and nothing else. It waits until the theme has shown
+                the prayer starting, then stays dark for the minutes set.
+                The clock stays mounted so it is still
+                there while the layer fades out. */}
             <div
               aria-hidden
-              className="absolute inset-0 z-45 bg-black transition-opacity duration-1000"
+              data-blackout={blackout ? 'on' : 'off'}
+              className="absolute inset-0 z-45 bg-black transition-opacity duration-[2500ms]"
               style={{ opacity: blackout ? 1 : 0, pointerEvents: 'none' }}
             >
               <BlackoutClock locale={displayLocale} />

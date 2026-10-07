@@ -185,8 +185,9 @@ function useCountdown(targetTime: string) {
       const [h = 0, m = 0] = targetTime.split(':').map(Number);
       const target = new Date(now);
       target.setHours(h, m, 0, 0);
-      if (target <= now) target.setDate(target.getDate() + 1);
-      setDiff(Math.floor((target.getTime() - now.getTime()) / 1000));
+      // Within its first minute the target is "now", never tomorrow's 23:59.
+      if (target.getTime() <= now.getTime() - 60_000) target.setDate(target.getDate() + 1);
+      setDiff(Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000)));
     };
     update();
     const interval = setInterval(update, 1000);
@@ -270,7 +271,7 @@ function nameScale(name: string): string | undefined {
   return undefined;
 }
 
-export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
+export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, startingPrayer }: ThemeProps) {
   const { timeStr, dateStr, date } = useDisplayClock(locale);
   // The clock corrects itself within a second; the date would keep the
   // server's (UTC) day until the next midnight, so it waits for the TV's clock.
@@ -278,6 +279,12 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
   const prayerStates = usePrayerStates(prayers, nextPrayer, date.getHours() * 60 + date.getMinutes());
   const hasIqamah = prayers.some((p) => p.iqamahTime);
   const countdown = useCountdown(nextPrayer?.time ?? '00:00');
+  // For its first minute the panel shows the prayer that has just begun.
+  const panelPrayer = startingPrayer ?? nextPrayer;
+  // ...and nothing points ahead yet: the table only marks the one in progress.
+  const rowStatesShown = startingPrayer
+    ? prayerStates.map((state) => (state === 'next' ? 'upcoming' : state))
+    : prayerStates;
 
   const palette = fromConfig(PALETTES, config?.colorScheme, CLASSIC_PALETTE);
   const m = fromConfig(MODES, config?.mode, LIGHT_MODE);
@@ -339,7 +346,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
 
           {/* Prayer Rows */}
           {prayers.map((prayer, idx) => {
-            const state = prayerStates[idx];
+            const state = rowStatesShown[idx];
             const isCurrent = state === 'current';
             const isNext = state === 'next';
             const isPast = state === 'past';
@@ -364,6 +371,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
                 className={cn(
                   'default-row flex items-center relative transition-all duration-300',
                   isCurrent && 'z-10',
+                  isCurrent && startingPrayer && 'prayer-starting',
                   isPast && 'opacity-70',
                   plain && isOdd && m.rowOdd,
                   plain && !isOdd && m.rowEven
@@ -479,22 +487,27 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
           {/* "Next..." label */}
           <div className="default-next-secondary">
             <p className="text-white/90 m-0 leading-none font-medium opacity-85">
-              {nextLabel}...
+              {startingPrayer ? locale.labels.now : `${nextLabel}...`}
             </p>
           </div>
 
           {/* Prayer name + time */}
           <div className="default-next-primary relative">
             <p className="text-white uppercase m-0 leading-none font-extrabold tracking-[0.07em]">
-              {nextPrayer?.displayName ?? '--'}
+              {panelPrayer?.displayName ?? '--'}
             </p>
             <p className="text-white m-0 leading-none font-black tracking-tight">
-              {nextPrayer ? formatPrayerTime(nextPrayer.time, locale) : '--:--'}
+              {panelPrayer ? formatPrayerTime(panelPrayer.time, locale) : '--:--'}
             </p>
           </div>
 
           {/* Countdown */}
           <div className="default-next-countdown">
+            {startingPrayer ? (
+              <p className="m-0 leading-none font-bold text-white prayer-starting">
+                {locale.labels.starting}
+              </p>
+            ) : (
             <p
               className={cn(
                 'm-0 leading-none font-bold transition-colors duration-300',
@@ -508,6 +521,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale }
             >
               {countdown.text}
             </p>
+            )}
           </div>
         </div>
       </div>

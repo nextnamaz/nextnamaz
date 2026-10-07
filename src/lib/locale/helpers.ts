@@ -34,6 +34,7 @@ export function parseDisplayText(
       today:     raw.today     ?? preset.labels.today,
       jumuah:    raw.jumuah    ?? preset.labels.jumuah,
       adhan:     raw.adhan     ?? preset.labels.adhan,
+      starting:  raw.starting  ?? preset.labels.starting,
     },
   };
 }

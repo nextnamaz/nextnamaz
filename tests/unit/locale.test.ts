@@ -19,6 +19,7 @@ import { PRAYER_NAMES } from '@/types/prayer';
 const LABEL_KEYS = Object.keys({
   prayer: true, iqamah: true, begins: true, next: true, now: true,
   until: true, remaining: true, elapsed: true, today: true, jumuah: true, adhan: true,
+  starting: true,
 } satisfies Record<keyof UILabelTranslations, true>) as (keyof UILabelTranslations)[];
 
 /**
@@ -44,6 +45,8 @@ const twelveHour = (base: DisplayLocale): DisplayLocale => ({ ...base, use24Hour
 describe('parseDisplayText', () => {
   it('fills every key from the locale preset when nothing is stored', () => {
     expect(parseDisplayText({}, 'tr')).toEqual(DEFAULT_TRANSLATIONS.tr);
+    // A screen saved before a label existed picks up the preset for it.
+    expect(parseDisplayText({ fajr: 'X' }, 'bs').labels.starting).toBe(DEFAULT_TRANSLATIONS.bs.labels.starting);
   });
 
   it('merges per-key overrides over the preset and leaves the rest alone', () => {

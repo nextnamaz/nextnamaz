@@ -10,7 +10,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readBoolean, readText } from './config';
-import { Moon, Verse, countdownPhrase, formatCountdown, shrinkToFit, splitClock } from '../parts';
+import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
 
 // The screen takes the colour of the sky outside: navy through the night,
 // blue hour at Fajr, rose at sunrise, blue through the day, red at Maghrib.
@@ -267,7 +267,10 @@ function SkyDetails({ sky, date, isPortrait }: SkyDetailsProps) {
 
 const ARABIC_NAMES = DEFAULT_TRANSLATIONS.ar.prayers;
 
-export function SkyTheme({ prayers, nextPrayer, config, isPortrait, locale }: ThemeProps) {
+export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first minute.
+  const nextPrayer = startingPrayer ?? upcoming;
+  const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
   const live = useHydrated();
@@ -366,7 +369,9 @@ export function SkyTheme({ prayers, nextPrayer, config, isPortrait, locale }: Th
         {live ? formatLongDate(date, locale) : '\u00a0'}
       </div>
       <div style={{ marginTop: t('4cqmin', '3cqmin'), fontSize: t('min(5.4cqw, 3cqh)', '4.6cqmin'), fontWeight: 500 }}>
-        {countdown && nextPrayer ? (
+        {starting && nextPrayer ? (
+          <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
+        ) : countdown && nextPrayer ? (
           <>
             <span style={{ opacity: 0.82 }}>{countdownPhrase(nextPrayer, locale)} </span>
             <span style={{ fontWeight: 650 }}>{formatCountdown(countdown, { showSeconds: true })}</span>

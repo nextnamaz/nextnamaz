@@ -177,6 +177,32 @@
   animation: fade-in 0.5s ease-out;
 }
 
+/* A prayer that has just begun, on the TV: eases in, then breathes slowly.
+   Opacity only, and soft, so it reads as calm rather than as an alarm. */
+.prayer-starting {
+  animation:
+    prayer-in 1.2s ease-out both,
+    prayer-breathe 3.2s ease-in-out 1.2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prayer-starting {
+    animation: prayer-in 1.2s ease-out both;
+  }
+}
+
+@keyframes prayer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes prayer-breathe {
+  50% {
+    opacity: 0.6;
+  }
+}
+
 /* --- Landing page motion -------------------------------------------------
    All of it gated on the visitor not having asked for reduced motion, and
    none of it touches layout: opacity, transforms and clip-path only, so
