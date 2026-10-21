@@ -12,6 +12,7 @@ import { useHydrated } from '@/hooks/display/use-hydrated';
 import { prayerStates } from './config';
 import { EarthView } from '../earth-view';
 import type { EarthFrame, EarthLine } from '../earth-view';
+import { TimeText } from '../parts';
 
 // The Earth from orbit, as it is this minute, beside a table of the times. The
 // mosque is fixed; the sun, the night and the clouds move round it. Each
@@ -270,11 +271,11 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, start
               {prayer.displayName}
             </div>
             <div role="cell" className={pulse} style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-              {formatPrayerTime(prayer.time, locale)}
+              <TimeText value={formatPrayerTime(prayer.time, locale)} />
             </div>
             {iqamah && (
               <div role="cell" className={pulse} style={{ ...row, justifyContent: 'flex-end', fontSize: timeSize, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                {prayer.iqamahTime ? formatPrayerTime(prayer.iqamahTime, locale) : ''}
+                {prayer.iqamahTime ? <TimeText value={formatPrayerTime(prayer.iqamahTime, locale)} /> : ''}
               </div>
             )}
           </div>

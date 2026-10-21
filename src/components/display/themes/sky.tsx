@@ -10,7 +10,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readBoolean, readText } from './config';
-import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
+import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
 
 // The screen takes the colour of the sky outside: navy through the night,
 // blue hour at Fajr, rose at sunrise, blue through the day, red at Maghrib.
@@ -435,7 +435,7 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
               </span>
               {arabicName(prayer, 'min(5.6cqw, 3.2cqh)', 1)}
               <span style={{ fontSize: 'min(9cqw, 5cqh)', fontWeight: 650, letterSpacing: '-0.02em' }}>
-                {formatPrayerTime(prayer.time, locale)}
+                <TimeText value={formatPrayerTime(prayer.time, locale)} />
               </span>
             </div>
           ))}
@@ -492,7 +492,7 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
                 marginTop: '0.8cqmin',
               }}
             >
-              {formatPrayerTime(prayer.time, locale)}
+              <TimeText value={formatPrayerTime(prayer.time, locale)} />
             </span>
           </div>
         ))}

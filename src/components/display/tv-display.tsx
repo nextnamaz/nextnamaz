@@ -204,16 +204,19 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
     router.push('/s');
   };
 
+  const fitConfig = useMemo(() => asDisplayConfig(screen.display_config), [screen.display_config]);
   const displayLocale = useMemo(
-    () => resolveDisplayLocale(screen.locale, asStringRecord(screen.display_text)),
-    [screen.locale, screen.display_text]
+    () => ({
+      ...resolveDisplayLocale(screen.locale, asStringRecord(screen.display_text)),
+      use24Hour: fitConfig.use24Hour,
+    }),
+    [screen.locale, screen.display_text, fitConfig.use24Hour]
   );
   const prayers = useMemo(
     () => prayerTimesMapToEntries(todayTimes, displayLocale.prayerNames),
     [todayTimes, displayLocale]
   );
   const { next: nextPrayer, starting } = usePrayerNow(prayers);
-  const fitConfig = useMemo(() => asDisplayConfig(screen.display_config), [screen.display_config]);
   const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
   const controlQrVisible = useControlQr(prayers, fitConfig.controlQr.enabled);
   const { slide, onMediaEnd } = useSlideshow(

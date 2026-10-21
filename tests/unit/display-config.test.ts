@@ -22,6 +22,7 @@ const DEFAULT_TIMES: PrayerTimesMap = {
 const DEFAULT_CONFIG: DisplayConfig = {
   rotation: 0,
   zoom: 1,
+  use24Hour: true,
   blackout: { enabled: false, minutes: 15 },
   controlQr: { enabled: true },
   announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, items: [] },
@@ -34,6 +35,7 @@ const NOT_AN_OBJECT: Json[] = [null, 'display_config', 42, 0, true, false, [], [
 const SAVED: Json = {
   rotation: 90,
   zoom: 0.92,
+  use24Hour: false,
   blackout: { enabled: true, minutes: 20 },
   announcements: {
     enabled: true,
@@ -156,6 +158,7 @@ describe('asDisplayConfig', () => {
     expect(asDisplayConfig(SAVED)).toEqual({
       rotation: 90,
       zoom: 0.92,
+      use24Hour: false,
       blackout: { enabled: true, minutes: 20 },
       controlQr: { enabled: true },
       announcements: {
@@ -176,6 +179,7 @@ describe('asDisplayConfig', () => {
     expect(Object.keys(asDisplayConfig(legacy))).toEqual([
       'rotation',
       'zoom',
+      'use24Hour',
       'blackout',
       'controlQr',
       'announcements',
@@ -193,6 +197,14 @@ describe('asDisplayConfig', () => {
     expect(asDisplayConfig({ controlQr: null }).controlQr.enabled).toBe(true);
     // Blackout keeps the opposite default.
     expect(asDisplayConfig({}).blackout.enabled).toBe(false);
+  });
+
+  it('defaults the 24-hour clock on, and only false switches it off', () => {
+    // Screens saved before this field existed keep showing 13:05.
+    expect(asDisplayConfig({}).use24Hour).toBe(true);
+    expect(asDisplayConfig({ use24Hour: true }).use24Hour).toBe(true);
+    expect(asDisplayConfig({ use24Hour: false }).use24Hour).toBe(false);
+    expect(asDisplayConfig({ use24Hour: 'no' }).use24Hour).toBe(true);
   });
 
   it('keeps the four quarter-turn rotations', () => {

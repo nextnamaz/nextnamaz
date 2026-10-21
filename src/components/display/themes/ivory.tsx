@@ -8,7 +8,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readChoice } from './config';
-import { countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
+import { countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
 
 // A mosque's qibla wall in ivory and gold: carved plaster, the clock standing
 // in the mihrab under the Basmala, and roundels of Allah and the Prophet
@@ -253,7 +253,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
         );
         const time = (
           <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-            {formatPrayerTime(prayer.time, locale)}
+            <TimeText value={formatPrayerTime(prayer.time, locale)} />
           </span>
         );
         return (

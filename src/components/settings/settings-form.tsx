@@ -411,6 +411,25 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
 
                 <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
                   <div>
+                    <Label htmlFor="use-24-hour">24-hour clock</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Shows 13:05. Switch off for 1:05 PM.
+                    </p>
+                  </div>
+                  <Switch
+                    id="use-24-hour"
+                    checked={form.displayConfig.use24Hour}
+                    onCheckedChange={(use24Hour) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        displayConfig: { ...prev.displayConfig, use24Hour },
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+                  <div>
                     <Label htmlFor="control-qr">Show settings code after prayers</Label>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       A small code appears in the corner for {CONTROL_QR_DURATION_MINUTES}{' '}

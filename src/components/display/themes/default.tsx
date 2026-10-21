@@ -9,6 +9,7 @@ import { minutesOf } from '@/lib/display-schedule';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { Check, Sunrise } from 'lucide-react';
+import { TimeText } from '../parts';
 
 type UrgencyLevel = 'normal' | 'approaching' | 'imminent';
 
@@ -312,8 +313,11 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
     >
       {/* Header */}
       <header className={cn('default-header shadow-md flex flex-col items-center justify-center', m.header)}>
-        <p className={cn('default-clock font-extrabold leading-[90%] m-0', m.clockText)} suppressHydrationWarning>
-          {timeStr}
+        <p
+          className={cn('default-clock font-extrabold leading-[90%] m-0', !locale.use24Hour && 'default-clock-12h', m.clockText)}
+          suppressHydrationWarning
+        >
+          <TimeText value={timeStr} />
         </p>
         <p className={cn('default-date font-semibold m-0', m.dateText)}>
           {live ? dateStr : '\u00a0'}
@@ -444,7 +448,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
                         isPast && 'line-through'
                       )}
                     >
-                      {formattedTime}
+                      <TimeText value={formattedTime} />
                     </div>
                     <div
                       className={cn(
@@ -454,7 +458,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
                         isPast && 'line-through'
                       )}
                     >
-                      {formattedIqamah}
+                      <TimeText value={formattedIqamah} />
                     </div>
                   </>
                 ) : (
@@ -466,7 +470,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
                       isPast && 'line-through'
                     )}
                   >
-                    {formattedTime}
+                    <TimeText value={formattedTime} />
                   </div>
                 )}
               </section>
@@ -497,7 +501,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
               {panelPrayer?.displayName ?? '--'}
             </p>
             <p className="text-white m-0 leading-none font-black tracking-tight">
-              {panelPrayer ? formatPrayerTime(panelPrayer.time, locale) : '--:--'}
+              {panelPrayer ? <TimeText value={formatPrayerTime(panelPrayer.time, locale)} /> : '--:--'}
             </p>
           </div>
 
@@ -552,6 +556,8 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
             "footer";
         }
         .dt-portrait .default-clock { font-size: 22.5cqmin; padding-top: 4%; }
+        /* The 24-hour clock already spans a portrait screen; AM/PM needs the room. */
+        .dt-portrait .default-clock-12h { font-size: 19cqmin; }
         .dt-portrait .default-date { font-size: 7.5cqmin; padding-bottom: 1%; }
         .dt-portrait .default-th { font-size: 5cqmin; padding: 1.5% 0; }
         .dt-portrait .default-cell { font-size: 6cqmin; padding: 1.6% 0; }
