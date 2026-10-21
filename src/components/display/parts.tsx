@@ -43,6 +43,25 @@ export function startingPhrase(prayer: PrayerTimeEntry, locale: DisplayLocale): 
 
 // --- Clock and names ---
 
+/**
+ * A time with its AM/PM set small and kept on the same line, so "11:45 PM"
+ * takes little more room than "23:45" and the 24-hour layouts still hold.
+ * A 24-hour time passes through as it is.
+ */
+export function TimeText({ value }: { value: string }) {
+  const match = /^(.*\d)\s*([AP]M)$/i.exec(value);
+  if (!match) return value;
+  return (
+    // A live clock's text differs between server and client by a second.
+    <span style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
+      {match[1]}
+      <span style={{ fontSize: '0.45em', marginInlineStart: '0.15em' }} suppressHydrationWarning>
+        {match[2]}
+      </span>
+    </span>
+  );
+}
+
 /** "15:56:42" → ["15:56", "42"]. A 12-hour clock keeps its AM/PM with the seconds. */
 export function splitClock(time: string): [string, string] {
   const match = /^(\d{1,2}:\d{2})(?::(\d{2}))?\s*(.*)$/.exec(time);

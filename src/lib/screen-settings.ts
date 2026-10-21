@@ -70,6 +70,7 @@ export const screenSettingsSchema = z.object({
   display_config: z.object({
     rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
     zoom: z.number().min(0.8).max(1),
+    use24Hour: z.boolean(),
     blackout: z.object({
       enabled: z.boolean(),
       minutes: z.number().min(1).max(60),

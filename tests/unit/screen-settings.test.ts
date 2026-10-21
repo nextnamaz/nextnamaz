@@ -33,6 +33,7 @@ const VALID: ScreenSettingsInput = {
   display_config: {
     rotation: 0,
     zoom: 1,
+    use24Hour: true,
     blackout: { enabled: true, minutes: 15 },
     controlQr: { enabled: true },
     announcements: {
@@ -97,13 +98,19 @@ describe('screenSettingsSchema', () => {
 
   it('requires every display_config section', () => {
     const keys = Object.keys(VALID.display_config);
-    expect(keys).toHaveLength(5);
+    expect(keys).toHaveLength(6);
     for (const key of keys) {
       expect(displayWithout(key), `display_config without ${key} was accepted`).toBe(false);
     }
     expect(withAnnouncements({ enabled: undefined })).toBe(false);
     expect(ok({ display_config: {} })).toBe(false);
     expect(ok({ display_config: null })).toBe(false);
+  });
+
+  it('accepts the 12-hour clock and rejects a non-boolean', () => {
+    expect(withDisplay({ use24Hour: false })).toBe(true);
+    expect(withDisplay({ use24Hour: true })).toBe(true);
+    expect(withDisplay({ use24Hour: 'false' })).toBe(false);
   });
 
   it('accepts all six prayer sources and nothing else', () => {

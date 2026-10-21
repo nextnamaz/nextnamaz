@@ -174,6 +174,8 @@ export interface SlideItem {
 export interface DisplayConfig {
   rotation: Rotation;
   zoom: number;
+  /** 24-hour clock ("13:05"); false shows "1:05 PM". */
+  use24Hour: boolean;
   /** Dark screen while the congregation prays. */
   blackout: {
     enabled: boolean;
@@ -228,6 +230,7 @@ export function asDisplayConfig(json: Json): DisplayConfig {
   return {
     rotation: ROTATIONS.includes(raw.rotation as Rotation) ? (raw.rotation as Rotation) : 0,
     zoom: clamped(raw.zoom, 0.8, 1, 1),
+    use24Hour: raw.use24Hour !== false,
     blackout: {
       enabled: blackout.enabled === true,
       minutes: clamped(blackout.minutes, 1, 60, 15),
