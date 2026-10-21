@@ -86,7 +86,17 @@ export function FeedbackButton({ t, locale, screenId, className, children }: Fee
               </label>
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium">{t.email}</span>
-                <input name="email" type="email" maxLength={200} autoComplete="email" className={field} />
+                <input
+                  name="email"
+                  type="email"
+                  maxLength={200}
+                  autoComplete="email"
+                  aria-describedby="feedback-email-hint"
+                  className={field}
+                />
+                <span id="feedback-email-hint" className="block text-sm text-muted-foreground">
+                  {t.emailHint}
+                </span>
               </label>
               {/* A trap for bots: people never see it, so it stays empty. */}
               <input name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
