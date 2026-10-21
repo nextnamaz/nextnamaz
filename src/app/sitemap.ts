@@ -10,6 +10,8 @@ import { LANDING_LOCALES, landingPath } from '@/lib/landing-locales';
 export default function sitemap(): MetadataRoute.Sitemap {
   const languages: Record<string, string> = {};
   for (const code of LANDING_LOCALES) languages[code] = `${SITE_URL}${landingPath(code) === '/' ? '' : landingPath(code)}`;
+  // Matches the pages' own hreflang: English is the page for everyone else.
+  languages['x-default'] = SITE_URL;
 
   return [
     ...LANDING_LOCALES.map((code) => ({

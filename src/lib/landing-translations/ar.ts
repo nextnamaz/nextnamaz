@@ -3,7 +3,7 @@ import type { LandingCopy } from '@/lib/landing-copy';
 /** Homepage copy in Arabic. */
 export const AR: LandingCopy = {
   meta: {
-    title: 'شاشة مواقيت الصلاة للمساجد',
+    title: 'شاشة مجانية لمواقيت الصلاة في المساجد',
     description:
       'حوّلوا التلفاز أو الجهاز اللوحي أو الحاسوب القديم إلى شاشة مواقيت الصلاة في مسجدكم، وجهّزوها بمسح رمز QR بالهاتف. مجاني ومفتوح المصدر، بلا تطبيق ولا حساب.',
   },

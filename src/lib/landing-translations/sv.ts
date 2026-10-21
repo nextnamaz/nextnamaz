@@ -3,7 +3,7 @@ import type { LandingCopy } from '@/lib/landing-copy';
 /** Homepage copy in Swedish. */
 export const SV: LandingCopy = {
   meta: {
-    title: 'Bönetider på tv-skärm för moskéer',
+    title: 'Gratis bönetidsskärm för moskéns tv',
     description:
       'Visa bönetider på moskéns tv, surfplatta eller gamla dator. Sätt upp skärmen med mobilen via en QR-kod. Gratis, öppen källkod, ingen app och inget konto.',
   },

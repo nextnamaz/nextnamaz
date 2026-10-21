@@ -23,7 +23,9 @@ import type { LandingLocale } from '@/lib/landing-locales';
  * 6. English.
  */
 
-const CRAWLER = /bot|crawl|spider|slurp|facebookexternalhit|embedly|preview|lighthouse/i;
+// "google" catches Google's crawlers without "bot" in their name, such as
+// Search Console's URL inspection (Google-InspectionTool) and GoogleOther.
+const CRAWLER = /bot|crawl|spider|slurp|google|facebookexternalhit|embedly|preview|lighthouse/i;
 
 function redirectTo(request: NextRequest, locale: LandingLocale): NextResponse {
   const url = request.nextUrl.clone();
