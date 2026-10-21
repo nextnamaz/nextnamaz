@@ -18,7 +18,29 @@ export type FeedbackInput = z.input<typeof feedbackSchema>;
 
 type FeedbackResult = { ok: true } | { ok: false };
 
-/** Store a message from the feedback form, for the owner to read on /admin. */
+/** Posts each new message to Ismail's Discord. Low stakes: the worst a leak allows is spam. */
+const DISCORD_WEBHOOK =
+  'https://discord.com/api/webhooks/1562157308039921797/6eR5Gp1vSw-j83TkmX-VL3q5ODiA93Cv0dJoPZ-xJN3TZCRE6Pl7po7uwKPP8iI7kINY';
+
+/** Never the screen id: it is the screen's password. Failure only logs, the message is already stored. */
+async function notifyDiscord(message: string, email: string, page: string, locale: string): Promise<void> {
+  const meta = [page, locale, email].filter(Boolean).join(' · ');
+  try {
+    const res = await fetch(DISCORD_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: `**New feedback** (${meta})\n${message}`.slice(0, 2000),
+        allowed_mentions: { parse: [] },
+      }),
+    });
+    if (!res.ok) console.error('notifyDiscord failed:', res.status);
+  } catch (err) {
+    console.error('notifyDiscord failed:', err);
+  }
+}
+
+/** Store a message from the feedback form, for the owner to read on /admin and in Discord. */
 export async function sendFeedback(input: FeedbackInput): Promise<FeedbackResult> {
   // A bot that filled the trap is told it worked, so it has nothing to learn.
   if (input.website) return { ok: true };
@@ -32,5 +54,6 @@ export async function sendFeedback(input: FeedbackInput): Promise<FeedbackResult
     console.error('sendFeedback failed:', error.message);
     return { ok: false };
   }
+  await notifyDiscord(message, email, page, locale);
   return { ok: true };
 }
