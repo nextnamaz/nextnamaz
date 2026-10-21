@@ -3,7 +3,7 @@ import type { LandingCopy } from '@/lib/landing-copy';
 /** Homepage copy in German. */
 export const DE: LandingCopy = {
   meta: {
-    title: 'Digitale Gebetszeitenanzeige für Moscheen',
+    title: 'Kostenlose Gebetszeitenanzeige für Moscheen',
     description:
       'Fernseher, Tablet oder alter Laptop als Gebetszeitenanzeige für Ihre Moschee. Einrichtung per QR-Code am Handy. Kostenlos, Open Source, ohne App und Konto.',
   },

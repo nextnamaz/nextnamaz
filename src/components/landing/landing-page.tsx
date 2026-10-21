@@ -65,6 +65,8 @@ export function LandingPage({ locale }: { locale: LandingLocale }) {
 
   /** Schema.org entries so search results can show what this is, and its questions. */
   const jsonLd = [
+    // Names the site, so results show "NextNamaz" rather than the bare domain.
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
     {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',

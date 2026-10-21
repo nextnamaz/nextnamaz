@@ -16,9 +16,10 @@
 export const LANDING_COPY = {
   /** The page's title and description for search results and link previews. */
   meta: {
-    title: 'Prayer Times Display for Mosques',
+    /** Leads with what people type into Google: "free", "prayer times display", "mosque TV". */
+    title: 'Free Prayer Times Display for Mosque TVs',
     description:
-      'Turn a TV, tablet or old laptop into a prayer times display for your mosque. Set it up by scanning a QR code with your phone. Free, open source, no app and no account.',
+      'A free prayer times display for your mosque or masjid TV. Works on a TV, tablet or old laptop, set up by scanning a QR code with your phone. Open source, no app and no account.',
   },
   nav: {
     howItWorks: 'How it works',
