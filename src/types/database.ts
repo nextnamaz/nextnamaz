@@ -1,3 +1,7 @@
+import { TIME_24H } from '@/lib/display-schedule';
+import { FIXABLE_PRAYERS } from '@/lib/fixed-times';
+import type { FixedTimes } from '@/lib/fixed-times';
+
 export type Json =
   | string
   | number
@@ -160,6 +164,17 @@ export function asRecord(json: Json): Record<string, unknown> {
   return {};
 }
 
+// Type-safe JSONB → FixedTimes: only fixable prayers holding a real clock time.
+export function asFixedTimes(json: Json): FixedTimes {
+  const stored = asStringRecord(json);
+  const fixed: FixedTimes = {};
+  for (const prayer of FIXABLE_PRAYERS) {
+    const time = stored[prayer];
+    if (time !== undefined && TIME_24H.test(time)) fixed[prayer] = time;
+  }
+  return fixed;
+}
+
 // Screen behaviour stored in screens.display_config.
 export type Rotation = 0 | 90 | 180 | 270;
 
@@ -176,6 +191,8 @@ export interface DisplayConfig {
   zoom: number;
   /** 24-hour clock ("13:05"); false shows "1:05 PM". */
   use24Hour: boolean;
+  /** Prayers held at the same time every day, shown over the source's times. */
+  fixedTimes: FixedTimes;
   /** Dark screen while the congregation prays. */
   blackout: {
     enabled: boolean;
@@ -231,6 +248,7 @@ export function asDisplayConfig(json: Json): DisplayConfig {
     rotation: ROTATIONS.includes(raw.rotation as Rotation) ? (raw.rotation as Rotation) : 0,
     zoom: clamped(raw.zoom, 0.8, 1, 1),
     use24Hour: raw.use24Hour !== false,
+    fixedTimes: asFixedTimes((raw.fixedTimes ?? {}) as Json),
     blackout: {
       enabled: blackout.enabled === true,
       minutes: clamped(blackout.minutes, 1, 60, 15),

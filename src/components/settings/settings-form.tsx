@@ -21,12 +21,13 @@ import type { ScreenSettingsInput, PrayerSourceInput } from '@/lib/actions';
 import type { Screen, PrayerTimesMap } from '@/types/database';
 import { PRAYER_NAMES } from '@/types/prayer';
 import { flattenDisplayText } from '@/lib/locale/helpers';
-import { formatTodayDate } from '@/lib/display-locale';
 import { CONTROL_QR_DELAY_MINUTES, CONTROL_QR_DURATION_MINUTES } from '@/lib/display-schedule';
 import { THEME_REGISTRY } from '@/components/display/themes';
 import { LanguageTab } from './language-tab';
 import { SaveBar } from './save-bar';
 import { SetupWizard } from './setup-wizard';
+import { TodayTimes } from './today-times';
+import { FixedTimesCard } from './fixed-times-card';
 import { PinCard } from './pin-card';
 import { SourceWizard, sourceLabel } from './source-wizard';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
@@ -286,33 +287,31 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                       }
                     />
                   ) : (
-                    <>
-                      <div className="flex items-baseline justify-between mb-1">
-                        <h3 className="font-semibold">Today</h3>
-                        <span className="text-sm text-muted-foreground" suppressHydrationWarning>
-                          {formatTodayDate(form.locale)}
-                        </span>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {PRAYER_NAMES.map((prayer) => (
-                          <div key={prayer} className="flex items-center justify-between py-2.5">
-                            <span className="text-muted-foreground">
-                              {form.displayText.prayers[prayer]}
-                            </span>
-                            <span className="text-xl font-semibold tabular-nums">
-                              {form.times[prayer]}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-3">
-                        Updates automatically every day.
-                      </p>
-                    </>
+                    <TodayTimes
+                      times={form.times}
+                      fixed={form.displayConfig.fixedTimes}
+                      labels={form.displayText.prayers}
+                      locale={form.locale}
+                    />
                   )}
                 </div>
               </Card>
             )
+          )}
+
+          {/* Manual times are the mosque's own already, so only a live source can be fixed. */}
+          {tab === 'prayers' && !wizardOpen && !manual && (
+            <FixedTimesCard
+              times={form.times}
+              fixed={form.displayConfig.fixedTimes}
+              labels={form.displayText.prayers}
+              onChange={(fixedTimes) =>
+                setForm((prev) => ({
+                  ...prev,
+                  displayConfig: { ...prev.displayConfig, fixedTimes },
+                }))
+              }
+            />
           )}
 
           {tab === 'language' && (

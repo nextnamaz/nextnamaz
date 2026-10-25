@@ -23,6 +23,7 @@ const DEFAULT_CONFIG: DisplayConfig = {
   rotation: 0,
   zoom: 1,
   use24Hour: true,
+  fixedTimes: {},
   blackout: { enabled: false, minutes: 15 },
   controlQr: { enabled: true },
   announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, items: [] },
@@ -159,6 +160,7 @@ describe('asDisplayConfig', () => {
       rotation: 90,
       zoom: 0.92,
       use24Hour: false,
+      fixedTimes: {},
       blackout: { enabled: true, minutes: 20 },
       controlQr: { enabled: true },
       announcements: {
@@ -180,6 +182,7 @@ describe('asDisplayConfig', () => {
       'rotation',
       'zoom',
       'use24Hour',
+      'fixedTimes',
       'blackout',
       'controlQr',
       'announcements',
@@ -205,6 +208,25 @@ describe('asDisplayConfig', () => {
     expect(asDisplayConfig({ use24Hour: true }).use24Hour).toBe(true);
     expect(asDisplayConfig({ use24Hour: false }).use24Hour).toBe(false);
     expect(asDisplayConfig({ use24Hour: 'no' }).use24Hour).toBe(true);
+  });
+
+  it('keeps fixed times for the five prayers when they are real clock times', () => {
+    // Screens saved before this field existed have none.
+    expect(asDisplayConfig({}).fixedTimes).toEqual({});
+    expect(asDisplayConfig({ fixedTimes: { dhuhr: '13:00', isha: '19:00' } }).fixedTimes).toEqual({
+      dhuhr: '13:00',
+      isha: '19:00',
+    });
+  });
+
+  it('drops a fixed sunrise, an unknown key, and anything that is not HH:MM', () => {
+    const stored: Json = {
+      fixedTimes: { sunrise: '07:00', jumuah: '13:30', fajr: '5:30', asr: '24:00', maghrib: 1700, isha: '19:00' },
+    };
+    expect(asDisplayConfig(stored).fixedTimes).toEqual({ isha: '19:00' });
+    for (const fixedTimes of [null, '19:00', true, ['19:00']] as Json[]) {
+      expect(asDisplayConfig({ fixedTimes }).fixedTimes).toEqual({});
+    }
   });
 
   it('keeps the four quarter-turn rotations', () => {

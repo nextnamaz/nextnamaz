@@ -1,8 +1,5 @@
 import { z } from 'zod';
-
-// Range-checked, not merely HH:MM-shaped: minutesOf() in display-schedule cannot
-// parse an impossible clock time, so the prayer would drop out of the schedule.
-const TIME_24H = /^([01]\d|2[0-3]):[0-5]\d$/;
+import { TIME_24H } from '@/lib/display-schedule';
 
 export const prayerTimesSchema = z.object({
   fajr: z.string().regex(TIME_24H, 'Must be HH:MM format'),

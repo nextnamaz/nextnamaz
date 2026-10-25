@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { prayerTimesSchema } from '@/lib/validations';
+import { TIME_24H } from '@/lib/display-schedule';
+import { FIXABLE_PRAYERS } from '@/lib/fixed-times';
 import { LANGUAGES } from '@/lib/locale/presets';
 import { ALADHAN_METHODS } from '@/lib/prayer-sources/aladhan';
 import type { PrayerSourceConfig } from '@/types/prayer-config';
@@ -71,6 +73,7 @@ export const screenSettingsSchema = z.object({
     rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
     zoom: z.number().min(0.8).max(1),
     use24Hour: z.boolean(),
+    fixedTimes: z.partialRecord(z.enum(FIXABLE_PRAYERS), z.string().regex(TIME_24H)),
     blackout: z.object({
       enabled: z.boolean(),
       minutes: z.number().min(1).max(60),

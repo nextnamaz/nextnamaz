@@ -1,7 +1,8 @@
-import { asPrayerTimes } from '@/types/database';
+import { asDisplayConfig, asPrayerTimes } from '@/types/database';
 import type { Screen, PrayerTimesMap } from '@/types/database';
 import type { PrayerSourceType } from '@/types/prayer-config';
 import { fetchPrayerTimes } from '@/lib/prayer-sources';
+import { withFixedTimes } from '@/lib/fixed-times';
 import { parseSourceConfig } from '@/lib/screen-settings';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -18,13 +19,18 @@ function isPrayerSource(value: string): value is PrayerSourceType {
   return (PRAYER_SOURCES as readonly string[]).includes(value);
 }
 
-/**
- * Today's times for a screen. Manual → stored times. Live sources → fetch
- * (cached ~1h via the fetchers), falling back to the last stored day when the
- * provider is unreachable. Successful fetches are written back so the fallback
- * stays fresh.
- */
+/** Today's times for a screen: its source's, with the mosque's fixed times laid over them. */
 export async function resolveTodayTimes(screen: Screen): Promise<PrayerTimesMap> {
+  return withFixedTimes(await sourceTimes(screen), asDisplayConfig(screen.display_config).fixedTimes);
+}
+
+/**
+ * Today's times from a screen's source. Manual → stored times. Live sources
+ * → fetch (cached ~1h via the fetchers), falling back to the last stored day
+ * when the provider is unreachable. Successful fetches are written back so
+ * the fallback stays fresh; fixed times never are, so it keeps the source's.
+ */
+async function sourceTimes(screen: Screen): Promise<PrayerTimesMap> {
   const source = isPrayerSource(screen.prayer_source) ? screen.prayer_source : 'manual';
   const stored = asPrayerTimes(screen.prayer_times);
   if (source === 'manual') return stored;

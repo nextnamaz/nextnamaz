@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { configuredScreen, saveSettings } from './helpers';
 
+/** "HH:MM" one minute later. */
+function minuteAfter(time: string): string {
+  const [hours = 0, minutes = 0] = time.split(':').map(Number);
+  const total = (hours * 60 + minutes + 1) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 test.describe('settings dashboard', () => {
   test('changes to the theme persist across a reload', async ({ page }) => {
     const id = await configuredScreen(page);
@@ -59,6 +66,35 @@ test.describe('settings dashboard', () => {
     await page.goto(`/tv/${id}`);
     // Swedish preset renders Gryning for sunrise.
     await expect(page.getByText(/gryning|soluppg/i).first()).toBeVisible();
+  });
+
+  test('a fixed prayer time reaches the TV, persists, and comes off again', async ({ page }) => {
+    const id = await configuredScreen(page);
+    await page.goto(`/s/${id}`);
+
+    // Switched on, a fixed time starts at today's own; a minute later is still
+    // hours before Asr, so it stays in use whatever the date.
+    const toggle = page.getByRole('switch', { name: 'Dhuhr' });
+    await toggle.click();
+    const field = page.getByRole('textbox', { name: 'Fixed time for Dhuhr' });
+    const source = await field.inputValue();
+    const fixed = minuteAfter(source);
+    await field.fill(fixed);
+    await expect(page.getByText(`Instead of ${source} today.`)).toBeVisible();
+    await expect(page.getByText('Fixed', { exact: true })).toBeVisible();
+    await saveSettings(page);
+
+    await page.goto(`/tv/${id}`);
+    await expect(page.getByText(fixed).first()).toBeVisible();
+
+    await page.goto(`/s/${id}`);
+    await expect(field).toHaveValue(fixed);
+    await toggle.click();
+    await saveSettings(page);
+
+    await page.reload();
+    await expect(field).toHaveCount(0);
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 
   test('an unknown screen id is a 404, not a crash', async ({ page }) => {
