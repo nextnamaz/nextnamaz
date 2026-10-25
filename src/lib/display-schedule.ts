@@ -2,6 +2,13 @@ import type { PrayerTimeEntry } from '@/types/prayer';
 
 export const MINUTES_PER_DAY = 1440;
 
+/**
+ * A zero-padded "HH:MM" from 00:00 to 23:59. Range-checked, not merely
+ * HH:MM-shaped: minutesOf() cannot parse an impossible clock time, so a
+ * prayer holding one would drop out of the schedule.
+ */
+export const TIME_24H = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 /** Minutes since midnight for a "HH:MM" string, or null if unparseable. */
 export function minutesOf(time: string): number | null {
   const match = /^(\d{1,2}):(\d{2})/.exec(time.trim());

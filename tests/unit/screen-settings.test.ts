@@ -34,6 +34,7 @@ const VALID: ScreenSettingsInput = {
     rotation: 0,
     zoom: 1,
     use24Hour: true,
+    fixedTimes: { isha: '19:00' },
     blackout: { enabled: true, minutes: 15 },
     controlQr: { enabled: true },
     announcements: {
@@ -98,7 +99,7 @@ describe('screenSettingsSchema', () => {
 
   it('requires every display_config section', () => {
     const keys = Object.keys(VALID.display_config);
-    expect(keys).toHaveLength(6);
+    expect(keys).toHaveLength(7);
     for (const key of keys) {
       expect(displayWithout(key), `display_config without ${key} was accepted`).toBe(false);
     }
@@ -111,6 +112,21 @@ describe('screenSettingsSchema', () => {
     expect(withDisplay({ use24Hour: false })).toBe(true);
     expect(withDisplay({ use24Hour: true })).toBe(true);
     expect(withDisplay({ use24Hour: 'false' })).toBe(false);
+  });
+
+  it('accepts fixed times for the five prayers as zero-padded HH:MM', () => {
+    expect(withDisplay({ fixedTimes: {} })).toBe(true);
+    expect(withDisplay({ fixedTimes: { fajr: '05:30', dhuhr: '13:00', asr: '15:00', maghrib: '17:00', isha: '19:00' } })).toBe(true);
+    expect(withDisplay({ fixedTimes: { isha: '7:00' } })).toBe(false);
+    expect(withDisplay({ fixedTimes: { isha: '24:00' } })).toBe(false);
+    expect(withDisplay({ fixedTimes: { isha: '' } })).toBe(false);
+    expect(withDisplay({ fixedTimes: { isha: 1900 } })).toBe(false);
+  });
+
+  it('rejects a fixed sunrise or any key that is not a prayer', () => {
+    expect(withDisplay({ fixedTimes: { sunrise: '07:00' } })).toBe(false);
+    expect(withDisplay({ fixedTimes: { jumuah: '13:30' } })).toBe(false);
+    expect(withDisplay({ fixedTimes: null })).toBe(false);
   });
 
   it('accepts all six prayer sources and nothing else', () => {
