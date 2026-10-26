@@ -13,6 +13,7 @@ import { PRAYER_NAMES } from '@/types/prayer';
 import type { DisplayTextConfig } from '@/types/locale';
 import { SETUP_COPY } from '@/lib/setup-copy';
 import type { SetupCopy } from '@/lib/setup-copy';
+import type { LandingLocale } from '@/lib/landing-locales';
 import { VAKTIJA_LOCATIONS } from '@/lib/prayer-sources/vaktija-ba';
 import { VAKTIJA_EU_COUNTRIES } from '@/lib/prayer-sources/vaktija-eu';
 import { ISLAMISKA_CITIES } from '@/lib/prayer-sources/islamiska-forbundet';
@@ -73,6 +74,8 @@ function placeConfig(place: GeoPlace, madhab: Madhab) {
 interface SourceWizardProps {
   /** The words; English when left out, as in the settings. */
   copy?: SetupCopy;
+  /** The language of those words, which city search tries first. */
+  locale?: LandingLocale;
   translations: DisplayTextConfig;
   onApply: (
     source: PrayerSourceInput,
@@ -84,7 +87,7 @@ interface SourceWizardProps {
   autoLocate?: boolean;
 }
 
-export function SourceWizard({ copy = SETUP_COPY.en, translations, onApply, onCancel, autoLocate = false }: SourceWizardProps) {
+export function SourceWizard({ copy = SETUP_COPY.en, locale = 'en', translations, onApply, onCancel, autoLocate = false }: SourceWizardProps) {
   const t = copy.source;
   const l = copy.location;
   const titleOf = (source: WizardSource) => (source === 'adhan' ? t.calculateTitle : SOURCE_NAMES[source]);
@@ -115,15 +118,16 @@ export function SourceWizard({ copy = SETUP_COPY.en, translations, onApply, onCa
 
   const choosePlace = (p: GeoPlace) => {
     setPlace(p);
-    setBaId(bestMatch(VAKTIJA_LOCATIONS, (l) => l.name, p.name)?.id
+    const names = [p.name, ...(p.otherNames ?? [])];
+    setBaId(bestMatch(VAKTIJA_LOCATIONS, (l) => l.name, ...names)?.id
       ?? VAKTIJA_LOCATIONS.find((l) => normalize(l.name) === 'sarajevo')?.id
       ?? VAKTIJA_LOCATIONS[0]?.id
       ?? null);
     const country = VAKTIJA_EU_COUNTRIES.find((c) => c.code === p.countryCode);
     setEuSlug(country
-      ? (bestMatch(country.locations, (l) => l.name, p.name)?.slug ?? country.locations[0]?.slug ?? null)
+      ? (bestMatch(country.locations, (l) => l.name, ...names)?.slug ?? country.locations[0]?.slug ?? null)
       : null);
-    setIfCity(bestMatch(ISLAMISKA_CITIES, (c) => c, p.name) ?? 'Stockholm');
+    setIfCity(bestMatch(ISLAMISKA_CITIES, (c) => c, ...names) ?? 'Stockholm');
     setAlMethod(defaultAlAdhanMethod(p.countryCode));
     setMadhab(defaultMadhab(p.countryCode));
     const order = rankSources(p);
@@ -168,7 +172,7 @@ export function SourceWizard({ copy = SETUP_COPY.en, translations, onApply, onCa
       setSearching(true);
       setGeoError(false);
       try {
-        const found = await searchCity(q);
+        const found = await searchCity(q, locale);
         if (!cancelled) setResults(found);
       } catch {
         if (!cancelled) setGeoError(true);
@@ -179,7 +183,7 @@ export function SourceWizard({ copy = SETUP_COPY.en, translations, onApply, onCa
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, locale]);
 
   const handleQueryChange = (value: string) => {
     autoPending.current = false;
