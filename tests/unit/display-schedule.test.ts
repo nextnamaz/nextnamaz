@@ -122,6 +122,36 @@ describe('isControlQrNow', () => {
   });
 });
 
+describe('with an iqamah', () => {
+  /** Dhuhr at 13:24 with its congregation standing at 13:40. */
+  const WITH_IQAMAH = DAY.map((prayer) => (prayer.name === 'dhuhr' ? { ...prayer, iqamahTime: '13:40' } : prayer));
+
+  it('goes dark when the congregation stands, not as the prayer begins', () => {
+    expect(isBlackoutNow(WITH_IQAMAH, 15, at(13, 26))).toBe(false);
+    expect(isBlackoutNow(WITH_IQAMAH, 15, at(13, 39))).toBe(false);
+    expect(isBlackoutNow(WITH_IQAMAH, 15, at(13, 40))).toBe(true);
+    expect(isBlackoutNow(WITH_IQAMAH, 15, at(13, 54))).toBe(true);
+    expect(isBlackoutNow(WITH_IQAMAH, 15, at(13, 55))).toBe(false);
+  });
+
+  it('never goes dark before the prayer has been shown beginning', () => {
+    const atOnce = DAY.map((prayer) => (prayer.name === 'dhuhr' ? { ...prayer, iqamahTime: '13:24' } : prayer));
+    expect(isBlackoutNow(atOnce, 15, at(13, 24))).toBe(false);
+    expect(isBlackoutNow(atOnce, 15, at(13, 24 + PRAYER_STARTING_MINUTES))).toBe(true);
+  });
+
+  it('shows the settings code after the congregation has prayed', () => {
+    expect(isControlQrNow(WITH_IQAMAH, at(13, 24 + CONTROL_QR_DELAY_MINUTES))).toBe(false);
+    expect(isControlQrNow(WITH_IQAMAH, at(13, 40 + CONTROL_QR_DELAY_MINUTES))).toBe(true);
+    expect(isControlQrNow(WITH_IQAMAH, at(13, 40 + CONTROL_QR_DELAY_MINUTES + CONTROL_QR_DURATION_MINUTES))).toBe(false);
+  });
+
+  it('falls back to the prayer time when the iqamah cannot be read', () => {
+    const broken = DAY.map((prayer) => (prayer.name === 'dhuhr' ? { ...prayer, iqamahTime: 'soon' } : prayer));
+    expect(isBlackoutNow(broken, 15, at(13, 24 + PRAYER_STARTING_MINUTES))).toBe(true);
+  });
+});
+
 describe('startingPrayer', () => {
   it('names the prayer for its first minutes, then lets go', () => {
     expect(startingPrayer(DAY, at(13, 23))).toBeNull();

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { ThemeProps, ThemeDefinition } from './index';
 import type { PrayerState } from './config';
 import { formatLongDate, formatPrayerTime, isRtlLocale } from '@/lib/display-locale';
@@ -8,7 +8,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readChoice } from './config';
-import { countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
+import { countdownPhrase, formatCountdown, iqamahPhrase, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
 
 // A mosque's qibla wall in ivory and gold: carved plaster, the clock standing
 // in the mihrab under the Basmala, and roundels of Allah and the Prophet
@@ -116,20 +116,23 @@ function Medallion({ roundel, size, ink }: { roundel: Roundel; size: string; ink
   );
 }
 
-export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
-  // A prayer that has just begun stays the highlighted one for its first minute.
-  const nextPrayer = startingPrayer ?? upcoming;
+export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer, iqamahPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first
+  // minute, and after that until its congregation stands.
+  const nextPrayer = startingPrayer ?? iqamahPrayer ?? upcoming;
   const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
   const live = useHydrated();
   const rtl = isRtlLocale(locale);
   const { ink, faded } = readChoice(SCHEMES, config.color, 'navy');
+  const hasIqamah = prayers.some((p) => p.iqamahTime);
 
   const states: PrayerState[] = live
     ? prayerStates(prayers, nextPrayer?.name ?? null, date)
     : prayers.map(() => 'upcoming');
-  const countdown = live && nextPrayer ? countdownTo(nextPrayer.time, date) : null;
+  const target = iqamahPrayer?.iqamahTime ?? nextPrayer?.time;
+  const countdown = live && target ? countdownTo(target, date) : null;
   const [clock] = splitClock(timeStr);
 
   /** Pick a size for the current orientation. */
@@ -186,7 +189,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
             <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
           ) : countdown && nextPrayer ? (
             <>
-              {countdownPhrase(nextPrayer, locale)}{' '}
+              {iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)}{' '}
               <b>{formatCountdown(countdown, { showSeconds: true })}</b>
             </>
           ) : (
@@ -197,8 +200,17 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
     </div>
   );
 
+  // An iqamah line deepens the band, so the niche gives up that much height
+  // and still stands on it rather than over it.
   const mihrab = (
-    <div style={{ position: 'relative', height: t('min(80cqw, 45cqh)', '70cqh'), aspectRatio: `${BOX.width} / ${BOX.height}`, flexShrink: 0 }}>
+    <div
+      style={{
+        position: 'relative',
+        height: hasIqamah ? t('min(80cqw, 44cqh)', '63cqh') : t('min(80cqw, 45cqh)', '70cqh'),
+        aspectRatio: `${BOX.width} / ${BOX.height}`,
+        flexShrink: 0,
+      }}
+    >
       <Mihrab />
       {face}
     </div>
@@ -251,11 +263,58 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
             {prayer.displayName}
           </span>
         );
-        const time = (
+        const begins = (
           <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
             <TimeText value={formatPrayerTime(prayer.time, locale)} />
           </span>
         );
+        // When the congregation stands: the word and the time, smaller than
+        // the time the prayer begins but still read from the back. Under that
+        // time across a landscape band, behind a gold rule; under the name in
+        // a portrait row, so the six rows keep their height.
+        const iqamah = prayer.iqamahTime && (
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: isPortrait ? 'flex-start' : 'center',
+              gap: '0.35em',
+              whiteSpace: 'nowrap',
+              fontSize: t('min(3.2cqw, 1.8cqh)', '2.4cqmin'),
+              ...(isPortrait
+                ? {}
+                : {
+                    marginTop: '0.9cqmin',
+                    paddingTop: '0.9cqmin',
+                    borderTop: `${HAIRLINE} solid rgb(180 138 44 / ${next ? 0.7 : 0.45})`,
+                  }),
+            }}
+          >
+            <span style={{ opacity: 0.75 }}>{locale.labels.iqamah}</span>
+            <span style={{ fontWeight: 700, fontSize: '1.45em', letterSpacing: '-0.01em' }}>
+              <TimeText value={formatPrayerTime(prayer.iqamahTime, locale)} />
+            </span>
+          </span>
+        );
+        const time = hasIqamah && !isPortrait ? (
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {begins}
+            {iqamah}
+          </span>
+        ) : (
+          begins
+        );
+        // In portrait the iqamah goes under the name the row shows: the Latin
+        // one, or the Arabic on a right-to-left screen, which shows only that.
+        const titled = (title: ReactNode) =>
+          isPortrait && iqamah ? (
+            <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.2 }}>
+              {title}
+              {iqamah}
+            </span>
+          ) : (
+            title
+          );
         return (
           <div
             key={prayer.name}
@@ -281,8 +340,8 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
                   }),
             }}
           >
-            {arabic}
-            {name}
+            {rtl ? titled(arabic) : arabic}
+            {!rtl && titled(name)}
             {time}
           </div>
         );

@@ -218,7 +218,7 @@ export const BS: LandingCopy = {
       },
       {
         q: 'Može li ekran prikazati vrijeme ikameta, džume ili hidžretski datum?',
-        a: 'Zasad ne. Ekran prikazuje nastup svakog vakta i izlazak sunca, prema izvoru koji izaberete. Ako se u vašoj džamiji neki namaz uvijek klanja u isto vrijeme, recimo jacija u 19 sati, to vrijeme možete sami upisati u podešavanjima. Vrijeme ikameta i džume i hidžretski datum još ne prikazuje. Datum je u obliku dan/mjesec/godina.',
+        a: 'Vrijeme ikameta može. U podešavanjima dodirnite namaz i odredite kada je ikamet: nekoliko minuta nakon ezana ili u tačno vrijeme koje sami odaberete. Ekran ga prikazuje ispod vakta i odbrojava do njega. Ako se neki namaz kod vas uvijek klanja u isto vrijeme, recimo jacija u 19 sati, i to vrijeme možete sami upisati. Vrijeme džume i hidžretski datum ekran još ne prikazuje. Datum je u obliku dan/mjesec/godina.',
       },
       {
         q: 'Koje podatke čuvate?',

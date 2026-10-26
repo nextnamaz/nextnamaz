@@ -36,6 +36,12 @@ export function countdownPhrase(prayer: PrayerTimeEntry, locale: DisplayLocale):
   return join ? `${prayer.displayName} ${join}` : prayer.displayName;
 }
 
+/** The phrase before the countdown to an iqamah: "Iqamah in", "Ikamet za". */
+export function iqamahPhrase(locale: DisplayLocale): string {
+  const join = locale.labels.until.trim();
+  return join ? `${locale.labels.iqamah} ${join}` : locale.labels.iqamah;
+}
+
 /** The screen's "prayer is starting", or the prayer's name if blanked. */
 export function startingPhrase(prayer: PrayerTimeEntry, locale: DisplayLocale): string {
   return locale.labels.starting.trim() || prayer.displayName;

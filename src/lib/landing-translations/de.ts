@@ -223,7 +223,7 @@ export const DE: LandingCopy = {
       },
       {
         q: 'Gibt es auch Iqama, Freitagsgebet oder das islamische Datum?',
-        a: 'Noch nicht. Der Bildschirm zeigt, wann jedes Gebet beginnt, dazu den Sonnenaufgang, jeweils aus der Quelle Ihrer Wahl. Findet ein Gebet in Ihrer Moschee jeden Tag zur selben Uhrzeit statt, etwa Isha um 19 Uhr, können Sie diese Zeit in den Einstellungen selbst festlegen. Iqama-Zeiten, eine Zeit für das Freitagsgebet und das islamische Datum gibt es im Moment nicht. Das Datum steht in der Reihenfolge Tag, Monat, Jahr.',
+        a: 'Die Iqama schon. Tippen Sie in den Einstellungen auf ein Gebet und legen Sie fest, wann die Iqama ist: einige Minuten nach dem Adhan oder zu einer festen Uhrzeit. Der Bildschirm zeigt sie unter dem Gebet und zählt bis zu ihr herunter. Findet ein Gebet jeden Tag zur selben Uhrzeit statt, etwa Isha um 19 Uhr, können Sie auch diese Zeit selbst festlegen. Eine Zeit für das Freitagsgebet und das islamische Datum gibt es noch nicht. Das Datum steht in der Reihenfolge Tag, Monat, Jahr.',
       },
       {
         q: 'Welche Daten speichern Sie?',

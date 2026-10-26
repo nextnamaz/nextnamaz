@@ -13,7 +13,7 @@ import type { PrayerTimeEntry } from '@/types/prayer';
 import { ScreenPlaceholder } from './screen-placeholder';
 import type { PlaygroundSettings, ThemeChoice } from './playground-panel';
 
-/** The sample day without iqamah times, as demo-display.tsx draws it: the table a mosque gets. */
+/** The sample day without iqamah times, as demo-display.tsx draws it: the table a new screen shows. */
 const DEMO_PRAYERS: PrayerTimeEntry[] = PREVIEW_PRAYERS.map(({ name, displayName, time }) => ({
   name,
   displayName,

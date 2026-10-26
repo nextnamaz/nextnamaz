@@ -35,6 +35,7 @@ const VALID: ScreenSettingsInput = {
     zoom: 1,
     use24Hour: true,
     fixedTimes: { isha: '19:00' },
+    iqamah: { maghrib: { after: 5 }, isha: { at: '19:30' } },
     blackout: { enabled: true, minutes: 15 },
     controlQr: { enabled: true },
     announcements: {
@@ -99,7 +100,7 @@ describe('screenSettingsSchema', () => {
 
   it('requires every display_config section', () => {
     const keys = Object.keys(VALID.display_config);
-    expect(keys).toHaveLength(7);
+    expect(keys).toHaveLength(8);
     for (const key of keys) {
       expect(displayWithout(key), `display_config without ${key} was accepted`).toBe(false);
     }
@@ -121,6 +122,22 @@ describe('screenSettingsSchema', () => {
     expect(withDisplay({ fixedTimes: { isha: '24:00' } })).toBe(false);
     expect(withDisplay({ fixedTimes: { isha: '' } })).toBe(false);
     expect(withDisplay({ fixedTimes: { isha: 1900 } })).toBe(false);
+  });
+
+  it('accepts an iqamah per prayer as 1 - 60 minutes after it begins, or a set HH:MM', () => {
+    expect(withDisplay({ iqamah: {} })).toBe(true);
+    expect(withDisplay({ iqamah: { fajr: { after: 1 }, isha: { after: 60 } } })).toBe(true);
+    expect(withDisplay({ iqamah: { isha: { at: '19:30' } } })).toBe(true);
+    expect(withDisplay({ iqamah: { isha: { after: 0 } } })).toBe(false);
+    expect(withDisplay({ iqamah: { isha: { after: 61 } } })).toBe(false);
+    expect(withDisplay({ iqamah: { isha: { after: 7.5 } } })).toBe(false);
+    expect(withDisplay({ iqamah: { isha: { at: '7:30' } } })).toBe(false);
+  });
+
+  it('rejects an iqamah for sunrise, or a rule that is both or neither', () => {
+    expect(withDisplay({ iqamah: { sunrise: { after: 10 } } })).toBe(false);
+    expect(withDisplay({ iqamah: { isha: { after: 10, at: '19:30' } } })).toBe(false);
+    expect(withDisplay({ iqamah: { isha: {} } })).toBe(false);
   });
 
   it('rejects a fixed sunrise or any key that is not a prayer', () => {

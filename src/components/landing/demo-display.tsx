@@ -10,9 +10,9 @@ import type { DisplayLocale } from '@/lib/display-locale';
 import type { PrayerTimeEntry } from '@/types/prayer';
 
 /**
- * The sample day without iqamah times. A real screen has no way to be given
- * them yet, and the theme drops the column when none are set, so this is the
- * table a mosque will actually get.
+ * The sample day without iqamah times. A screen has none until its mosque
+ * sets them, and the theme drops the column when none are set, so this is
+ * the table a new screen shows.
  */
 const DEMO_PRAYERS: PrayerTimeEntry[] = PREVIEW_PRAYERS.map(({ name, displayName, time }) => ({
   name,

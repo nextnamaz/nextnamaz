@@ -10,7 +10,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readBoolean, readText } from './config';
-import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
+import { Moon, Verse, countdownPhrase, formatCountdown, iqamahPhrase, startingPhrase, shrinkToFit, splitClock, TimeText } from '../parts';
 
 // The screen takes the colour of the sky outside: navy through the night,
 // blue hour at Fajr, rose at sunrise, blue through the day, red at Maghrib.
@@ -267,9 +267,10 @@ function SkyDetails({ sky, date, isPortrait }: SkyDetailsProps) {
 
 const ARABIC_NAMES = DEFAULT_TRANSLATIONS.ar.prayers;
 
-export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
-  // A prayer that has just begun stays the highlighted one for its first minute.
-  const nextPrayer = startingPrayer ?? upcoming;
+export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer, iqamahPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first
+  // minute, and after that until its congregation stands.
+  const nextPrayer = startingPrayer ?? iqamahPrayer ?? upcoming;
   const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
@@ -283,7 +284,8 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
   const states: PrayerState[] = live
     ? prayerStates(prayers, nextPrayer?.name ?? null, date)
     : prayers.map(() => 'upcoming');
-  const countdown = live && nextPrayer ? countdownTo(nextPrayer.time, date) : null;
+  const target = iqamahPrayer?.iqamahTime ?? nextPrayer?.time;
+  const countdown = live && target ? countdownTo(target, date) : null;
   const sky = live ? skyAt(prayers, date.getHours() * 60 + date.getMinutes()) : NIGHT;
   const [clock, seconds] = splitClock(timeStr);
 
@@ -308,6 +310,17 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
         style={{ fontFamily: 'var(--font-naskh)', fontSize: size, lineHeight, opacity: 0.72 }}
       >
         {ARABIC_NAMES[prayer.name]}
+      </span>
+    );
+
+  /** When the congregation stands: the word, then the time, a size down from the prayer's. */
+  const iqamahLine = (prayer: PrayerTimeEntry, size: string) =>
+    prayer.iqamahTime && (
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: '0.35em', whiteSpace: 'nowrap', fontSize: size, lineHeight: 1.2 }}>
+        <span style={{ opacity: 0.75 }}>{locale.labels.iqamah}</span>
+        <span style={{ fontWeight: 650, fontSize: '1.4em' }}>
+          <TimeText value={formatPrayerTime(prayer.iqamahTime, locale)} />
+        </span>
       </span>
     );
 
@@ -373,7 +386,7 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
           <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
         ) : countdown && nextPrayer ? (
           <>
-            <span style={{ opacity: 0.82 }}>{countdownPhrase(nextPrayer, locale)} </span>
+            <span style={{ opacity: 0.82 }}>{iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)} </span>
             <span style={{ fontWeight: 650 }}>{formatCountdown(countdown, { showSeconds: true })}</span>
           </>
         ) : (
@@ -422,16 +435,20 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
                 padding: '0 4cqmin',
               }}
             >
-              <span
-                style={{
-                  fontSize: `calc(min(6.4cqw, 3.6cqh) * ${shrinkToFit(prayer.displayName, 8.5)})`,
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {prayer.displayName}
+              <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span
+                  style={{
+                    fontSize: `calc(min(6.4cqw, 3.6cqh) * ${shrinkToFit(prayer.displayName, 8.5)})`,
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {prayer.displayName}
+                </span>
+                {iqamahLine(prayer, 'min(3.4cqw, 1.9cqh)')}
               </span>
               {arabicName(prayer, 'min(5.6cqw, 3.2cqh)', 1)}
               <span style={{ fontSize: 'min(9cqw, 5cqh)', fontWeight: 650, letterSpacing: '-0.02em' }}>
@@ -494,6 +511,7 @@ export function SkyTheme({ prayers, nextPrayer: upcoming, config, isPortrait, lo
             >
               <TimeText value={formatPrayerTime(prayer.time, locale)} />
             </span>
+            {prayer.iqamahTime && <span style={{ marginTop: '1cqmin' }}>{iqamahLine(prayer, 'min(2.6cqmin, 1.5cqw)')}</span>}
           </div>
         ))}
       </div>

@@ -1,6 +1,8 @@
 import { TIME_24H } from '@/lib/display-schedule';
 import { FIXABLE_PRAYERS } from '@/lib/fixed-times';
 import type { FixedTimes } from '@/lib/fixed-times';
+import { MAX_IQAMAH_MINUTES } from '@/lib/iqamah';
+import type { IqamahRules } from '@/lib/iqamah';
 
 export type Json =
   | string
@@ -175,6 +177,21 @@ export function asFixedTimes(json: Json): FixedTimes {
   return fixed;
 }
 
+// Type-safe JSONB → IqamahRules: only rules that hold, for the five prayers.
+export function asIqamah(json: Json): IqamahRules {
+  const stored = asRecord(json);
+  const rules: IqamahRules = {};
+  for (const prayer of FIXABLE_PRAYERS) {
+    const { after, at } = asRecord((stored[prayer] ?? {}) as Json);
+    if (typeof after === 'number' && Number.isInteger(after) && after >= 1 && after <= MAX_IQAMAH_MINUTES) {
+      rules[prayer] = { after };
+    } else if (typeof at === 'string' && TIME_24H.test(at)) {
+      rules[prayer] = { at };
+    }
+  }
+  return rules;
+}
+
 // Screen behaviour stored in screens.display_config.
 export type Rotation = 0 | 90 | 180 | 270;
 
@@ -193,6 +210,8 @@ export interface DisplayConfig {
   use24Hour: boolean;
   /** Prayers held at the same time every day, shown over the source's times. */
   fixedTimes: FixedTimes;
+  /** When each congregation stands, for the prayers that have an iqamah. */
+  iqamah: IqamahRules;
   /** Dark screen while the congregation prays. */
   blackout: {
     enabled: boolean;
@@ -249,6 +268,7 @@ export function asDisplayConfig(json: Json): DisplayConfig {
     zoom: clamped(raw.zoom, 0.8, 1, 1),
     use24Hour: raw.use24Hour !== false,
     fixedTimes: asFixedTimes((raw.fixedTimes ?? {}) as Json),
+    iqamah: asIqamah((raw.iqamah ?? {}) as Json),
     blackout: {
       enabled: blackout.enabled === true,
       minutes: clamped(blackout.minutes, 1, 60, 15),

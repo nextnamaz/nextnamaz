@@ -72,32 +72,59 @@ test.describe('settings dashboard', () => {
     const id = await configuredScreen(page);
     await page.goto(`/s/${id}`);
 
-    // Switched on, a fixed time starts at today's own; a minute later is still
-    // hours before Asr, so it stays in use whatever the date.
-    const toggle = page.getByRole('switch', { name: 'Fixed time for Dhuhr' });
-    await toggle.click();
-    const hour = page.getByRole('combobox', { name: 'Dhuhr hour' });
-    const minutes = page.getByRole('combobox', { name: 'Dhuhr minutes' });
+    // Fixed, a time starts at today's own; a minute later is still hours
+    // before Asr, so it stays in use whatever the date.
+    const dhuhr = page.getByRole('button', { name: /^Dhuhr/ });
+    await dhuhr.click();
+    await page.getByRole('radio', { name: 'Fixed' }).click();
+    const hour = page.getByRole('combobox', { name: 'Fixed time for Dhuhr, hour' });
+    const minutes = page.getByRole('combobox', { name: 'Fixed time for Dhuhr, minutes' });
     const source = `${await hour.inputValue()}:${await minutes.inputValue()}`;
     const fixed = minuteAfter(source);
     const [fixedHour = '', fixedMinutes = ''] = fixed.split(':');
     await hour.selectOption(fixedHour);
     await minutes.selectOption(fixedMinutes);
-    await expect(page.getByText(`Fixed every day, instead of ${source} today.`)).toBeVisible();
+    await expect(page.getByText(`Every day, instead of ${source} today.`)).toBeVisible();
+    await expect(dhuhr).toContainText('Fixed');
     await saveSettings(page);
 
     await page.goto(`/tv/${id}`);
     await expect(page.getByText(fixed).first()).toBeVisible();
 
     await page.goto(`/s/${id}`);
+    await dhuhr.click();
     await expect(hour).toHaveValue(fixedHour);
     await expect(minutes).toHaveValue(fixedMinutes);
-    await toggle.click();
+    await page.getByRole('radio', { name: 'Automatic' }).click();
     await saveSettings(page);
 
     await page.reload();
-    await expect(hour).toHaveCount(0);
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await expect(dhuhr).not.toContainText('Fixed');
+    await expect(dhuhr).toContainText(source);
+  });
+
+  test('an iqamah reaches the TV and comes off again', async ({ page }) => {
+    const id = await configuredScreen(page);
+    await page.goto(`/s/${id}`);
+
+    const dhuhr = page.getByRole('button', { name: /^Dhuhr/ });
+    await dhuhr.click();
+    await page.getByRole('radio', { name: 'After adhan' }).click();
+    await expect(dhuhr).toContainText(/Iqamah \d{2}:\d{2}/);
+    const iqamah = /Iqamah (\d{2}:\d{2})/.exec((await dhuhr.textContent()) ?? '')?.[1] ?? '';
+    await saveSettings(page);
+
+    await page.goto(`/tv/${id}`);
+    await expect(page.getByText(/iqamah/i).first()).toBeVisible();
+    await expect(page.getByText(iqamah).first()).toBeVisible();
+
+    await page.goto(`/s/${id}`);
+    await dhuhr.click();
+    await page.getByRole('radio', { name: 'Off' }).click();
+    await saveSettings(page);
+
+    await page.reload();
+    await expect(dhuhr).not.toContainText('Iqamah');
   });
 
   test('an unknown screen id is a 404, not a crash', async ({ page }) => {

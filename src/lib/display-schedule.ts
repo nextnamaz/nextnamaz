@@ -25,10 +25,16 @@ export function minutesOf(time: string): number | null {
  */
 export const PRAYER_STARTING_MINUTES = 1;
 
+/** When the congregation stands: at the prayer's iqamah if it has one, else as it begins. */
+function congregationMinute(prayer: PrayerTimeEntry): number | null {
+  const iqamah = prayer.iqamahTime === undefined ? null : minutesOf(prayer.iqamahTime);
+  return iqamah ?? minutesOf(prayer.time);
+}
+
 /**
- * True for `minutes` once a congregational prayer's starting minute is over:
- * the theme first shows the prayer beginning, then the screen goes dark for
- * the full time the mosque set.
+ * True for `minutes` from the moment the congregation stands: the iqamah,
+ * or, without one, once the theme has shown the prayer beginning. Either
+ * way the screen never goes dark before that starting minute is over.
  *
  * The window is measured modulo the day, so a late Isha blackout keeps the
  * screen dark across midnight instead of snapping back on at 00:00.
@@ -42,10 +48,12 @@ export function isBlackoutNow(
   const nowMin = now.getHours() * 60 + now.getMinutes();
   return prayers.some((prayer) => {
     if (prayer.name === 'sunrise') return false;
-    const start = minutesOf(prayer.time);
-    if (start === null) return false;
+    const begins = minutesOf(prayer.time);
+    const stands = congregationMinute(prayer);
+    if (begins === null || stands === null) return false;
+    const start = Math.max(stands, begins + PRAYER_STARTING_MINUTES);
     const elapsed = (nowMin - start + MINUTES_PER_DAY) % MINUTES_PER_DAY;
-    return elapsed >= PRAYER_STARTING_MINUTES && elapsed < PRAYER_STARTING_MINUTES + minutes;
+    return elapsed < minutes;
   });
 }
 
@@ -65,16 +73,17 @@ export const CONTROL_QR_DELAY_MINUTES = 10;
 export const CONTROL_QR_DURATION_MINUTES = 15;
 
 /**
- * True while any congregational prayer began between DELAY and
- * DELAY + DURATION minutes ago. Modulo the day like the blackout, so an Isha
- * window survives midnight. Independent of the blackout: the code is drawn
- * over a dark screen rather than waiting for it to lift.
+ * True while any congregation stood between DELAY and DELAY + DURATION
+ * minutes ago: at its iqamah, or as the prayer began without one. Modulo the
+ * day like the blackout, so an Isha window survives midnight. Independent of
+ * the blackout: the code is drawn over a dark screen rather than waiting for
+ * it to lift.
  */
 export function isControlQrNow(prayers: PrayerTimeEntry[], now: Date): boolean {
   const nowMin = now.getHours() * 60 + now.getMinutes();
   return prayers.some((prayer) => {
     if (prayer.name === 'sunrise') return false;
-    const start = minutesOf(prayer.time);
+    const start = congregationMinute(prayer);
     if (start === null) return false;
     const elapsed = (nowMin - start + MINUTES_PER_DAY) % MINUTES_PER_DAY;
     return (

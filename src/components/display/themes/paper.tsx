@@ -10,7 +10,7 @@ import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
 import { countdownTo, prayerStates, readBoolean, readText } from './config';
-import { Moon, Verse, countdownPhrase, formatCountdown, startingPhrase, shrinkToFit, splitClock } from '../parts';
+import { Moon, Verse, countdownPhrase, formatCountdown, iqamahPhrase, startingPhrase, shrinkToFit, splitClock } from '../parts';
 
 // White space, black type, and one small gold thing that moves: a dot
 // travelling along a line across the foot of the screen, the day from
@@ -44,6 +44,8 @@ export function runToNext(minute: number, next: number): [number, number][] {
 interface DayLineProps {
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerTimeEntry | null;
+  /** Where the gold run ends, when not at the next prayer: an iqamah still to come. */
+  until?: string;
   /** Null until the TV's own clock is in charge. */
   minute: number | null;
   rtl: boolean;
@@ -51,7 +53,7 @@ interface DayLineProps {
 }
 
 /** The day as a line, midnight to midnight: a tick at each prayer, the daylight drawn darker, now as a gold dot. */
-function DayLine({ prayers, nextPrayer, minute, rtl, labelSize }: DayLineProps) {
+function DayLine({ prayers, nextPrayer, until, minute, rtl, labelSize }: DayLineProps) {
   const at = (m: number) => `${(m / MINUTES_PER_DAY) * 100}%`;
   const centre = rtl ? 'translateX(50%)' : 'translateX(-50%)';
   const timeOf = (name: string) => {
@@ -60,7 +62,7 @@ function DayLine({ prayers, nextPrayer, minute, rtl, labelSize }: DayLineProps) 
   };
   const sunrise = timeOf('sunrise');
   const maghrib = timeOf('maghrib');
-  const next = nextPrayer ? minutesOf(nextPrayer.time) : null;
+  const next = until ? minutesOf(until) : nextPrayer ? minutesOf(nextPrayer.time) : null;
   const line = '2.4cqmin';
   const along = (from: number, to: number, height: string, background: string): CSSProperties => ({
     position: 'absolute',
@@ -139,9 +141,10 @@ function DayLine({ prayers, nextPrayer, minute, rtl, labelSize }: DayLineProps) 
   );
 }
 
-export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer }: ThemeProps) {
-  // A prayer that has just begun stays the highlighted one for its first minute.
-  const nextPrayer = startingPrayer ?? upcoming;
+export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, locale, startingPrayer, iqamahPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first
+  // minute, and after that until its congregation stands.
+  const nextPrayer = startingPrayer ?? iqamahPrayer ?? upcoming;
   const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.
@@ -154,7 +157,9 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
   const states: PrayerState[] = live
     ? prayerStates(prayers, nextPrayer?.name ?? null, date)
     : prayers.map(() => 'upcoming');
-  const countdown = live && nextPrayer ? countdownTo(nextPrayer.time, date) : null;
+  const target = iqamahPrayer?.iqamahTime ?? nextPrayer?.time;
+  const countdown = live && target ? countdownTo(target, date) : null;
+  const hasIqamah = prayers.some((p) => p.iqamahTime);
   const [clock] = splitClock(timeStr);
   const day = formatDateParts(date, locale);
 
@@ -218,7 +223,7 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
           <span className="prayer-starting" style={{ fontWeight: 600 }}>{startingPhrase(nextPrayer, locale)}</span>
         ) : countdown && nextPrayer ? (
           <span>
-            {countdownPhrase(nextPrayer, locale)}{' '}
+            {iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)}{' '}
             <span style={{ fontWeight: 600 }}>{formatCountdown(countdown, { showSeconds: true })}</span>
           </span>
         ) : (
@@ -227,6 +232,17 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
       </div>
     </div>
   );
+
+  /** When the congregation stands: the word, muted, then the time. */
+  const iqamahLine = (prayer: PrayerTimeEntry, state: PrayerState | undefined) =>
+    prayer.iqamahTime && (
+      <span style={{ fontSize: t('min(3.6cqw, 2cqh)', 'min(2.6cqmin, 1.5cqw)'), lineHeight: 1.3, color: state === 'past' ? PAST : MUTED, whiteSpace: 'nowrap' }}>
+        {locale.labels.iqamah}{' '}
+        <span style={{ fontWeight: 600, color: state === 'past' ? PAST : INK }}>
+          {formatPrayerTime(prayer.iqamahTime, locale)}
+        </span>
+      </span>
+    );
 
   const list = (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderBottom: `${HAIRLINE} solid ${RULE}` }}>
@@ -245,7 +261,9 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
               display: 'grid',
               gridTemplateColumns: showArabic ? 'minmax(0, 1fr) auto auto' : 'minmax(0, 1fr) auto',
               alignContent: 'center',
-              alignItems: 'baseline',
+              // A name with its iqamah under it is two lines: centred, it
+              // keeps clear of the rules, which a shared baseline would not.
+              alignItems: isPortrait && hasIqamah ? 'center' : 'baseline',
               columnGap: t('5cqw', '3.6cqmin'),
               borderTop: `${HAIRLINE} solid ${RULE}`,
               color: state === 'past' ? PAST : INK,
@@ -267,16 +285,20 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
                 }}
               />
             )}
-            <span
-              style={{
-                fontSize: `calc(${nameSize} * ${shrinkToFit(prayer.displayName, 11)})`,
-                fontWeight: weight,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {prayer.displayName}
+            <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <span
+                style={{
+                  fontSize: `calc(${nameSize} * ${shrinkToFit(prayer.displayName, 11)})`,
+                  fontWeight: weight,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {prayer.displayName}
+              </span>
+              {/* A portrait row has no height to spare under the time. */}
+              {isPortrait && iqamahLine(prayer, state)}
             </span>
             {showArabic && (
               <span
@@ -292,8 +314,12 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
                 {ARABIC_NAMES[prayer.name]}
               </span>
             )}
-            <span style={{ fontSize: t('min(7.4cqw, 4.1cqh)', 'min(5.6cqmin, 3.2cqw)'), fontWeight: weight, letterSpacing: '-0.01em' }}>
-              {formatPrayerTime(prayer.time, locale)}
+            {/* When the congregation stands, a line under the time it begins. */}
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontSize: t('min(7.4cqw, 4.1cqh)', 'min(5.6cqmin, 3.2cqw)'), fontWeight: weight, letterSpacing: '-0.01em' }}>
+                {formatPrayerTime(prayer.time, locale)}
+              </span>
+              {!isPortrait && iqamahLine(prayer, state)}
             </span>
           </div>
         );
@@ -305,6 +331,7 @@ export function PaperTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
     <DayLine
       prayers={prayers}
       nextPrayer={live ? nextPrayer : null}
+      until={iqamahPrayer?.iqamahTime}
       minute={live ? date.getHours() * 60 + date.getMinutes() : null}
       rtl={rtl}
       labelSize={t('min(2.8cqw, 1.6cqh)', '1.9cqmin')}

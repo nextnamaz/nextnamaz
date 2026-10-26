@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
 import { useBlackout, useControlQr, useSlideshow } from './use-schedule';
 import { startingPrayer } from '@/lib/display-schedule';
+import { awaitingIqamah, withIqamah } from '@/lib/iqamah';
 import type { ScreenPlace } from '@/lib/screen-place';
 
 /** How long the settings overlay stays after the last real activity. */
@@ -68,6 +69,8 @@ interface PrayerNow {
   next: PrayerTimeEntry | null;
   /** The prayer that began moments ago, if any. */
   starting: PrayerTimeEntry | null;
+  /** The prayer that has begun and whose congregation has yet to stand. */
+  awaiting: PrayerTimeEntry | null;
 }
 
 /**
@@ -79,17 +82,19 @@ interface PrayerNow {
 function usePrayerNow(prayers: PrayerTimeEntry[]): PrayerNow {
   const [next, setNext] = useState<PrayerTimeEntry | null>(null);
   const [starting, setStarting] = useState<PrayerTimeEntry | null>(null);
+  const [awaiting, setAwaiting] = useState<PrayerTimeEntry | null>(null);
   useEffect(() => {
     const update = () => {
       const now = new Date();
       setNext(getNextPrayer(prayers, now));
       setStarting(startingPrayer(prayers, now));
+      setAwaiting(awaitingIqamah(prayers, now));
     };
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [prayers]);
-  return { next, starting };
+  return { next, starting, awaiting };
 }
 
 interface TvDisplayProps {
@@ -213,10 +218,10 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
     [screen.locale, screen.display_text, fitConfig.use24Hour]
   );
   const prayers = useMemo(
-    () => prayerTimesMapToEntries(todayTimes, displayLocale.prayerNames),
-    [todayTimes, displayLocale]
+    () => withIqamah(prayerTimesMapToEntries(todayTimes, displayLocale.prayerNames), fitConfig.iqamah),
+    [todayTimes, displayLocale, fitConfig.iqamah]
   );
-  const { next: nextPrayer, starting } = usePrayerNow(prayers);
+  const { next: nextPrayer, starting, awaiting } = usePrayerNow(prayers);
   const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
   const controlQrVisible = useControlQr(prayers, fitConfig.controlQr.enabled);
   const { slide, onMediaEnd } = useSlideshow(
@@ -265,6 +270,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
     prayers,
     nextPrayer,
     startingPrayer: starting,
+    iqamahPrayer: awaiting,
     config: { ...themeDef.defaultConfig, ...asRecord(screen.theme_config) },
     // Splitting halves the long axis, which flips the half's orientation.
     isPortrait: splitActive ? !displayPortrait : displayPortrait,
