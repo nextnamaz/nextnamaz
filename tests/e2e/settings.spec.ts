@@ -74,26 +74,29 @@ test.describe('settings dashboard', () => {
 
     // Switched on, a fixed time starts at today's own; a minute later is still
     // hours before Asr, so it stays in use whatever the date.
-    const toggle = page.getByRole('switch', { name: 'Dhuhr' });
+    const toggle = page.getByRole('switch', { name: 'Fixed time for Dhuhr' });
     await toggle.click();
-    const field = page.getByRole('textbox', { name: 'Fixed time for Dhuhr' });
-    const source = await field.inputValue();
+    const hour = page.getByRole('combobox', { name: 'Dhuhr hour' });
+    const minutes = page.getByRole('combobox', { name: 'Dhuhr minutes' });
+    const source = `${await hour.inputValue()}:${await minutes.inputValue()}`;
     const fixed = minuteAfter(source);
-    await field.fill(fixed);
-    await expect(page.getByText(`Instead of ${source} today.`)).toBeVisible();
-    await expect(page.getByText('Fixed', { exact: true })).toBeVisible();
+    const [fixedHour = '', fixedMinutes = ''] = fixed.split(':');
+    await hour.selectOption(fixedHour);
+    await minutes.selectOption(fixedMinutes);
+    await expect(page.getByText(`Fixed every day, instead of ${source} today.`)).toBeVisible();
     await saveSettings(page);
 
     await page.goto(`/tv/${id}`);
     await expect(page.getByText(fixed).first()).toBeVisible();
 
     await page.goto(`/s/${id}`);
-    await expect(field).toHaveValue(fixed);
+    await expect(hour).toHaveValue(fixedHour);
+    await expect(minutes).toHaveValue(fixedMinutes);
     await toggle.click();
     await saveSettings(page);
 
     await page.reload();
-    await expect(field).toHaveCount(0);
+    await expect(hour).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 

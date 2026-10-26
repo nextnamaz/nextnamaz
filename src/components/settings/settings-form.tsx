@@ -27,7 +27,6 @@ import { LanguageTab } from './language-tab';
 import { SaveBar } from './save-bar';
 import { SetupWizard } from './setup-wizard';
 import { TodayTimes } from './today-times';
-import { FixedTimesCard } from './fixed-times-card';
 import { PinCard } from './pin-card';
 import { SourceWizard, sourceLabel } from './source-wizard';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
@@ -293,26 +292,17 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                       fixed={form.displayConfig.fixedTimes}
                       labels={form.displayText.prayers}
                       locale={form.locale}
+                      onFixedChange={(fixedTimes) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          displayConfig: { ...prev.displayConfig, fixedTimes },
+                        }))
+                      }
                     />
                   )}
                 </div>
               </Card>
             )
-          )}
-
-          {/* Manual times are the mosque's own already, so only a live source can be fixed. */}
-          {tab === 'prayers' && !wizardOpen && !manual && (
-            <FixedTimesCard
-              times={form.times}
-              fixed={form.displayConfig.fixedTimes}
-              labels={form.displayText.prayers}
-              onChange={(fixedTimes) =>
-                setForm((prev) => ({
-                  ...prev,
-                  displayConfig: { ...prev.displayConfig, fixedTimes },
-                }))
-              }
-            />
           )}
 
           {tab === 'language' && (
