@@ -218,7 +218,7 @@ export const BS: LandingCopy = {
       },
       {
         q: 'Može li ekran prikazati vrijeme ikameta, džume ili hidžretski datum?',
-        a: 'Zasad ne. Ekran prikazuje nastup svakog vakta i izlazak sunca, prema izvoru koji izaberete. Vrijeme ikameta i džume i hidžretski datum još ne prikazuje, a vremena ne možete ni ručno upisati. Sat je u 24-satnom formatu, a datum u obliku dan/mjesec/godina.',
+        a: 'Zasad ne. Ekran prikazuje nastup svakog vakta i izlazak sunca, prema izvoru koji izaberete. Ako se u vašoj džamiji neki namaz uvijek klanja u isto vrijeme, recimo jacija u 19 sati, to vrijeme možete sami upisati u podešavanjima. Vrijeme ikameta i džume i hidžretski datum još ne prikazuje. Datum je u obliku dan/mjesec/godina.',
       },
       {
         q: 'Koje podatke čuvate?',

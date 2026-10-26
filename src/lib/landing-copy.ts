@@ -244,7 +244,7 @@ export const LANDING_COPY = {
       },
       {
         q: "Can it show iqamah, Jumu'ah or the Hijri date?",
-        a: "Not yet. The screen shows when each prayer begins, plus sunrise, taken from the source you choose. Iqamah times, a Jumu'ah time, the Hijri date and typing in your own times are not available at the moment. The clock is 24-hour and the date reads day/month/year.",
+        a: "Not yet. The screen shows when each prayer begins, plus sunrise, taken from the source you choose. If your mosque keeps a prayer at the same time every day, such as Isha at 19:00, you can set that time yourself in the settings. Iqamah times, a Jumu'ah time and the Hijri date are not available at the moment. The date reads day/month/year.",
       },
       {
         q: 'What data do you keep?',
