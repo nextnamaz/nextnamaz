@@ -43,6 +43,7 @@ function place(countryCode: string): GeoPlace {
 }
 
 interface OpenMeteoResult {
+  id?: number;
   name: string;
   country_code?: string;
   country?: string;
@@ -50,11 +51,13 @@ interface OpenMeteoResult {
   latitude: number;
   longitude: number;
   timezone?: string;
+  population?: number;
   feature_code?: string;
 }
 
+/** The same answer to every request; searchCity asks once per language. */
 function stubFetch(body: string, status = 200) {
-  const mock = vi.fn<typeof fetch>().mockResolvedValue(new Response(body, { status }));
+  const mock = vi.fn<typeof fetch>().mockImplementation(async () => new Response(body, { status }));
   vi.stubGlobal('fetch', mock);
   return mock;
 }
@@ -62,6 +65,28 @@ function stubFetch(body: string, status = 200) {
 function stubJsonFetch<T>(body: T, status = 200) {
   return stubFetch(JSON.stringify(body), status);
 }
+
+const languageOf = (input: RequestInfo | URL) => new URL(String(input)).searchParams.get('language') ?? '';
+
+/**
+ * Like Open-Meteo, which matches a name only in the language it is asked in,
+ * and gives a place's German name by id (400 for an id it does not know).
+ */
+function stubGeocoder(answers: Record<string, OpenMeteoResult[]>, germanNames: Record<number, string> = {}) {
+  const mock = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith('/get')) {
+      const name = germanNames[Number(url.searchParams.get('id'))];
+      return name ? new Response(JSON.stringify({ name })) : new Response('{"error":true}', { status: 400 });
+    }
+    return new Response(JSON.stringify({ results: answers[languageOf(input)] ?? [] }));
+  });
+  vi.stubGlobal('fetch', mock);
+  return mock;
+}
+
+/** Every name a found place goes by, as the wizard hands them to bestMatch. */
+const namesOf = (p: GeoPlace | undefined) => (p ? [p.name, ...(p.otherNames ?? [])] : []);
 
 interface FakeGeolocation {
   getCurrentPosition(
@@ -138,9 +163,18 @@ describe('bestMatch', () => {
     expect(bestMatch(STOPS, byLabel, 'The Hague')?.code).toBe('den-haag');
   });
 
+  it('tries every name a place goes by, an exact match on any before a partial one', () => {
+    // 'Sara' alone would settle for Sarajevo Ilidža.
+    expect(bestMatch(STOPS, byLabel, 'Sara', 'Sarajevo')?.code).toBe('sarajevo');
+    // A Bosnian setup words Vienna as Beč; its English name still finds the list's Wien.
+    expect(bestMatch(STOPS, byLabel, 'Beč', 'Vienna')?.code).toBe('wien');
+    expect(bestMatch(STOPS, byLabel, '', 'Wien')?.code).toBe('wien');
+  });
+
   it('returns null for a blank query', () => {
     expect(bestMatch(STOPS, byLabel, '')).toBeNull();
     expect(bestMatch(STOPS, byLabel, '   ')).toBeNull();
+    expect(bestMatch(STOPS, byLabel)).toBeNull();
   });
 
   it('returns null for an unrelated query and for an empty list', () => {
@@ -353,6 +387,157 @@ describe('searchCity', () => {
   it('throws before parsing the body when the response is not ok', async () => {
     stubFetch('<html>rate limited</html>', 503);
     await expect(searchCity('Sarajevo')).rejects.toThrow('Geocoding failed');
+  });
+});
+
+describe('searchCity by local name', () => {
+  // Open-Meteo's answers as of 2026-10-26, trimmed. Each language knows its own names.
+  const goteborg = { feature_code: 'PPLA', country_code: 'SE', latitude: 57.70716, longitude: 11.96679, population: 608462 };
+  const malmo = { feature_code: 'PPLA', country_code: 'SE', latitude: 55.60587, longitude: 13.00073, population: 362133 };
+  const zurich = { feature_code: 'PPLA', country_code: 'CH', latitude: 47.36667, longitude: 8.55, population: 415367 };
+  const vienna = { feature_code: 'PPLC', country_code: 'AT', latitude: 48.20849, longitude: 16.37208, population: 1691468 };
+  const belgrade = { feature_code: 'PPLC', country_code: 'RS', latitude: 44.80401, longitude: 20.46513, population: 1273651 };
+  const village = (name: string, country_code: string, latitude: number, longitude: number) =>
+    ({ name, feature_code: 'PPL', country_code, latitude, longitude });
+
+  it('finds Göteborg, which English knows only as Gothenburg', async () => {
+    stubGeocoder({
+      // In English the name matches just a mountain on Svalbard and a garden.
+      en: [
+        { name: 'Göteborgnuten', feature_code: 'MT', admin1: 'Svalbard', country_code: 'SJ', latitude: 79.63333, longitude: 11.33333 },
+        { name: 'Göteborgs Botaniska Trädgård', feature_code: 'PRK', admin1: 'Halland County', country: 'Sweden', country_code: 'SE', latitude: 57.68321, longitude: 11.95111 },
+      ],
+      de: [{ ...goteborg, name: 'Göteborg', admin1: 'Västra Götalands län', country: 'Schweden' }],
+    });
+
+    // Worded as German has it, but with the country in the setup's language.
+    const found = await searchCity('Göteborg');
+    expect(found).toEqual([
+      { name: 'Göteborg', region: 'Västra Götalands län, Sweden', countryCode: 'SE', latitude: 57.70716, longitude: 11.96679 },
+    ]);
+    expect(bestMatch(ISLAMISKA_CITIES, itself, ...namesOf(found[0]))).toBe('Göteborg');
+    expect(bestMatch(euLocations('SE'), byName, ...namesOf(found[0]))?.slug).toBe('goeteborg');
+  });
+
+  it('finds Malmö in a Bosnian setup, worded in Bosnian and matched by its Swedish name', async () => {
+    stubGeocoder({
+      bs: [{ ...malmo, name: 'Malme', admin1: 'Kotar Skåne', country: 'Švedska' }],
+      en: [{ ...malmo, name: 'Malmö', admin1: 'Skåne County', country: 'Sweden' }],
+      de: [{ ...malmo, name: 'Malmö', admin1: 'Skåne län', country: 'Schweden' }],
+    });
+
+    const [city] = await searchCity('Malmö', 'bs');
+    expect(city).toMatchObject({ name: 'Malme', otherNames: ['Malmö'], region: 'Kotar Skåne, Švedska', countryCode: 'SE' });
+    // 'Malme' alone would leave Islamiska Förbundet on its Stockholm default.
+    expect(bestMatch(ISLAMISKA_CITIES, itself, 'Malme')).toBeNull();
+    expect(bestMatch(ISLAMISKA_CITIES, itself, ...namesOf(city))).toBe('Malmö');
+    expect(bestMatch(euLocations('SE'), byName, ...namesOf(city))?.slug).toBe('malmoe');
+  });
+
+  it('finds Zürich once, whichever spelling each language gives it', async () => {
+    stubGeocoder({
+      en: [{ ...zurich, name: 'Zurich', admin1: 'Canton of Zurich', country: 'Switzerland' }, village('Zurich', 'NL', 53.11134, 5.39437)],
+      de: [{ ...zurich, name: 'Zürich', admin1: 'Kanton Zürich', country: 'Schweiz' }, village('Zurich', 'NL', 53.11134, 5.39437)],
+    });
+
+    const found = await searchCity('Zürich');
+    expect(found.map((p) => p.countryCode)).toEqual(['CH', 'NL']);
+    expect(found[0]).toMatchObject({ name: 'Zurich', otherNames: ['Zürich'], region: 'Canton of Zurich, Switzerland' });
+    expect(bestMatch(euLocations('CH'), byName, ...namesOf(found[0]))?.slug).toBe('zuerich');
+  });
+
+  it('finds Wien, ahead of the namesake villages that English ranks first', async () => {
+    const villages = [
+      village('Wien', 'US', 39.66086, -92.78436),
+      village('Wien', 'US', 44.90191, -90.02458),
+      village('Wienau', 'AT', 48.50847, 14.72331),
+    ];
+    stubGeocoder({
+      en: villages,
+      de: [{ ...vienna, name: 'Wien', admin1: 'Bundesland Wien', country: 'Österreich' }, ...villages],
+    });
+
+    const found = await searchCity('Wien');
+    expect(found.map((p) => `${p.name} ${p.countryCode}`)).toEqual(['Wien AT', 'Wien US', 'Wien US', 'Wienau AT']);
+    expect(found[0]?.region).toBe('Bundesland Wien, Austria');
+    expect(bestMatch(euLocations('AT'), byName, ...namesOf(found[0]))?.slug).toBe('wien');
+  });
+
+  it("looks up the German name of a place only the setup's language calls that", async () => {
+    const villages = [village('Beč', 'SI', 45.85611, 14.4167), village('Beč', 'HR', 45.41998, 15.34807)];
+    const fetchMock = stubGeocoder(
+      {
+        // Bosnian alone knows Vienna as Beč; English and German find only villages of that name.
+        bs: [{ ...vienna, id: 2761369, name: 'Beč', admin1: 'Wien', country: 'Austrija' }, ...villages],
+        en: villages,
+        de: villages,
+      },
+      { 2761369: 'Wien' }
+    );
+
+    const found = await searchCity('Beč', 'bs');
+    expect(found.map((p) => `${p.name} ${p.countryCode}`)).toEqual(['Beč AT', 'Beč SI', 'Beč HR']);
+    expect(found[0]).toMatchObject({ region: 'Wien, Austrija', otherNames: ['Wien'] });
+    // Without it Vaktija.eu would fall back to its first Austrian city, Amstetten.
+    expect(bestMatch(euLocations('AT'), byName, ...namesOf(found[0]))?.slug).toBe('wien');
+    // One lookup, for Vienna only: German found the villages itself.
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).includes('/get?'))).toHaveLength(1);
+  });
+
+  it('lists a place as found when its German name cannot be had', async () => {
+    const bec = { ...vienna, id: 2761369, name: 'Beč' };
+    stubGeocoder({ bs: [bec] });
+    expect((await searchCity('Beč', 'bs'))[0]).not.toHaveProperty('otherNames');
+
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).includes('/get?')) throw new TypeError('Failed to fetch');
+      return new Response(JSON.stringify({ results: languageOf(input) === 'bs' ? [bec] : [] }));
+    }));
+    expect((await searchCity('Beč', 'bs'))[0]).toMatchObject({ name: 'Beč', countryCode: 'AT' });
+  });
+
+  it('finds Beograd, and matches it to Vaktija.eu in whichever language it is worded', async () => {
+    stubGeocoder({
+      en: [{ ...belgrade, name: 'Belgrade', admin1: 'Central Serbia', country: 'Serbia' }],
+      de: [{ ...belgrade, name: 'Belgrad', admin1: 'Zentralserbien', country: 'Serbien' }],
+      bs: [{ ...belgrade, name: 'Beograd', admin1: 'Central Serbia', country: 'Srbija' }],
+    });
+
+    const [inEnglish] = await searchCity('Beograd');
+    expect(inEnglish).toMatchObject({ name: 'Belgrade', otherNames: ['Belgrad'], countryCode: 'RS' });
+    const [inBosnian] = await searchCity('Beograd', 'bs');
+    expect(inBosnian).toMatchObject({ name: 'Beograd', otherNames: ['Belgrade', 'Belgrad'], region: 'Central Serbia, Srbija' });
+    for (const city of [inEnglish, inBosnian]) {
+      expect(bestMatch(euLocations('RS'), byName, ...namesOf(city))?.slug).toBe('beograd');
+    }
+  });
+
+  it('still finds a city by its English name, worded in English', async () => {
+    const nebraska = { name: 'Gothenburg', feature_code: 'PPL', admin1: 'Nebraska', country_code: 'US', latitude: 40.92945, longitude: -100.16068, population: 3514 };
+    stubGeocoder({
+      en: [{ ...goteborg, name: 'Gothenburg', admin1: 'Västra Götaland County', country: 'Sweden' }, { ...nebraska, country: 'United States' }],
+      de: [{ ...goteborg, name: 'Göteborg', admin1: 'Västra Götalands län', country: 'Schweden' }, { ...nebraska, country: 'Vereinigte Staaten' }],
+    });
+
+    const found = await searchCity('Gothenburg');
+    expect(found.map((p) => `${p.name}, ${p.region}`)).toEqual([
+      'Gothenburg, Västra Götaland County, Sweden',
+      'Gothenburg, Nebraska, United States',
+    ]);
+    expect(found[0]?.otherNames).toEqual(['Göteborg']);
+    expect(bestMatch(ISLAMISKA_CITIES, itself, ...namesOf(found[0]))).toBe('Göteborg');
+  });
+
+  it("asks in the setup's language first, then English and German, each once", async () => {
+    const fetchMock = stubGeocoder({});
+    const asked = async (language?: string) => {
+      fetchMock.mockClear();
+      await searchCity('Malmö', language);
+      return fetchMock.mock.calls.map(([input]) => languageOf(input));
+    };
+    await expect(asked('sv')).resolves.toEqual(['sv', 'en', 'de']);
+    await expect(asked('de')).resolves.toEqual(['de', 'en']);
+    await expect(asked()).resolves.toEqual(['en', 'de']);
   });
 });
 
