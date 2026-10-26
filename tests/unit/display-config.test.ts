@@ -24,6 +24,7 @@ const DEFAULT_CONFIG: DisplayConfig = {
   zoom: 1,
   use24Hour: true,
   fixedTimes: {},
+  iqamah: {},
   blackout: { enabled: false, minutes: 15 },
   controlQr: { enabled: true },
   announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, items: [] },
@@ -161,6 +162,7 @@ describe('asDisplayConfig', () => {
       zoom: 0.92,
       use24Hour: false,
       fixedTimes: {},
+      iqamah: {},
       blackout: { enabled: true, minutes: 20 },
       controlQr: { enabled: true },
       announcements: {
@@ -183,6 +185,7 @@ describe('asDisplayConfig', () => {
       'zoom',
       'use24Hour',
       'fixedTimes',
+      'iqamah',
       'blackout',
       'controlQr',
       'announcements',
@@ -217,6 +220,32 @@ describe('asDisplayConfig', () => {
       dhuhr: '13:00',
       isha: '19:00',
     });
+  });
+
+  it('keeps an iqamah per prayer: minutes after it begins, or a set time', () => {
+    // Screens saved before this field existed have none.
+    expect(asDisplayConfig({}).iqamah).toEqual({});
+    expect(asDisplayConfig({ iqamah: { maghrib: { after: 5 }, isha: { at: '19:30' } } }).iqamah).toEqual({
+      maghrib: { after: 5 },
+      isha: { at: '19:30' },
+    });
+  });
+
+  it('drops an iqamah for sunrise, a wait out of range, and a time that is not HH:MM', () => {
+    const stored: Json = {
+      iqamah: {
+        sunrise: { after: 10 },
+        fajr: { after: 0 },
+        dhuhr: { after: 61 },
+        asr: { after: 7.5 },
+        maghrib: { at: '7pm' },
+        isha: { after: 15 },
+      },
+    };
+    expect(asDisplayConfig(stored).iqamah).toEqual({ isha: { after: 15 } });
+    for (const iqamah of [null, 'on', true, [10]] as Json[]) {
+      expect(asDisplayConfig({ iqamah }).iqamah).toEqual({});
+    }
   });
 
   it('drops a fixed sunrise, an unknown key, and anything that is not HH:MM', () => {

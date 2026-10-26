@@ -285,9 +285,10 @@ function TimesTable({ prayers, states, locale, nameSize, timeSize, rowPad, start
   );
 }
 
-export function GlobeTheme({ prayers, nextPrayer: upcoming, isPortrait, locale, place, startingPrayer }: ThemeProps) {
-  // A prayer that has just begun stays the highlighted one for its first minute.
-  const nextPrayer = startingPrayer ?? upcoming;
+export function GlobeTheme({ prayers, nextPrayer: upcoming, isPortrait, locale, place, startingPrayer, iqamahPrayer }: ThemeProps) {
+  // A prayer that has just begun stays the highlighted one for its first
+  // minute, and after that until its congregation stands.
+  const nextPrayer = startingPrayer ?? iqamahPrayer ?? upcoming;
   const starting = !!startingPrayer;
   const { timeStr, date } = useDisplayClock(locale);
   // Nothing read off the clock is drawn until the TV's own clock is in charge.

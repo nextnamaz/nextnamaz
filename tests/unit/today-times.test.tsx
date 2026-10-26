@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { TodayTimes } from '@/components/settings/today-times';
 import { PRAYER_DISPLAY_NAMES } from '@/types/prayer';
-import type { PrayerName } from '@/types/prayer';
 import type { FixedTimes } from '@/lib/fixed-times';
+import type { IqamahRules } from '@/lib/iqamah';
 import type { PrayerTimesMap } from '@/types/database';
 
 const WINTER: PrayerTimesMap = {
@@ -17,106 +17,142 @@ const WINTER: PrayerTimesMap = {
 
 const SUMMER: PrayerTimesMap = { ...WINTER, maghrib: '22:13', isha: '23:50' };
 
-const BOSNIAN: Record<PrayerName, string> = {
-  fajr: 'Zora',
-  sunrise: 'Izlazak sunca',
-  dhuhr: 'Podne',
-  asr: 'Ikindija',
-  maghrib: 'Akšam',
-  isha: 'Jacija',
-};
-
-function renderList(fixed: FixedTimes, times: PrayerTimesMap = WINTER, labels = PRAYER_DISPLAY_NAMES) {
-  const onFixedChange = vi.fn<(fixed: FixedTimes) => void>();
-  render(<TodayTimes times={times} fixed={fixed} labels={labels} locale="en" onFixedChange={onFixedChange} />);
-  return onFixedChange;
+interface Setup {
+  fixed?: FixedTimes;
+  iqamah?: IqamahRules;
+  times?: PrayerTimesMap;
 }
 
-/** The text of the row that starts with a prayer's name. */
-const row = (name: string) => screen.getByText(name).closest('div')?.textContent;
+function renderList({ fixed = {}, iqamah = {}, times = WINTER }: Setup = {}) {
+  const onFixedChange = vi.fn<(fixed: FixedTimes) => void>();
+  const onIqamahChange = vi.fn<(iqamah: IqamahRules) => void>();
+  render(
+    <TodayTimes
+      times={times}
+      fixed={fixed}
+      iqamah={iqamah}
+      labels={PRAYER_DISPLAY_NAMES}
+      iqamahLabel="Ikamet"
+      locale="en"
+      onFixedChange={onFixedChange}
+      onIqamahChange={onIqamahChange}
+    />
+  );
+  return { onFixedChange, onIqamahChange };
+}
+
+const prayerRow = (name: string) => screen.getByRole('button', { name: new RegExp(`^${name}`) });
+const open = (name: string) => fireEvent.click(prayerRow(name));
 
 describe('TodayTimes', () => {
   afterEach(cleanup);
 
-  it("lists the source's times, each prayer with its own fixed-time switch, all off", () => {
-    renderList({});
-    expect(row('Isha')).toBe('Isha18:31');
-    const switches = screen.getAllByRole('switch');
-    expect(switches.map((s) => s.getAttribute('aria-label'))).toEqual([
-      'Fixed time for Fajr',
-      'Fixed time for Dhuhr',
-      'Fixed time for Asr',
-      'Fixed time for Maghrib',
-      'Fixed time for Isha',
-    ]);
-    expect(switches.every((s) => s.getAttribute('aria-checked') === 'false')).toBe(true);
+  it('is a plain timetable until a prayer is opened', () => {
+    renderList();
+    expect(prayerRow('Isha')).toHaveTextContent('Isha18:31');
+    expect(prayerRow('Isha')).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(screen.getByText(/Tap a prayer to give it a fixed time or Ikamet\./)).toBeInTheDocument();
   });
 
-  it("explains fixed times in the screen's own prayer names", () => {
-    renderList({}, WINTER, BOSNIAN);
-    expect(
-      screen.getByText(/To keep a prayer at the same time, like Jacija at 19:00, switch on its fixed time\./)
-    ).toBeInTheDocument();
+  it('opens a prayer onto its time and its iqamah, both at their defaults', () => {
+    renderList();
+    open('Isha');
+    expect(prayerRow('Isha')).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('radio', { name: 'Automatic' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: 'Off' })).toHaveAttribute('aria-checked', 'true');
   });
 
-  it("switches a prayer on at today's time and asks for the mosque's own", () => {
-    const onFixedChange = renderList({ dhuhr: '13:00' });
-    fireEvent.click(screen.getByRole('switch', { name: 'Fixed time for Isha' }));
+  it('keeps one prayer open at a time, and closes it on a second tap', () => {
+    renderList();
+    open('Isha');
+    open('Dhuhr');
+    expect(prayerRow('Isha')).toHaveAttribute('aria-expanded', 'false');
+    expect(prayerRow('Dhuhr')).toHaveAttribute('aria-expanded', 'true');
+    open('Dhuhr');
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+  });
+
+  it('never opens sunrise, which has nothing to set', () => {
+    renderList();
+    expect(screen.queryByRole('button', { name: /^Sunrise/ })).toBeNull();
+    expect(screen.getByText('Sunrise').parentElement).toHaveTextContent('Sunrise07:40');
+  });
+
+  it("fixes a prayer at today's time, to be changed from there", () => {
+    const { onFixedChange } = renderList({ fixed: { dhuhr: '13:00' } });
+    open('Isha');
+    fireEvent.click(screen.getByRole('radio', { name: 'Fixed' }));
     expect(onFixedChange).toHaveBeenCalledWith({ dhuhr: '13:00', isha: '18:31' });
   });
 
-  it('prompts for a time while the fixed one still matches the source', () => {
-    renderList({ isha: '18:31' });
-    expect(screen.getByRole('group', { name: 'Isha time' })).toHaveAccessibleDescription(
-      "Choose your time. Today's automatic time is 18:31."
-    );
-  });
-
-  it('picks a fixed time on a 24-hour clock, hour and minutes apart', () => {
-    const onFixedChange = renderList({ isha: '19:00' });
-    const hour = screen.getByRole('combobox', { name: 'Isha hour' });
-    const minutes = screen.getByRole('combobox', { name: 'Isha minutes' });
+  it('shows a fixed prayer tagged in the list, and its time on a 24-hour picker', () => {
+    const { onFixedChange } = renderList({ fixed: { isha: '19:00' } });
+    expect(prayerRow('Isha')).toHaveTextContent('IshaFixed19:00');
+    open('Isha');
+    const hour = screen.getByRole('combobox', { name: 'Fixed time for Isha, hour' });
     expect(hour).toHaveValue('19');
-    expect(minutes).toHaveValue('00');
     expect(hour.querySelectorAll('option')).toHaveLength(24);
-    expect(minutes.querySelectorAll('option')).toHaveLength(60);
-    expect(screen.getByRole('group', { name: 'Isha time' })).toHaveAccessibleDescription(
-      'Fixed every day, instead of 18:31 today.'
+    expect(screen.getByRole('group', { name: 'Fixed time for Isha' })).toHaveAccessibleDescription(
+      'Every day, instead of 18:31 today.'
     );
     fireEvent.change(hour, { target: { value: '20' } });
     expect(onFixedChange).toHaveBeenLastCalledWith({ isha: '20:00' });
-    fireEvent.change(minutes, { target: { value: '15' } });
-    expect(onFixedChange).toHaveBeenLastCalledWith({ isha: '19:15' });
   });
 
-  it('switching off hands the prayer back to the source', () => {
-    const onFixedChange = renderList({ dhuhr: '13:00', isha: '19:00' });
-    fireEvent.click(screen.getByRole('switch', { name: 'Fixed time for Isha' }));
+  it('hands a prayer back to its source with Automatic', () => {
+    const { onFixedChange } = renderList({ fixed: { dhuhr: '13:00', isha: '19:00' } });
+    open('Isha');
+    fireEvent.click(screen.getByRole('radio', { name: 'Automatic' }));
     expect(onFixedChange).toHaveBeenCalledWith({ dhuhr: '13:00' });
   });
 
   it('says why a fixed time sits out today, and what the TV shows instead', () => {
-    renderList({ isha: '19:00' }, SUMMER);
-    expect(screen.getByRole('group', { name: 'Isha time' })).toHaveAccessibleDescription(
+    renderList({ fixed: { isha: '19:00' }, times: SUMMER });
+    expect(prayerRow('Isha')).toHaveTextContent('Isha23:50');
+    open('Isha');
+    expect(screen.getByRole('group', { name: 'Fixed time for Isha' })).toHaveAccessibleDescription(
       'Not used today. It would come before Maghrib (22:13), so the TV shows 23:50.'
     );
   });
 
-  it('names the later neighbour when a fixed time comes too late', () => {
-    renderList({ asr: '17:00' });
-    expect(screen.getByRole('group', { name: 'Asr time' })).toHaveAccessibleDescription(
-      'Not used today. It would come after Maghrib (16:42), so the TV shows 14:07.'
+  it('gives a prayer an iqamah ten minutes after the adhan, then any wait up to an hour', () => {
+    const { onIqamahChange } = renderList();
+    open('Maghrib');
+    fireEvent.click(screen.getByRole('radio', { name: 'After adhan' }));
+    expect(onIqamahChange).toHaveBeenCalledWith({ maghrib: { after: 10 } });
+  });
+
+  it('changes the wait, and shows the iqamah it gives in the list', () => {
+    const { onIqamahChange } = renderList({ iqamah: { maghrib: { after: 10 } } });
+    expect(prayerRow('Maghrib')).toHaveTextContent('MaghribIkamet 16:5216:42');
+    open('Maghrib');
+    const wait = screen.getByRole('combobox', { name: 'Minutes from the adhan to Ikamet' });
+    expect(wait.querySelectorAll('option')).toHaveLength(60);
+    fireEvent.change(wait, { target: { value: '5' } });
+    expect(onIqamahChange).toHaveBeenLastCalledWith({ maghrib: { after: 5 } });
+  });
+
+  it("sets an iqamah at a time of its own, starting where today's wait would put it", () => {
+    const { onIqamahChange } = renderList();
+    open('Isha');
+    fireEvent.click(screen.getByRole('radio', { name: 'Set time' }));
+    expect(onIqamahChange).toHaveBeenCalledWith({ isha: { at: '18:41' } });
+  });
+
+  it('switches an iqamah off again', () => {
+    const { onIqamahChange } = renderList({ iqamah: { maghrib: { after: 5 }, isha: { at: '19:30' } } });
+    open('Isha');
+    fireEvent.click(screen.getByRole('radio', { name: 'Off' }));
+    expect(onIqamahChange).toHaveBeenCalledWith({ maghrib: { after: 5 } });
+  });
+
+  it('says why an iqamah sits out today', () => {
+    renderList({ iqamah: { isha: { at: '18:00' } } });
+    expect(prayerRow('Isha')).toHaveTextContent('Isha18:31');
+    open('Isha');
+    expect(screen.getByRole('group', { name: 'Ikamet time for Isha' })).toHaveAccessibleDescription(
+      'Not used today. Ikamet has to fall between 18:31 and midnight.'
     );
-  });
-
-  it('never offers sunrise a fixed time', () => {
-    renderList({});
-    expect(screen.queryByRole('switch', { name: 'Fixed time for Sunrise' })).toBeNull();
-    expect(row('Sunrise')).toBe('Sunrise07:40');
-  });
-
-  it('says the list follows the source apart from fixed times once one is set', () => {
-    renderList({ isha: '19:00' });
-    expect(screen.getByText('Updates automatically every day, apart from fixed times.')).toBeInTheDocument();
   });
 });

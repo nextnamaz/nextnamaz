@@ -289,12 +289,20 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                     <TodayTimes
                       times={form.times}
                       fixed={form.displayConfig.fixedTimes}
+                      iqamah={form.displayConfig.iqamah}
                       labels={form.displayText.prayers}
+                      iqamahLabel={form.displayText.labels.iqamah}
                       locale={form.locale}
                       onFixedChange={(fixedTimes) =>
                         setForm((prev) => ({
                           ...prev,
                           displayConfig: { ...prev.displayConfig, fixedTimes },
+                        }))
+                      }
+                      onIqamahChange={(iqamah) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          displayConfig: { ...prev.displayConfig, iqamah },
                         }))
                       }
                     />

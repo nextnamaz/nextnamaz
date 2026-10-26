@@ -14,6 +14,11 @@ export interface ThemeProps {
    * where it would otherwise count down to `nextPrayer`.
    */
   startingPrayer?: PrayerTimeEntry | null;
+  /**
+   * The prayer that has begun and whose congregation has yet to stand. A
+   * theme counts down to its iqamah, not to `nextPrayer`, while there is one.
+   */
+  iqamahPrayer?: PrayerTimeEntry | null;
   /** Where the screen is, when known. Only a theme that draws the Earth asks. */
   place?: ScreenPlace | null;
 }

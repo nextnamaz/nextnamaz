@@ -218,7 +218,7 @@ export const SV: LandingCopy = {
       },
       {
         q: 'Kan skärmen visa iqamah, fredagsbönen eller hijridatum?',
-        a: 'Inte än. Skärmen visar när varje bön börjar, plus soluppgången, enligt källan du väljer. Om en bön alltid hålls på samma tid i moskén, till exempel Isha klockan 19.00, kan du ge den en fast tid i inställningarna. Iqamah-tider, en tid för fredagsbönen och hijridatum finns inte just nu. Datumet skrivs dag/månad/år.',
+        a: 'Iqamah kan den visa. Tryck på en bön i inställningarna och välj när iqamah är: ett visst antal minuter efter adhan eller en fast tid. Skärmen visar den under bönen och räknar ner till den. Du kan också ge en bön samma tid varje dag, till exempel Isha klockan 19.00. Fredagsbönens tid och hijridatum finns inte ännu. Datumet skrivs dag/månad/år.',
       },
       {
         q: 'Vilka uppgifter sparar ni?',

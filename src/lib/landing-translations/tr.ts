@@ -218,7 +218,7 @@ export const TR: LandingCopy = {
       },
       {
         q: 'Kamet vakti, cuma saati ya da hicri tarih var mı?',
-        a: "Henüz değil. Ekran, seçtiğiniz kaynağa göre her namaz vaktinin giriş saatini ve güneşin doğuşunu gösterir. Camiinizde bir namaz her gün aynı saatte kılınıyorsa, örneğin yatsı saat 19.00'da, bu saati ayarlardan kendiniz sabitleyebilirsiniz. Kamet vakitleri, cuma namazı saati ve hicri tarih şu an için yok. Tarih gün/ay/yıl olarak yazılır.",
+        a: "Kamet vakti var. Ayarlarda bir namaza dokunup kametin ne zaman olacağını seçin: ezandan birkaç dakika sonra ya da belirli bir saatte. Ekran kameti vaktin altında gösterir ve kamete kadar geri sayar. Bir namaz her gün aynı saatte kılınıyorsa, örneğin yatsı saat 19.00'da, o saati de kendiniz sabitleyebilirsiniz. Cuma namazı saati ve hicri tarih henüz yok. Tarih gün/ay/yıl olarak yazılır.",
       },
       {
         q: 'Hangi verileri saklıyorsunuz?',

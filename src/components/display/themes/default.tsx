@@ -272,16 +272,18 @@ function nameScale(name: string): string | undefined {
   return undefined;
 }
 
-export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, startingPrayer }: ThemeProps) {
+export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, startingPrayer, iqamahPrayer }: ThemeProps) {
   const { timeStr, dateStr, date } = useDisplayClock(locale);
   // The clock corrects itself within a second; the date would keep the
   // server's (UTC) day until the next midnight, so it waits for the TV's clock.
   const live = useHydrated();
   const prayerStates = usePrayerStates(prayers, nextPrayer, date.getHours() * 60 + date.getMinutes());
   const hasIqamah = prayers.some((p) => p.iqamahTime);
-  const countdown = useCountdown(nextPrayer?.time ?? '00:00');
+  // Once a prayer has begun, the panel waits with it for its iqamah.
+  const countdown = useCountdown(iqamahPrayer?.iqamahTime ?? nextPrayer?.time ?? '00:00');
   // For its first minute the panel shows the prayer that has just begun.
-  const panelPrayer = startingPrayer ?? nextPrayer;
+  const panelPrayer = startingPrayer ?? iqamahPrayer ?? nextPrayer;
+  const panelTime = iqamahPrayer?.iqamahTime ?? panelPrayer?.time;
   // ...and nothing points ahead yet: the table only marks the one in progress.
   const rowStatesShown = startingPrayer
     ? prayerStates.map((state) => (state === 'next' ? 'upcoming' : state))
@@ -491,7 +493,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
           {/* "Next..." label */}
           <div className="default-next-secondary">
             <p className="text-white/90 m-0 leading-none font-medium opacity-85">
-              {startingPrayer ? locale.labels.now : `${nextLabel}...`}
+              {startingPrayer ? locale.labels.now : iqamahPrayer ? locale.labels.iqamah : `${nextLabel}...`}
             </p>
           </div>
 
@@ -501,7 +503,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
               {panelPrayer?.displayName ?? '--'}
             </p>
             <p className="text-white m-0 leading-none font-black tracking-tight">
-              {panelPrayer ? <TimeText value={formatPrayerTime(panelPrayer.time, locale)} /> : '--:--'}
+              {panelTime ? <TimeText value={formatPrayerTime(panelTime, locale)} /> : '--:--'}
             </p>
           </div>
 
