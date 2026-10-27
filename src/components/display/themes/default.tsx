@@ -543,7 +543,8 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
           width: 100%;
           height: 100%;
           overflow: hidden;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          /* Geist ships with the app; system names fall back to whatever a device has (Wine's Tahoma on Linux). */
+          font-family: var(--font-geist-sans), system-ui, sans-serif;
         }
 
         /* ---- Portrait Grid ---- */
@@ -635,7 +636,7 @@ export function DefaultTheme({ prayers, nextPrayer, config, isPortrait, locale, 
 
         /* Next prayer section */
         .default-next {
-          font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          font-family: inherit;
         }
         .default-next-secondary {
           margin-bottom: 0.2cqmin;
