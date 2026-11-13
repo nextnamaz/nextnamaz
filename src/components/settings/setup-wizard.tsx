@@ -24,6 +24,7 @@ import { resolveDisplayLocale } from '@/lib/display-locale';
 import { ThemePicker } from './theme-settings-form';
 import type { FormState } from './settings-shared';
 import type { SetupCopy } from '@/lib/setup-copy';
+import type { LandingLocale } from '@/lib/landing-locales';
 
 /** Each step slides in from the side it was reached from and fades up; --wiz-flip mirrors that for right-to-left. Still under reduced motion. */
 const SLIDE = `
@@ -46,6 +47,7 @@ interface SetupWizardProps {
   screenId: string;
   /** The words, in the language of the person setting up. */
   copy: SetupCopy;
+  locale: LandingLocale;
   dir: 'ltr' | 'rtl';
   form: FormState;
   setForm: Dispatch<SetStateAction<FormState>>;
@@ -56,7 +58,7 @@ interface SetupWizardProps {
   onExit: () => void;
 }
 
-export function SetupWizard({ screenId, copy, dir: textDir, form, setForm, saving, onFinish, onExit }: SetupWizardProps) {
+export function SetupWizard({ screenId, copy, locale, dir: textDir, form, setForm, saving, onFinish, onExit }: SetupWizardProps) {
   const [step, setStep] = useState<StepId>('times');
   /** Which way the last move went, so the next step slides in from that side. */
   const [dir, setDir] = useState<1 | -1>(1);
@@ -139,7 +141,7 @@ export function SetupWizard({ screenId, copy, dir: textDir, form, setForm, savin
       <style>{SLIDE}</style>
       <div className="mx-auto max-w-lg space-y-6 px-4 pt-4 pb-8">
         <div key={step} className="wiz-step space-y-6" style={{ '--wiz-dir': dir } as CSSProperties}>
-        {step === 'times' && <SourceWizard copy={copy} translations={form.displayText} onApply={applySource} autoLocate />}
+        {step === 'times' && <SourceWizard copy={copy} locale={locale} translations={form.displayText} onApply={applySource} autoLocate />}
 
         {step === 'language' && (
           <>

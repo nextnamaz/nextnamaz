@@ -183,6 +183,7 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
       <SetupWizard
         screenId={screen.id}
         copy={SETUP_COPY[uiLocale]}
+        locale={uiLocale}
         dir={LANDING_LOCALE_INFO[uiLocale].dir}
         form={form}
         setForm={setForm}
