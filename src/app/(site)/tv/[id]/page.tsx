@@ -8,6 +8,8 @@ import { resolveScreenPlace } from '@/lib/screen-place';
 import { TvDisplay } from '@/components/display/tv-display';
 import { NOINDEX_METADATA } from '@/lib/site';
 import { touchLastSeen } from '@/lib/stats';
+import { expandDecks } from '@/lib/google-slides';
+import { asDisplayConfig } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +33,12 @@ export default async function TvPage({ params }: TvPageProps) {
   after(() => touchLastSeen(screen.id));
 
   // Only the Globe theme draws the screen's place, so only it pays for the lookup.
-  const [todayTimes, place] = await Promise.all([
+  const announcements = asDisplayConfig(screen.display_config).announcements;
+  const [todayTimes, place, slides] = await Promise.all([
     resolveTodayTimes(screen),
     screen.theme === 'globe' ? resolveScreenPlace(screen) : null,
+    // A Google Slides deck becomes one item per slide, read fresh from Google.
+    announcements.enabled ? expandDecks(announcements.items) : [],
   ]);
   const hdrs = await headers();
   const host = hdrs.get('x-forwarded-host') ?? hdrs.get('host') ?? 'localhost:3000';
@@ -43,6 +48,7 @@ export default async function TvPage({ params }: TvPageProps) {
       screen={screen}
       todayTimes={todayTimes}
       place={place}
+      slides={slides}
       settingsUrl={`${proto}://${host}/s/${screen.id}`}
     />
   );

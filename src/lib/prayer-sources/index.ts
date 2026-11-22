@@ -7,12 +7,14 @@ import type {
   VaktijaBaSourceConfig,
   VaktijaEuSourceConfig,
   IslamiskaForbundetSourceConfig,
+  CalendarSourceConfig,
 } from '@/types/prayer-config';
 import { calculateAdhanTimes } from './adhan';
 import { fetchAlAdhan } from './aladhan';
 import { fetchVaktijaBa } from './vaktija-ba';
 import { fetchVaktijaEu } from './vaktija-eu';
 import { fetchIslamiskaForbundet } from './islamiska-forbundet';
+import { calendarTimes } from './calendar';
 
 type PrayerSourceFetcher = (config: PrayerSourceConfig) => Promise<PrayerTimesMap>;
 
@@ -34,6 +36,7 @@ const providers: Record<string, PrayerSourceFetcher> = {
     const c = config as IslamiskaForbundetSourceConfig;
     return fetchIslamiskaForbundet(c.city);
   },
+  calendar: (config) => Promise.resolve().then(() => calendarTimes(config as CalendarSourceConfig)),
 };
 
 export async function fetchPrayerTimes(

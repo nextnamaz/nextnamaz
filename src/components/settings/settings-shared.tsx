@@ -26,7 +26,7 @@ export interface FormState {
   displayConfig: DisplayConfig;
 }
 
-const SOURCE_VALUES: PrayerSourceInput[] = ['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet'];
+const SOURCE_VALUES: PrayerSourceInput[] = ['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet', 'calendar'];
 
 export function formFromScreen(screen: Screen): FormState {
   return {
@@ -46,9 +46,9 @@ export function formFromScreen(screen: Screen): FormState {
 
 /** One-line answer to "what does this source mean for me?" */
 export function sourceExplanation(source: PrayerSourceInput): string {
-  return source === 'manual'
-    ? 'You enter the times yourself and can change them here whenever you need.'
-    : 'Fresh times arrive automatically every day. Nothing to maintain.';
+  if (source === 'manual') return 'You enter the times yourself and can change them here whenever you need.';
+  if (source === 'calendar') return "Each day the TV shows that day's row from your uploaded calendar.";
+  return 'Fresh times arrive automatically every day. Nothing to maintain.';
 }
 
 interface ManualTimesFieldsProps {

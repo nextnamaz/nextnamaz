@@ -4,7 +4,8 @@ export type PrayerSourceType =
   | 'aladhan'
   | 'vaktija_ba'
   | 'vaktija_eu'
-  | 'islamiska_forbundet';
+  | 'islamiska_forbundet'
+  | 'calendar';
 
 export type AdhanCalculationMethod =
   | 'MuslimWorldLeague'
@@ -54,10 +55,18 @@ export interface IslamiskaForbundetSourceConfig {
   city: string;
 }
 
+/** A mosque's own calendar: one row of six HH:MM times per YYYY-MM-DD. */
+export interface CalendarSourceConfig {
+  /** Whose "today" picks the row. */
+  timezone: string;
+  days: Record<string, string[]>;
+}
+
 export type PrayerSourceConfig =
   | AdhanSourceConfig
   | AlAdhanSourceConfig
   | VaktijaBaSourceConfig
   | VaktijaEuSourceConfig
   | IslamiskaForbundetSourceConfig
+  | CalendarSourceConfig
   | Record<string, never>;

@@ -22,6 +22,7 @@ export function sourceLabel(source: string, config: Record<string, unknown>): st
     case 'islamiska_forbundet': return `Islamiska Förbundet · ${typeof config.city === 'string' ? config.city : ''}`;
     case 'aladhan': return `AlAdhan · ${name}`;
     case 'adhan': return `Automatic calculation · ${name}`;
+    case 'calendar': return 'Your calendar file';
     default: return 'Manual times';
   }
 }

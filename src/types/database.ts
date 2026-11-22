@@ -196,11 +196,18 @@ export function asIqamah(json: Json): IqamahRules {
 export type Rotation = 0 | 90 | 180 | 270;
 
 export interface SlideItem {
-  /** Storage object path inside the `slides` bucket. */
+  /**
+   * Storage object path inside the `slides` bucket, or `gslides:<id>` for a
+   * published Google Slides deck.
+   */
   path: string;
   /** Public URL the TV loads. */
   url: string;
-  kind: 'image' | 'video';
+  kind: 'image' | 'video' | 'google-slides';
+}
+
+function slideKind(kind: string | undefined): SlideItem['kind'] {
+  return kind === 'video' || kind === 'google-slides' ? kind : 'image';
 }
 
 export interface DisplayConfig {
@@ -261,7 +268,7 @@ export function asDisplayConfig(json: Json): DisplayConfig {
     .map((i) => ({
       path: i.path,
       url: i.url,
-      kind: (i.kind === 'video' ? 'video' : 'image') as SlideItem['kind'],
+      kind: slideKind(i.kind),
     }));
   return {
     rotation: ROTATIONS.includes(raw.rotation as Rotation) ? (raw.rotation as Rotation) : 0,

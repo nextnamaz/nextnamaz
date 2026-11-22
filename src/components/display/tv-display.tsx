@@ -13,7 +13,7 @@ import type { DisplayLocale } from '@/lib/display-locale';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import Image from 'next/image';
 import { asDisplayConfig, asRecord, asStringRecord } from '@/types/database';
-import type { Screen, PrayerTimesMap } from '@/types/database';
+import type { Screen, PrayerTimesMap, SlideItem } from '@/types/database';
 import { getNextPrayer, prayerTimesMapToEntries } from '@/types/prayer';
 import type { PrayerTimeEntry } from '@/types/prayer';
 import { SCREEN_STORAGE_KEY } from '@/lib/storage';
@@ -103,9 +103,11 @@ interface TvDisplayProps {
   settingsUrl: string;
   /** Where the screen is, for a theme that draws it on the Earth. */
   place: ScreenPlace | null;
+  /** Announcement media with any Google Slides deck already split into its slides. */
+  slides?: SlideItem[];
 }
 
-export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayProps) {
+export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: TvDisplayProps) {
   const router = useRouter();
   const isPortrait = useViewportPortrait();
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -225,7 +227,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
   const blackout = useBlackout(prayers, fitConfig.blackout.enabled, fitConfig.blackout.minutes);
   const controlQrVisible = useControlQr(prayers, fitConfig.controlQr.enabled);
   const { slide, onMediaEnd } = useSlideshow(
-    fitConfig.announcements.items,
+    slides ?? fitConfig.announcements.items,
     fitConfig.announcements.enabled,
     fitConfig.announcements.intervalMin,
     fitConfig.announcements.showSeconds
@@ -280,7 +282,17 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place }: TvDisplayP
 
   const slideMedia =
     slide &&
-    (slide.kind === 'video' ? (
+    (slide.kind === 'google-slides' ? (
+      // Google's own player, standing on one slide. It takes no input, so a
+      // stray touch can't leave the deck on a different slide.
+      <iframe
+        key={slide.path}
+        src={slide.url}
+        title=""
+        allow="autoplay"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, pointerEvents: 'none' }}
+      />
+    ) : slide.kind === 'video' ? (
       <video
         key={slide.path}
         src={slide.url}
