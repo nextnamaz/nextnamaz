@@ -11,11 +11,11 @@ import { ScreenPlaceholder } from './screen-placeholder';
 import { TvFrame } from './tv-frame';
 
 /* Client-only: the themes read the visitor's clock. The placeholder is the
-   Default theme's blocks in its own colours, inside the same frame, so the
-   live screen swaps in without a shift. */
+   starting theme's ground, inside the same frame, so the live screen swaps in
+   without a shift. */
 const PlaygroundScreen = dynamic(() => import('./playground-screen').then((m) => m.PlaygroundScreen), {
   ssr: false,
-  loading: () => <ScreenPlaceholder />,
+  loading: () => <ScreenPlaceholder theme="ivory" />,
 });
 
 /** The line the demo screens carry: the bismillah. */
@@ -24,7 +24,7 @@ const BISMILLAH = 'بسم الله الرحمن الرحيم';
 function startingSettings(language: SupportedLocale): PlaygroundSettings {
   return {
     language,
-    theme: 'default',
+    theme: 'ivory',
     mode: 'light',
     scheme: 'classic',
     ink: 'navy',
@@ -42,15 +42,15 @@ interface GhostStep {
 
 /**
  * The demo that plays once for a visitor who has not touched anything:
- * another language, then Dark, then the Sky theme, then back to the start.
- * Mode comes before theme because Mode belongs to Default: under Sky it has
- * nothing to change.
+ * another language, then the Default theme, then Dark, then back to the
+ * start. Theme comes before mode because Mode belongs to Default: under
+ * Ivory it has nothing to change.
  */
 function ghostSteps(start: PlaygroundSettings): GhostStep[] {
   return [
     { wait: 1100, field: 'language', change: { language: start.language === 'ar' ? 'en' : 'ar' } },
+    { wait: 2600, field: 'theme', change: { theme: 'default' } },
     { wait: 2600, field: 'mode', change: { mode: 'dark' } },
-    { wait: 2600, field: 'theme', change: { theme: 'sky' } },
     { wait: 3000, field: 'reset', change: start },
   ];
 }

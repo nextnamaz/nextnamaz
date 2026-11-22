@@ -153,7 +153,7 @@ export function PlaygroundScreen({ settings }: { settings: PlaygroundSettings })
           <style>{HOLD_STILL}</style>
         </>
       ) : (
-        <ScreenPlaceholder />
+        <ScreenPlaceholder theme={settings.theme === 'ivory' ? 'ivory' : 'default'} />
       )}
     </div>
   );

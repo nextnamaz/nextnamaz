@@ -9,7 +9,7 @@ import { ScreenPlaceholder } from './screen-placeholder';
 /* Client-only: the displays read the visitor's clock. */
 const DemoDisplay = dynamic(() => import('./demo-display').then((m) => m.DemoDisplay), {
   ssr: false,
-  loading: () => <ScreenPlaceholder />,
+  loading: () => <ScreenPlaceholder theme="ivory" />,
 });
 
 interface OrientationArtProps {
@@ -33,14 +33,14 @@ export function OrientationArt({ landscape, portrait, display }: OrientationArtP
     >
       <figure>
         <TvFrame>
-          <DemoDisplay locale={locale} />
+          <DemoDisplay locale={locale} theme="ivory" />
         </TvFrame>
         <figcaption className="mt-5 text-center text-[13px] font-medium text-muted-foreground sm:text-sm">{landscape}</figcaption>
       </figure>
 
       <figure>
         <TvFrame portrait>
-          <DemoDisplay locale={locale} portrait />
+          <DemoDisplay locale={locale} portrait theme="ivory" />
         </TvFrame>
         <figcaption className="mt-5 text-center text-[13px] font-medium text-muted-foreground sm:text-sm">{portrait}</figcaption>
       </figure>

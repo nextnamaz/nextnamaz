@@ -10,7 +10,7 @@ import { ScreenPlaceholder } from './screen-placeholder';
 
 const DemoDisplay = dynamic(() => import('./demo-display').then((m) => m.DemoDisplay), {
   ssr: false,
-  loading: () => <ScreenPlaceholder />,
+  loading: () => <ScreenPlaceholder theme="sky" />,
 });
 
 interface Month {
@@ -155,7 +155,7 @@ export function OldWayFilm({ label, before, instead, after, display }: OldWayFil
         style={{ ...SCREEN, containerType: 'size', opacity: isAfter ? 1 : 0, transitionDelay: isAfter ? '250ms' : '0ms' }}
         aria-hidden={!isAfter}
       >
-        <DemoDisplay locale={locale} />
+        <DemoDisplay locale={locale} theme="sky" />
       </div>
       <span
         aria-hidden

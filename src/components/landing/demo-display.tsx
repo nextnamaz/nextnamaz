@@ -2,7 +2,15 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { DefaultTheme } from '@/components/display/themes/default';
+import { IvoryTheme } from '@/components/display/themes/ivory';
+import { SkyTheme } from '@/components/display/themes/sky';
+import { PaperTheme } from '@/components/display/themes/paper';
+import { GlobeTheme } from '@/components/display/themes/globe';
+import type { ThemeProps } from '@/components/display/themes';
+import type { ComponentType } from 'react';
+import type { ScreenPlace } from '@/lib/screen-place';
 import { ScreenPlaceholder } from './screen-placeholder';
+import type { DemoTheme } from './screen-placeholder';
 import { PREVIEW_PRAYERS, PREVIEW_LOCALE } from '@/lib/theme-preview';
 import { isRtlLocale } from '@/lib/display-locale';
 import { minutesOf } from '@/lib/display-schedule';
@@ -19,6 +27,17 @@ const DEMO_PRAYERS: PrayerTimeEntry[] = PREVIEW_PRAYERS.map(({ name, displayName
   displayName,
   time,
 }));
+
+const THEMES: Record<DemoTheme, ComponentType<ThemeProps>> = {
+  default: DefaultTheme,
+  sky: SkyTheme,
+  paper: PaperTheme,
+  ivory: IvoryTheme,
+  globe: GlobeTheme,
+};
+
+/** Where the Globe demo stands: it needs a place to draw the Earth around. */
+const DEMO_PLACE: ScreenPlace = { name: 'Sarajevo', latitude: 43.8563, longitude: 18.4131 };
 
 /**
  * Minutes since midnight, re-read as each minute begins. The theme's countdown
@@ -59,25 +78,35 @@ interface DemoDisplayProps {
   footer?: string;
   /** The theme's own portrait layout, for a set turned on its side. */
   portrait?: boolean;
+  /** The page shows a different theme on each set; the hero keeps Default. */
+  theme?: DemoTheme;
 }
 
 /**
- * The landing page's demo screen: the real Default theme in its Classic
- * colours, running on the visitor's own clock. Every television on the page
- * shows this one, so they cannot drift apart. Arabic and Urdu mirror, as they
- * do on a real TV.
+ * The landing page's demo screen: a real theme (Default in its Classic
+ * colours unless told otherwise) running on the visitor's own clock. Every
+ * television on the page is this component, so they cannot drift apart.
+ * Arabic and Urdu mirror, as they do on a real TV.
  *
  * It is a picture, so it is hidden from assistive tech; whatever holds it (a
  * labelled image, or the legend beside it) says what it shows. Out of sight it swaps to its placeholder, so
  * its clocks and its pulse stop.
  */
-export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله الرحمن الرحيم', portrait = false }: DemoDisplayProps) {
+export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله الرحمن الرحيم', portrait = false, theme = 'default' }: DemoDisplayProps) {
   const minute = useSyncExternalStore(subscribeMinute, minuteOfDay, minuteOfDay);
   const prayers = useMemo(
     () => DEMO_PRAYERS.map((p) => ({ ...p, displayName: locale.prayerNames[p.name] })),
     [locale]
   );
   const nextPrayer = useMemo(() => nextPrayerAt(prayers, minute), [prayers, minute]);
+
+  const Theme = THEMES[theme];
+  const config: Record<string, string> =
+    theme === 'default'
+      ? { mode: 'light', colorScheme: 'classic', displayText: footer }
+      : theme === 'ivory'
+        ? { color: 'navy' }
+        : { verse: footer };
 
   const [near, setNear] = useState(false);
   const watch = useCallback((el: HTMLDivElement | null) => {
@@ -103,17 +132,11 @@ export function DemoDisplay({ locale = PREVIEW_LOCALE, footer = 'بسم الله
     >
       {near ? (
         <>
-          <DefaultTheme
-            prayers={prayers}
-            nextPrayer={nextPrayer}
-            config={{ mode: 'light', colorScheme: 'classic', displayText: footer }}
-            isPortrait={portrait}
-            locale={locale}
-          />
+          <Theme prayers={prayers} nextPrayer={nextPrayer} config={config} isPortrait={portrait} locale={locale} place={DEMO_PLACE} />
           <style>{HOLD_STILL}</style>
         </>
       ) : (
-        <ScreenPlaceholder />
+        <ScreenPlaceholder theme={theme} />
       )}
     </div>
   );
