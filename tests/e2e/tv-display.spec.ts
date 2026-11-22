@@ -1,7 +1,37 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { configuredScreen, saveSettings } from './helpers';
 
+/**
+ * Wave the mouse until the Settings button appears, then click it. One short
+ * move shows nothing by design, and the listener is only attached on
+ * hydration, so keep waving until it lands.
+ */
+async function openOverlay(page: Page): Promise<void> {
+  const button = page.getByRole('button', { name: 'Settings', exact: true });
+  await expect(async () => {
+    for (let i = 0; i < 10; i++) {
+      await page.mouse.move(300 + (i % 2) * 200, 400);
+      await page.waitForTimeout(80);
+    }
+    await expect(button).toBeVisible({ timeout: 500 });
+  }).toPass({ timeout: 20_000 });
+  await button.click();
+}
+
 test.describe('TV display', () => {
+  test('a single nudge of the mouse shows nothing', async ({ page }) => {
+    const id = await configuredScreen(page);
+    await page.goto(`/tv/${id}`);
+    await expect(page.getByText(/fajr/i).first()).toBeVisible();
+    await page.waitForTimeout(1_000);
+    await page.mouse.move(400, 400);
+    await page.mouse.move(460, 400);
+    await page.waitForTimeout(800);
+    await expect(page.getByRole('button', { name: 'Settings', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Screen settings' })).toHaveCount(0);
+  });
+
   test('shows every prayer with a time', async ({ page }) => {
     const id = await configuredScreen(page);
     await page.goto(`/tv/${id}`);
@@ -18,13 +48,9 @@ test.describe('TV display', () => {
     const id = await configuredScreen(page);
     await page.goto(`/tv/${id}`);
 
-    // The pointermove listener is attached on hydration, so a single move
-    // fired before then is lost. Keep nudging until it lands.
     const overlay = page.getByRole('heading', { name: 'Screen settings' });
-    await expect(async () => {
-      await page.mouse.move(400 + Math.random() * 40, 400 + Math.random() * 40);
-      await expect(overlay).toBeVisible({ timeout: 1_000 });
-    }).toPass({ timeout: 20_000 });
+    await openOverlay(page);
+    await expect(overlay).toBeVisible();
 
     // The shortened address is a real link a TV remote can activate.
     const link = page.getByRole('link', { name: new RegExp(`/s/${id.slice(0, 8)}`) });
@@ -38,14 +64,8 @@ test.describe('TV display', () => {
     const id = await configuredScreen(page);
     await page.goto(`/tv/${id}`);
 
-    // The overlay opens on pointermove, and that listener is attached on
-    // hydration. One move fired before then is simply lost, so keep nudging
-    // until it lands — which is what a person waving a remote does anyway.
     const link = page.getByRole('link', { name: new RegExp(`/s/${id.slice(0, 8)}`) });
-    await expect(async () => {
-      await page.mouse.move(400 + Math.random() * 40, 400 + Math.random() * 40);
-      await expect(link).toBeVisible({ timeout: 1_000 });
-    }).toPass({ timeout: 20_000 });
+    await openOverlay(page);
 
     await link.click();
     await page.waitForURL(`**/s/${id}`);
