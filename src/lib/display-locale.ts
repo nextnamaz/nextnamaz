@@ -106,6 +106,18 @@ export function formatLongDate(date: Date, locale: DisplayLocale): string {
   }
 }
 
+/**
+ * The long date without its year, in the language's own order and
+ * punctuation: "Söndag 22 november", "Nedjelja, 22. novembar", "Domingo, 22 de
+ * noviembre" (Spanish loses its "de 2026", not just the digits).
+ */
+export function formatDateWithoutYear(date: Date, locale: DisplayLocale): string {
+  const text = formatLongDate(date, locale).replace(/(?:,|\s+de)?\s*\d{4}\.?/, '').trim();
+  // It stands on a line of its own, so it opens with a capital even where the
+  // language writes weekdays small mid-sentence ("söndag").
+  return text.charAt(0).toLocaleUpperCase(locale.locale) + text.slice(1);
+}
+
 /** The date in two parts, for a theme that sets the weekday on its own line: "Petak" and "2. oktobar 2026." */
 export function formatDateParts(date: Date, locale: DisplayLocale): { weekday: string; date: string } {
   const fnsLocale = DATE_FNS_LOCALES[locale.locale] ?? enGB;

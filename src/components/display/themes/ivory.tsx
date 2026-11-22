@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ThemeProps, ThemeDefinition } from './index';
 import type { PrayerState } from './config';
-import { formatLongDate, formatPrayerTime, isRtlLocale } from '@/lib/display-locale';
+import { formatDateWithoutYear, formatLongDate, formatPrayerTime, isRtlLocale } from '@/lib/display-locale';
 import { DEFAULT_TRANSLATIONS } from '@/lib/locale/presets';
 import { useDisplayClock } from '@/hooks/display/use-display-clock';
 import { useHydrated } from '@/hooks/display/use-hydrated';
@@ -127,6 +127,9 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
   const rtl = isRtlLocale(locale);
   const { ink, faded } = readChoice(SCHEMES, config.color, 'navy');
   const hasIqamah = prayers.some((p) => p.iqamahTime);
+  // Larger text for a screen read from across a big hall. The clock grows only
+  // as far as the arch allows; the times along the band grow the most.
+  const large = config.textSize === 'large';
 
   const states: PrayerState[] = live
     ? prayerStates(prayers, nextPrayer?.name ?? null, date)
@@ -135,11 +138,12 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
   const countdown = live && target ? countdownTo(target, date) : null;
   const [clock] = splitClock(timeStr);
 
-  /** Pick a size for the current orientation. */
-  const t = (portrait: string, landscape: string) => (isPortrait ? portrait : landscape);
+  /** Pick a size for the current orientation, and for large text. */
+  const t = (portrait: string, landscape: string, landscapeLarge = landscape) =>
+    isPortrait ? portrait : large ? landscapeLarge : landscape;
 
   const emblem: CSSProperties = {
-    height: t('min(22cqw, 12cqh)', '24cqh'),
+    height: t('min(22cqw, 12cqh)', '24cqh', hasIqamah ? '15cqh' : '19cqh'),
     aspectRatio: '1064 / 1397',
     background: GOLD,
     WebkitMask: `url(${ASSETS}/basmala.svg) center / contain no-repeat`,
@@ -152,11 +156,12 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
     <div
       style={{
         position: 'absolute',
-        inset: '12% 11% 3%',
+        // Large text gives the clock more of the niche's width.
+        inset: large ? '10% 6% 4%' : '12% 11% 3%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: large ? 'center' : 'flex-start',
         textAlign: 'center',
       }}
     >
@@ -165,7 +170,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
         <div
           dir="ltr"
           style={{
-            fontSize: t('min(16cqw, 9cqh)', 'min(15cqmin, 8.4cqw)'),
+            fontSize: t('min(16cqw, 9cqh)', 'min(15cqmin, 8.4cqw)', hasIqamah ? 'min(15cqmin, 8.4cqw)' : 'min(17.5cqmin, 9.6cqw)'),
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: '-0.02em',
@@ -174,28 +179,53 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
         >
           {live ? clock : '00:00'}
         </div>
-        <div style={{ fontSize: t('min(4.2cqw, 2.3cqh)', '3.2cqmin'), opacity: 0.65, marginTop: '0.8cqmin', visibility: live ? undefined : 'hidden' }}>
-          {live ? formatLongDate(date, locale) : '\u00a0'}
-        </div>
-        <div
-          style={{
-            fontSize: t('min(4.4cqw, 2.5cqh)', '3.4cqmin'),
-            marginTop: t('1.6cqw', '1.2cqmin'),
-            whiteSpace: 'nowrap',
-            visibility: live ? undefined : 'hidden',
-          }}
-        >
-          {starting && nextPrayer ? (
-            <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
-          ) : countdown && nextPrayer ? (
-            <>
-              {iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)}{' '}
-              <b>{formatCountdown(countdown, { showSeconds: true })}</b>
-            </>
-          ) : (
-            '\u00a0'
-          )}
-        </div>
+        {large ? (
+          // Large text keeps only what is read from the back of the hall. The
+          // date belongs to the clock, so it sits right under it; what comes
+          // next stands apart below, in the ink.
+          <>
+            <div style={{ fontSize: '3.2cqmin', opacity: 0.6, marginTop: '1cqmin', whiteSpace: 'nowrap', visibility: live ? undefined : 'hidden' }}>
+              {live ? formatDateWithoutYear(date, locale) : '\u00a0'}
+            </div>
+            <div style={{ fontSize: '4.2cqmin', marginTop: hasIqamah ? '1.8cqmin' : '3cqmin', whiteSpace: 'nowrap', visibility: live ? undefined : 'hidden' }}>
+              {starting && nextPrayer ? (
+                <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
+              ) : countdown && nextPrayer ? (
+                <>
+                  {iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)}{' '}
+                  <b dir="ltr">{formatCountdown(countdown, { showSeconds: true })}</b>
+                </>
+              ) : (
+                '\u00a0'
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: t('min(4.2cqw, 2.3cqh)', '3.2cqmin'), opacity: 0.65, marginTop: '0.8cqmin', visibility: live ? undefined : 'hidden' }}>
+              {live ? formatLongDate(date, locale) : '\u00a0'}
+            </div>
+            <div
+              style={{
+                fontSize: t('min(4.4cqw, 2.5cqh)', '3.4cqmin'),
+                marginTop: t('1.6cqw', '1.2cqmin'),
+                whiteSpace: 'nowrap',
+                visibility: live ? undefined : 'hidden',
+              }}
+            >
+              {starting && nextPrayer ? (
+                <b className="prayer-starting">{startingPhrase(nextPrayer, locale)}</b>
+              ) : countdown && nextPrayer ? (
+                <>
+                  {iqamahPrayer ? iqamahPhrase(locale) : countdownPhrase(nextPrayer, locale)}{' '}
+                  <b>{formatCountdown(countdown, { showSeconds: true })}</b>
+                </>
+              ) : (
+                '\u00a0'
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -206,7 +236,8 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
     <div
       style={{
         position: 'relative',
-        height: hasIqamah ? t('min(80cqw, 44cqh)', '63cqh') : t('min(80cqw, 45cqh)', '70cqh'),
+        // Large text: the niche fills whatever height the band leaves.
+        height: hasIqamah ? t('min(80cqw, 44cqh)', '63cqh', '100%') : t('min(80cqw, 45cqh)', '70cqh', '100%'),
         aspectRatio: `${BOX.width} / ${BOX.height}`,
         flexShrink: 0,
       }}
@@ -242,7 +273,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
             style={{
               fontFamily: 'var(--font-naskh)',
               fontWeight: 700,
-              fontSize: t('min(5.6cqw, 3.1cqh)', '3.6cqmin'),
+              fontSize: t('min(5.6cqw, 3.1cqh)', '3.6cqmin', '4.3cqmin'),
               lineHeight: 1.4,
               color: next ? GOLD : past ? 'rgb(154 111 18 / 0.45)' : GOLD_TEXT,
             }}
@@ -253,7 +284,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
         const name = !rtl && (
           <span
             style={{
-              fontSize: `calc(${t('min(4.6cqw, 2.6cqh)', '2.8cqmin')} * ${shrinkToFit(prayer.displayName, 11)})`,
+              fontSize: `calc(${t('min(4.6cqw, 2.6cqh)', '2.8cqmin', '3.7cqmin')} * ${shrinkToFit(prayer.displayName, 11)})`,
               fontWeight: 600,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -264,7 +295,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
           </span>
         );
         const begins = (
-          <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+          <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin', hasIqamah ? 'min(8cqmin, 4.4cqw)' : 'min(8.4cqmin, 4.6cqw)'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
             <TimeText value={formatPrayerTime(prayer.time, locale)} />
           </span>
         );
@@ -280,7 +311,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
               justifyContent: isPortrait ? 'flex-start' : 'center',
               gap: '0.35em',
               whiteSpace: 'nowrap',
-              fontSize: t('min(3.2cqw, 1.8cqh)', '2.4cqmin'),
+              fontSize: t('min(3.2cqw, 1.8cqh)', '2.4cqmin', '3cqmin'),
               ...(isPortrait
                 ? {}
                 : {
@@ -386,11 +417,11 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
 
   return (
     <div data-theme="ivory" style={root}>
-      <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
+      <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'grid', gridTemplateColumns: '1fr auto 1fr', gridTemplateRows: 'minmax(0, 1fr)', alignItems: 'center' }}>
         {/* The first of the pair on the right as you face the qibla, whichever
             way the screen's language runs: an RTL grid starts on the right. */}
         <div style={{ justifySelf: 'center' }}>{side(rtl ? 0 : 1, '30cqh')}</div>
-        <div style={{ alignSelf: 'end' }}>{mihrab}</div>
+        <div style={large ? { alignSelf: 'stretch', minHeight: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' } : { alignSelf: 'end' }}>{mihrab}</div>
         <div style={{ justifySelf: 'center' }}>{side(rtl ? 1 : 0, '30cqh')}</div>
       </div>
       {band}
@@ -418,8 +449,20 @@ export const ivoryDefinition: ThemeDefinition = {
         { value: 'black', label: 'Black' },
       ],
     },
+    {
+      key: 'textSize',
+      label: 'Text size',
+      type: 'select',
+      defaultValue: 'normal',
+      description: 'Large makes the clock and the times easier to read from the back of the hall',
+      options: [
+        { value: 'normal', label: 'Normal' },
+        { value: 'large', label: 'Large' },
+      ],
+    },
   ],
   defaultConfig: {
     color: 'navy',
+    textSize: 'normal',
   },
 };
