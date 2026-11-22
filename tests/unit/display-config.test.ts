@@ -27,7 +27,7 @@ const DEFAULT_CONFIG: DisplayConfig = {
   iqamah: {},
   blackout: { enabled: false, minutes: 15 },
   controlQr: { enabled: true },
-  announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, items: [] },
+  announcements: { enabled: false, layout: 'full', intervalMin: 10, showSeconds: 12, maxSeconds: 0, items: [] },
 };
 
 /** Everything a jsonb column can hold that is not a plain object. */
@@ -44,6 +44,7 @@ const SAVED: Json = {
     layout: 'split',
     intervalMin: 30,
     showSeconds: 8,
+    maxSeconds: 15,
     items: [
       { path: 'screen/eid.png', url: 'https://cdn.example/eid.png', kind: 'image' },
       { path: 'screen/khutbah.mp4', url: 'https://cdn.example/khutbah.mp4', kind: 'video' },
@@ -57,6 +58,10 @@ const announcementsOf = (patch: Record<string, Json>): DisplayConfig['announceme
 const slidesOf = (items: Json): SlideItem[] => announcementsOf({ items }).items;
 
 describe('asPrayerTimes', () => {
+  it('gives a screen saved before the time limit existed no limit', () => {
+    expect(asDisplayConfig({ announcements: { enabled: true, intervalMin: 5, showSeconds: 10 } }).announcements.maxSeconds).toBe(0);
+  });
+
   it('keeps every stored time and drops keys that are not one of the six prayers', () => {
     const stored: Json = {
       fajr: '03:26',
@@ -170,6 +175,7 @@ describe('asDisplayConfig', () => {
         layout: 'split',
         intervalMin: 30,
         showSeconds: 8,
+        maxSeconds: 15,
         items: [
           { path: 'screen/eid.png', url: 'https://cdn.example/eid.png', kind: 'image' },
           { path: 'screen/khutbah.mp4', url: 'https://cdn.example/khutbah.mp4', kind: 'video' },

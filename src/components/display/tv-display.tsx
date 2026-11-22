@@ -230,7 +230,8 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
     slides ?? fitConfig.announcements.items,
     fitConfig.announcements.enabled,
     fitConfig.announcements.intervalMin,
-    fitConfig.announcements.showSeconds
+    fitConfig.announcements.showSeconds,
+    fitConfig.announcements.maxSeconds
   );
 
   if (!screen.configured) {
