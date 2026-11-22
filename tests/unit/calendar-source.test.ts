@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   calendarTimes,
+  calendarToCsv,
   dateIn,
   lastCalendarDay,
   mergeCalendar,
@@ -26,6 +27,23 @@ describe('parseCalendarCsv', () => {
   it('takes semicolons, a BOM, single-digit hours and dots', () => {
     const { days } = parseCalendarCsv('﻿datum;fajr;soluppgång;dhuhr;asr;maghrib;isha\r\n2026-12-01;6.03;8:22;12:06;13:22;15:40;17:51\r\n');
     expect(days['2026-12-01']).toEqual(['06:03', '08:22', '12:06', '13:22', '15:40', '17:51']);
+  });
+
+  it('finds the columns by their header, in any order and language', () => {
+    const bosnian = 'Takvim 2026\nDatum;Dan;Zora;Izlazak sunca;Podne;Ikindija;Akšam;Jacija\n1.12.2026;Utorak;6:03;8:22;12:06;13:22;15:40;17:51\n';
+    expect(parseCalendarCsv(bosnian).days['2026-12-01']).toEqual(['06:03', '08:22', '12:06', '13:22', '15:40', '17:51']);
+    const turkish = 'Tarih,Yatsı,İmsak,Güneş,Öğle,İkindi,Akşam\n01/12/2026,17:51,06:03,08:22,12:06,13:22,15:40\n';
+    expect(parseCalendarCsv(turkish).days['2026-12-01']).toEqual(['06:03', '08:22', '12:06', '13:22', '15:40', '17:51']);
+  });
+
+  it('takes rows pasted from a spreadsheet, with seconds', () => {
+    const pasted = 'Datum\tFajr\tSoluppgång\tDhuhr\tAsr\tMaghrib\tIsha\n2026-12-01\t06:03:00\t08:22:00\t12:06:00\t13:22:00\t15:40:00\t17:51:00';
+    expect(parseCalendarCsv(pasted).days['2026-12-01']).toEqual(['06:03', '08:22', '12:06', '13:22', '15:40', '17:51']);
+  });
+
+  it('reads back what it writes', () => {
+    const { days } = parseCalendarCsv(GOTEBORG);
+    expect(parseCalendarCsv(calendarToCsv(days)).days).toEqual(days);
   });
 
   it('names the lines it cannot read', () => {
