@@ -295,7 +295,7 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
           </span>
         );
         const begins = (
-          <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin', hasIqamah ? 'min(8cqmin, 4.4cqw)' : 'min(8.4cqmin, 4.6cqw)'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+          <span style={{ fontSize: t('min(8cqw, 4.4cqh)', '6cqmin', hasIqamah ? 'min(7.2cqmin, 4cqw)' : 'min(7.6cqmin, 4.2cqw)'), fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
             <TimeText value={formatPrayerTime(prayer.time, locale)} />
           </span>
         );
@@ -366,7 +366,8 @@ export function IvoryTheme({ prayers, nextPrayer: upcoming, config, isPortrait, 
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    padding: '1.6cqmin 1cqmin 1.8cqmin',
+                    // Large text gets more air, so the big times don't press on the rules.
+                    padding: large ? '2.4cqmin 1.4cqmin 2.6cqmin' : '1.6cqmin 1cqmin 1.8cqmin',
                     borderInlineStart: i > 0 ? divider : undefined,
                   }),
             }}
