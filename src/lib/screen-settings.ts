@@ -6,6 +6,7 @@ import { FIXABLE_PRAYERS } from '@/lib/fixed-times';
 import { MAX_IQAMAH_MINUTES } from '@/lib/iqamah';
 import { LANGUAGES } from '@/lib/locale/presets';
 import { ALADHAN_METHODS } from '@/lib/prayer-sources/aladhan';
+import { MAX_CALENDAR_DAYS } from '@/lib/prayer-sources/calendar';
 import type { PrayerSourceConfig } from '@/types/prayer-config';
 
 // --- Prayer source validation (schema picked by source type) ---
@@ -44,9 +45,15 @@ const sourceConfigSchemas = {
   islamiska_forbundet: z.object({
     city: z.string().regex(/^[A-Za-zÀ-ž .'-]+$/).max(60),
   }),
+  calendar: z.object({
+    timezone: z.string().regex(/^[A-Za-z0-9_+\/-]+$/).max(64),
+    days: z
+      .record(z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.array(z.string().regex(TIME_24H)).length(6))
+      .refine((days) => Object.keys(days).length <= MAX_CALENDAR_DAYS, 'Calendar is too long'),
+  }),
 } as const;
 
-const prayerSourceSchema = z.enum(['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet']);
+const prayerSourceSchema = z.enum(['manual', 'adhan', 'aladhan', 'vaktija_ba', 'vaktija_eu', 'islamiska_forbundet', 'calendar']);
 export type PrayerSourceInput = z.infer<typeof prayerSourceSchema>;
 
 export function parseSourceConfig(source: PrayerSourceInput, config: unknown): PrayerSourceConfig | null {
@@ -99,7 +106,7 @@ export const screenSettingsSchema = z.object({
           z.object({
             path: z.string().max(300),
             url: z.string().url().max(600),
-            kind: z.enum(['image', 'video']),
+            kind: z.enum(['image', 'video', 'google-slides']),
           })
         )
         .max(12),

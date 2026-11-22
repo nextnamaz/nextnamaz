@@ -6,7 +6,8 @@ import { fetchPrayerTimes } from '@/lib/prayer-sources';
 import { parseSourceConfig, screenSettingsSchema } from '@/lib/screen-settings';
 import type { PrayerSourceInput, ScreenSettingsInput } from '@/lib/screen-settings';
 import { asDisplayConfig } from '@/types/database';
-import type { PrayerTimesMap, Json } from '@/types/database';
+import type { PrayerTimesMap, Json, SlideItem } from '@/types/database';
+import { deckIdOf, deckItem, fetchSlideIds, publishedDeckId } from '@/lib/google-slides';
 import { cookies } from 'next/headers';
 import { after } from 'next/server';
 import { logEvent } from '@/lib/stats';
@@ -81,9 +82,12 @@ export async function saveScreen(
   const sourceConfig = parseSourceConfig(parsed.data.prayer_source, parsed.data.prayer_source_config);
   if (sourceConfig === null) return { ok: false, error: 'Invalid source settings' };
 
-  // Media must live in this screen's own storage folder.
+  // Media must live in this screen's own storage folder, or be a published
+  // Google Slides deck.
   const ownPath = (p: string) => p.startsWith(`${id}/`) && !p.includes('..');
-  if (!parsed.data.display_config.announcements.items.every((i) => ownPath(i.path))) {
+  const validItem = (i: SlideItem) =>
+    i.kind === 'google-slides' ? deckIdOf(i) !== null : ownPath(i.path);
+  if (!parsed.data.display_config.announcements.items.every(validItem)) {
     return { ok: false, error: 'Invalid announcement media' };
   }
 
@@ -136,7 +140,7 @@ const SLIDE_TYPES: Record<string, { ext: string; kind: 'image' | 'video'; maxByt
 };
 
 type UploadSlideResult =
-  | { ok: true; item: { path: string; url: string; kind: 'image' | 'video' } }
+  | { ok: true; item: SlideItem }
   | { ok: false; error: string };
 
 /**
@@ -182,6 +186,28 @@ export async function uploadSlideImage(
 
   const { data } = client.storage.from('slides').getPublicUrl(path);
   return { ok: true, item: { path, url: data.publicUrl, kind } };
+}
+
+/**
+ * Check a pasted Google Slides link (or its <iframe> embed code) and return
+ * the item for it. Nothing is stored until the settings are saved.
+ */
+export async function addGoogleSlides(screenId: string, input: string): Promise<UploadSlideResult> {
+  if (!UUID_RE.test(screenId)) return { ok: false, error: 'Unknown screen' };
+  const deckId = publishedDeckId(input.slice(0, 4000));
+  if (!deckId) {
+    return {
+      ok: false,
+      error: 'Paste the link from File → Share → Publish to web in Google Slides',
+    };
+  }
+  try {
+    const slides = await fetchSlideIds(deckId);
+    if (slides.length === 0) return { ok: false, error: 'That presentation has no slides' };
+  } catch {
+    return { ok: false, error: 'Could not open that presentation. Is it published to the web?' };
+  }
+  return { ok: true, item: deckItem(deckId) };
 }
 
 type PinResult = { ok: true } | { ok: false; error: string };

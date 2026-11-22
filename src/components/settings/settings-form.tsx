@@ -11,6 +11,7 @@ import {
   Lock,
   Megaphone,
   Palette,
+  Presentation,
   X,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
@@ -18,7 +19,7 @@ import { toast } from 'sonner';
 import { saveScreen, uploadSlideImage } from '@/lib/actions';
 import { Switch } from '@/components/ui/switch';
 import type { ScreenSettingsInput, PrayerSourceInput } from '@/lib/actions';
-import type { Screen, PrayerTimesMap } from '@/types/database';
+import type { Screen, PrayerTimesMap, SlideItem } from '@/types/database';
 import { PRAYER_NAMES } from '@/types/prayer';
 import { flattenDisplayText } from '@/lib/locale/helpers';
 import { CONTROL_QR_DELAY_MINUTES, CONTROL_QR_DURATION_MINUTES } from '@/lib/display-schedule';
@@ -28,6 +29,9 @@ import { SaveBar } from './save-bar';
 import { SetupWizard } from './setup-wizard';
 import { TodayTimes } from './today-times';
 import { PinCard } from './pin-card';
+import { GoogleSlidesField } from './google-slides-field';
+import { CalendarUpload } from './calendar-upload';
+import { asCalendarConfig } from '@/lib/prayer-sources/calendar';
 import { SourceWizard, sourceLabel } from './source-wizard';
 import { ThemePicker, ThemeSettingsForm } from './theme-settings-form';
 import { ManualTimesFields, formFromScreen, sourceExplanation } from './settings-shared';
@@ -90,22 +94,25 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const addSlideItem = (item: SlideItem) =>
+    setForm((prev) => ({
+      ...prev,
+      displayConfig: {
+        ...prev.displayConfig,
+        announcements: {
+          ...prev.displayConfig.announcements,
+          items: [...prev.displayConfig.announcements.items, item],
+        },
+      },
+    }));
+
   const handleSlideUpload = async (file: File) => {
     setUploading(true);
     const fd = new FormData();
     fd.append('file', file);
     const result = await uploadSlideImage(screen.id, fd);
     if (result.ok) {
-      setForm((prev) => ({
-        ...prev,
-        displayConfig: {
-          ...prev.displayConfig,
-          announcements: {
-            ...prev.displayConfig.announcements,
-            items: [...prev.displayConfig.announcements.items, result.item],
-          },
-        },
-      }));
+      addSlideItem(result.item);
     } else {
       toast.error(result.error);
     }
@@ -271,6 +278,20 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                   <Button variant="outline" onClick={() => setWizardOpen(true)}>
                     Change
                   </Button>
+                </div>
+
+                <div className="px-4 sm:px-5 pt-3 pb-1">
+                  <CalendarUpload
+                    current={form.prayerSource === 'calendar' ? asCalendarConfig(form.sourceConfig) : null}
+                    onApply={(config, today) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        prayerSource: 'calendar',
+                        sourceConfig: { timezone: config.timezone, days: config.days },
+                        times: today ?? prev.times,
+                      }))
+                    }
+                  />
                 </div>
 
                 <div className="p-4 sm:p-5">
@@ -518,7 +539,12 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {form.displayConfig.announcements.items.map((item) => (
                     <div key={item.path} className="relative group aspect-video rounded-lg overflow-hidden border border-border bg-black">
-                      {item.kind === 'video' ? (
+                      {item.kind === 'google-slides' ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-muted text-muted-foreground text-xs">
+                          <Presentation className="size-5" />
+                          Google Slides
+                        </div>
+                      ) : item.kind === 'video' ? (
                         <>
                           <video src={item.url} muted preload="metadata" className="w-full h-full object-cover" />
                           <span className="absolute bottom-1 left-1 rounded-full bg-black/70 text-white text-[10px] px-1.5 py-0.5">
@@ -531,7 +557,7 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                       )}
                       <button
                         type="button"
-                        aria-label="Remove image"
+                        aria-label={item.kind === 'google-slides' ? 'Remove Google Slides' : 'Remove image'}
                         onClick={() =>
                           setForm((prev) => ({
                             ...prev,
@@ -571,6 +597,10 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                 <p className="text-xs text-muted-foreground">
                   JPG, PNG or WebP up to 4 MB. MP4 or WebM video up to 40 MB.
                 </p>
+                {form.displayConfig.announcements.items.length < 12 &&
+                  !form.displayConfig.announcements.items.some((i) => i.kind === 'google-slides') && (
+                    <GoogleSlidesField screenId={screen.id} onAdd={addSlideItem} />
+                  )}
                 <input
                   ref={fileInput}
                   type="file"
@@ -616,7 +646,7 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="ann-seconds">Each image for</Label>
+                        <Label htmlFor="ann-seconds">Each image or slide for</Label>
                         <span className="text-sm tabular-nums text-muted-foreground">
                           {form.displayConfig.announcements.showSeconds} s
                         </span>

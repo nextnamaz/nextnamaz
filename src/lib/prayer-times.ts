@@ -13,6 +13,7 @@ const PRAYER_SOURCES: readonly PrayerSourceType[] = [
   'vaktija_ba',
   'vaktija_eu',
   'islamiska_forbundet',
+  'calendar',
 ];
 
 function isPrayerSource(value: string): value is PrayerSourceType {

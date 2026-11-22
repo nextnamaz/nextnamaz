@@ -24,6 +24,23 @@ accounts. There was no backup to restore from. Do not let this happen twice.
 5. Prefer additive migrations. To retire a column, stop writing to it and leave
    it; dropping it buys nothing and cannot be undone.
 
+## Shipping — other mosques' screens are live
+
+Every push to `main` reaches every TV in every mosque within minutes. Treat it
+like the database: someone else's screen is on air while you deploy.
+
+1. **Never push straight to `main`, and never force-push it.** Work on a
+   branch, open a PR, and let Ismail merge it.
+2. **Saved data must keep working.** Existing rows in `screens` (sources,
+   `display_config`, `theme_config`) were written by older code. A new field
+   is optional with a safe default; never rename or remove one that rows
+   already carry, and never make old values invalid. `asDisplayConfig` and
+   `parseSourceConfig` must still read every row that exists today.
+3. **A TV must never go blank.** Anything new on the display (a source, media,
+   a theme) that fails falls back to what was there, never to an error page.
+4. **Run the checks below before every PR**, and rehearse the change in a
+   browser on a real `/tv/<id>` and `/s/<id>`, not only in tests.
+
 ## SEO
 
 `/s/<id>` and `/tv/<id>` must stay out of search indexes — the id is the
