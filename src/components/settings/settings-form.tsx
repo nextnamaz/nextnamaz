@@ -674,6 +674,40 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                         className="w-full accent-primary"
                       />
                     </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="ann-max">Back to the prayer times after</Label>
+                        <span className="text-sm tabular-nums text-muted-foreground">
+                          {form.displayConfig.announcements.maxSeconds === 0
+                            ? 'All slides shown'
+                            : `${form.displayConfig.announcements.maxSeconds} s`}
+                        </span>
+                      </div>
+                      <input
+                        id="ann-max"
+                        type="range"
+                        min={0}
+                        max={300}
+                        step={5}
+                        value={form.displayConfig.announcements.maxSeconds}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            displayConfig: {
+                              ...prev.displayConfig,
+                              announcements: {
+                                ...prev.displayConfig.announcements,
+                                maxSeconds: Number(e.target.value),
+                              },
+                            },
+                          }))
+                        }
+                        className="w-full accent-primary"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        The next time, the slides carry on where they stopped, so every one is still shown.
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>

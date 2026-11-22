@@ -101,6 +101,8 @@ export const screenSettingsSchema = z.object({
       layout: z.enum(['full', 'split']),
       intervalMin: z.number().min(1).max(120),
       showSeconds: z.number().min(3).max(60),
+      // Optional: a settings page still open from before this existed sends none.
+      maxSeconds: z.number().min(0).max(600).optional(),
       items: z
         .array(
           z.object({

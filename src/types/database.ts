@@ -241,6 +241,8 @@ export interface DisplayConfig {
     intervalMin: number;
     /** Seconds each image stays up (videos play to their end). */
     showSeconds: number;
+    /** Longest a round of slides may last, in seconds; 0 means no limit. */
+    maxSeconds: number;
     items: SlideItem[];
   };
 }
@@ -288,6 +290,8 @@ export function asDisplayConfig(json: Json): DisplayConfig {
       layout: ann.layout === 'split' ? 'split' : 'full',
       intervalMin: clamped(ann.intervalMin, 1, 120, 10),
       showSeconds: clamped(ann.showSeconds, 3, 60, 12),
+      // Screens saved before the limit existed keep showing every item.
+      maxSeconds: clamped(ann.maxSeconds, 0, 600, 0),
       items: items.slice(0, 12),
     },
   };

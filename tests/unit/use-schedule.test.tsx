@@ -19,12 +19,13 @@ interface SlideshowProps {
   enabled: boolean;
   intervalMin: number;
   showSeconds: number;
+  maxSeconds?: number;
 }
 
 function renderSlideshow(initialProps: SlideshowProps) {
   return renderHook(
     (props: SlideshowProps) =>
-      useSlideshow(props.items, props.enabled, props.intervalMin, props.showSeconds),
+      useSlideshow(props.items, props.enabled, props.intervalMin, props.showSeconds, props.maxSeconds),
     { initialProps }
   );
 }
@@ -88,6 +89,66 @@ describe('useSlideshow', () => {
     expect(result.current.slide?.path).toBe('b');
     tick(5_000);
     expect(result.current.slide?.path).toBe('c');
+  });
+
+  it('ends a round at maxSeconds and picks up at the next item', () => {
+    const { result } = renderSlideshow({
+      items: [image('a'), image('b'), image('c'), image('d')],
+      enabled: true,
+      intervalMin: 1,
+      showSeconds: 10,
+      maxSeconds: 15,
+    });
+
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('a');
+    tick(10_000);
+    expect(result.current.slide?.path).toBe('b');
+    // b only gets the 5 s left in the round.
+    tick(5_000);
+    expect(result.current.slide).toBeNull();
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('c');
+    tick(10_000);
+    expect(result.current.slide?.path).toBe('d');
+    tick(5_000);
+    expect(result.current.slide).toBeNull();
+    // Round three wraps back to the start.
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('a');
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it('cuts a long video short at maxSeconds', () => {
+    const { result } = renderSlideshow({
+      items: [clip('v'), image('b')],
+      enabled: true,
+      intervalMin: 1,
+      showSeconds: 10,
+      maxSeconds: 15,
+    });
+
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('v');
+    tick(15_000);
+    expect(result.current.slide).toBeNull();
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('b');
+  });
+
+  it('with no limit, every round shows the whole list from the start', () => {
+    const { result } = renderSlideshow({
+      items: [image('a'), image('b')],
+      enabled: true,
+      intervalMin: 1,
+      showSeconds: 5,
+      maxSeconds: 0,
+    });
+
+    tick(MINUTE + 10_000);
+    expect(result.current.slide).toBeNull();
+    tick(MINUTE);
+    expect(result.current.slide?.path).toBe('a');
   });
 
   it('hides after the last item and comes back one interval later', () => {
