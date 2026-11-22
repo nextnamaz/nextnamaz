@@ -283,6 +283,7 @@ export function SettingsForm({ screen, hasPin, uiLocale }: SettingsFormProps) {
                 <div className="px-4 sm:px-5 pt-3 pb-1">
                   <CalendarUpload
                     current={form.prayerSource === 'calendar' ? asCalendarConfig(form.sourceConfig) : null}
+                    labels={form.displayText.prayers}
                     onApply={(config, today) =>
                       setForm((prev) => ({
                         ...prev,

@@ -78,7 +78,7 @@ test.describe('calendar file', () => {
 
     const id = await configuredScreen(page);
     await page.goto(`/s/${id}`);
-    await page.getByRole('button', { name: /own calendar file/i }).click({ trial: true });
+    await page.getByRole('button', { name: /own calendar/i }).click();
     await page.setInputFiles('input[type="file"][accept*=".csv"]', CALENDAR);
     await expect(page.getByText('Your calendar file')).toBeVisible();
     await saveSettings(page);
@@ -92,5 +92,33 @@ test.describe('calendar file', () => {
 
     await page.goto(`/tv/${id}`);
     await expect(page.getByText(fajr).first()).toBeVisible({ timeout: 30_000 });
+  });
+});
+
+test.describe('calendar editing', () => {
+  test('rows pasted from a spreadsheet become the calendar, and a day can be changed', async ({ page }) => {
+    const today = todayInStockholm();
+    const id = await configuredScreen(page);
+    await page.goto(`/s/${id}`);
+
+    await page.getByRole('button', { name: /own calendar/i }).click();
+    // As copied from a Swedish spreadsheet: tabs, a header in any order.
+    await page.getByLabel('Calendar rows').fill(`Datum\tIsha\tFajr\tSoluppgång\tDhuhr\tAsr\tMaghrib\n${today}\t17:59\t05:49\t08:04\t12:03\t13:30\t15:52`);
+    await page.getByRole('button', { name: 'Add these days' }).click();
+    await expect(page.getByText('Your calendar file')).toBeVisible();
+
+    await page.getByRole('button', { name: 'See and edit days' }).click();
+    await page.locator('li button[aria-expanded]').first().click();
+    await page.getByLabel('Isha').fill('18:10');
+    await saveSettings(page);
+
+    await page.reload();
+    await expect(page.getByText('18:10').first()).toBeVisible();
+    await page.screenshot({ path: 'test-results/calendar-edit.png', fullPage: true });
+
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download' }).click();
+    const csv = readFileSync(await (await download).path(), 'utf8');
+    expect(csv).toContain(`${today},05:49,08:04,12:03,13:30,15:52,18:10`);
   });
 });
