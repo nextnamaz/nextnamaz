@@ -24,10 +24,22 @@ import { startingPrayer } from '@/lib/display-schedule';
 import { awaitingIqamah, withIqamah } from '@/lib/iqamah';
 import type { ScreenPlace } from '@/lib/screen-place';
 
-/** How long the settings overlay stays after the last real activity. */
-const OVERLAY_HIDE_MS = 5_000;
+/**
+ * hidden: the display alone. button: a small Settings button, shown while a
+ * mouse is being moved on purpose. open: the settings popup, covering the
+ * display, which only a click on that button or a key press brings up.
+ */
+type OverlayState = 'hidden' | 'button' | 'open';
+/** How long each stays after the last real activity. */
+const OVERLAY_BUTTON_HIDE_MS = 3_000;
+const OVERLAY_OPEN_HIDE_MS = 15_000;
 /** Pointer travel below this is wobble, not intent, and does not count. */
 const OVERLAY_JITTER_PX = 6;
+/** The mouse must keep moving this long before the button appears, so a bump
+ *  or a pointer crossing the window shows nothing. */
+const OVERLAY_INTENT_MS = 400;
+/** A gap longer than this between movements starts the count again. */
+const OVERLAY_PAUSE_MS = 250;
 
 /** Sits under the corner QR after each prayer. Short: it renders very small. */
 const CONTROL_QR_CAPTION = 'Scan to manage';
@@ -110,7 +122,8 @@ interface TvDisplayProps {
 export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: TvDisplayProps) {
   const router = useRouter();
   const isPortrait = useViewportPortrait();
-  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [overlay, setOverlayState] = useState<OverlayState>('hidden');
+  const overlayRef = useRef<OverlayState>('hidden');
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Live updates: saving on the phone broadcasts on screen:<id>. Refreshing
@@ -171,39 +184,59 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
     return () => clearInterval(id);
   }, []);
 
-  const showOverlay = useCallback(() => {
-    setOverlayVisible(true);
+  // Sets the overlay and re-arms its timer, so each call counts as activity.
+  const setOverlay = useCallback((next: OverlayState) => {
+    overlayRef.current = next;
+    setOverlayState(next);
     if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setOverlayVisible(false), OVERLAY_HIDE_MS);
+    if (next === 'hidden') return;
+    hideTimer.current = setTimeout(
+      () => {
+        overlayRef.current = 'hidden';
+        setOverlayState('hidden');
+      },
+      next === 'open' ? OVERLAY_OPEN_HIDE_MS : OVERLAY_BUTTON_HIDE_MS
+    );
   }, []);
 
-  const hideOverlay = useCallback(() => {
-    setOverlayVisible(false);
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-  }, []);
-
-  // Any real mouse/remote/keyboard activity brings the QR overlay back. A
-  // pointer that only wobbles (a mouse on a humming shelf, a sensitive
-  // air-mouse remote) is ignored, or it would hold the overlay open forever.
-  // The first movement always counts, so a single nudge opens it.
+  // A mouse moved on purpose brings up the Settings button; the popup itself
+  // waits for a click on it. Touch never counts: a phone cannot scan its own
+  // screen, and a tap there should not cover the display. A pointer that only
+  // wobbles (a mouse on a humming shelf, a sensitive air-mouse remote) or is
+  // bumped once is ignored. A key press opens the popup directly, because a
+  // TV remote has no pointer to click the button with.
   useEffect(() => {
     if (!screen.configured) return;
     let last: { x: number; y: number } | null = null;
+    let startedAt = 0;
+    let movedAt = 0;
+    const stay = () => setOverlay(overlayRef.current === 'open' ? 'open' : 'button');
     const onPointerMove = (e: PointerEvent) => {
-      const moved = last ? Math.hypot(e.clientX - last.x, e.clientY - last.y) : Infinity;
+      if (e.pointerType === 'touch') return;
+      if (!last) {
+        last = { x: e.clientX, y: e.clientY };
+        return;
+      }
+      if (Math.hypot(e.clientX - last.x, e.clientY - last.y) < OVERLAY_JITTER_PX) return;
       last = { x: e.clientX, y: e.clientY };
-      if (moved >= OVERLAY_JITTER_PX) showOverlay();
+      if (e.timeStamp - movedAt > OVERLAY_PAUSE_MS) startedAt = e.timeStamp;
+      movedAt = e.timeStamp;
+      if (overlayRef.current !== 'hidden' || e.timeStamp - startedAt >= OVERLAY_INTENT_MS) stay();
     };
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') stay();
+    };
+    const onKeyDown = () => setOverlay('open');
     window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerdown', showOverlay);
-    window.addEventListener('keydown', showOverlay);
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', showOverlay);
-      window.removeEventListener('keydown', showOverlay);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
-  }, [screen.configured, showOverlay]);
+  }, [screen.configured, setOverlay]);
 
   const startOver = () => {
     if (!confirm('Set up this TV as a new screen? Current settings stay reachable via their link.')) return;
@@ -329,7 +362,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
       // The page is lang="en"; the display's own language decides how text is
       // cased, so a Turkish screen shows İKİNDİ rather than İKINDI.
       lang={displayLocale.locale}
-      className={overlayVisible ? undefined : 'cursor-none'}
+      className={overlay === 'hidden' ? 'cursor-none' : undefined}
     >
       <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#000' }}>
         {/* Zoom compensates TV overscan; margins fall in the cropped band. */}
@@ -431,7 +464,17 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
               </span>
             </div>
 
-            {overlayVisible && (
+            {overlay === 'button' && (
+              <Button
+                variant="secondary"
+                className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 shadow-lg"
+                onClick={() => setOverlay('open')}
+              >
+                Settings
+              </Button>
+            )}
+
+            {overlay === 'open' && (
               <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8" dir="ltr">
                 <div className="bg-background rounded-lg border border-border shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] p-8 flex flex-col items-center gap-5 max-w-sm text-center">
                   <h2 className="text-2xl">Screen settings</h2>
@@ -449,7 +492,7 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
                     {settingsDisplay}
                   </a>
                   <div className="flex gap-3">
-                    <Button variant="outline" onClick={hideOverlay}>Hide</Button>
+                    <Button variant="outline" onClick={() => setOverlay('hidden')}>Hide</Button>
                     <Button variant="ghost" className="text-destructive" onClick={startOver}>
                       New setup
                     </Button>
