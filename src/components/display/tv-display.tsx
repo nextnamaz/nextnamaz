@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
+import { Settings } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { resolveTheme } from '@/components/display/themes';
 import { defaultDefinition } from '@/components/display/themes/default';
@@ -466,10 +467,22 @@ export function TvDisplay({ screen, todayTimes, settingsUrl, place, slides }: Tv
 
             {overlay === 'button' && (
               <Button
-                variant="secondary"
-                className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 shadow-lg"
+                dir="ltr"
+                // Sized against the viewport so it is as easy to hit on a 4K
+                // wall panel as on a laptop. The ring keeps it visible on a
+                // dark theme.
+                className="fixed z-50 bg-black/90 text-white shadow-2xl ring-2 ring-white/40 hover:bg-black"
+                style={{
+                  top: '3vmin',
+                  right: '3vmin',
+                  height: 'clamp(56px, 8vmin, 120px)',
+                  padding: '0 clamp(24px, 3.5vmin, 56px)',
+                  gap: 'clamp(10px, 1.4vmin, 22px)',
+                  fontSize: 'clamp(20px, 3vmin, 44px)',
+                }}
                 onClick={() => setOverlay('open')}
               >
+                <Settings style={{ width: '1.2em', height: '1.2em' }} />
                 Settings
               </Button>
             )}
