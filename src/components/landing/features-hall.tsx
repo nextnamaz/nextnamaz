@@ -9,7 +9,7 @@ import { ScreenPlaceholder } from './screen-placeholder';
 
 const DemoDisplay = dynamic(() => import('./demo-display').then((m) => m.DemoDisplay), {
   ssr: false,
-  loading: () => <ScreenPlaceholder />,
+  loading: () => <ScreenPlaceholder theme="globe" />,
 });
 
 /** The scene's width for the tile's size: 16:9, covering the tile like a photograph. */
@@ -45,7 +45,7 @@ export function FeaturesHall({ label, display }: { label: string; display: Suppo
         />
         <div className="absolute" style={SET}>
           <TvFrame portrait>
-            <DemoDisplay locale={resolveDisplayLocale(display)} portrait />
+            <DemoDisplay locale={resolveDisplayLocale(display)} portrait theme="globe" />
           </TvFrame>
         </div>
       </div>

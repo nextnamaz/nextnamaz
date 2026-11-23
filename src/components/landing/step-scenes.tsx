@@ -369,7 +369,7 @@ const DemoDisplay = dynamic(() => import('./demo-display').then((m) => m.DemoDis
 
 /** Same colour as the display's own ground, so the swap to the live screen is quiet. */
 function ScreenBlank() {
-  return <div className="absolute inset-0 bg-[#F1F3F6]" />;
+  return <div className="absolute inset-0 bg-[#F6F5F1]" />;
 }
 
 /**
@@ -382,7 +382,7 @@ function ScreenLive({ display }: { display: SupportedLocale }) {
       <ScreenBlank />
       {/* Fills in from the top once the phone's button is tapped. */}
       <div className="sa-fill absolute inset-0">
-        <DemoDisplay locale={resolveDisplayLocale(display)} />
+        <DemoDisplay locale={resolveDisplayLocale(display)} theme="paper" />
       </div>
     </>
   );
@@ -393,7 +393,7 @@ const DONE_ROWS: [string, string][] = [
   ['City', 'Göteborg'],
   ['Times', 'Islamiska Förbundet'],
   ['Language', 'English'],
-  ['Look', 'Classic'],
+  ['Look', 'Paper'],
 ];
 
 /**
